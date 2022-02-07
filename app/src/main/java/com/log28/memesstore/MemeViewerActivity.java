@@ -41,17 +41,17 @@ public class MemeViewerActivity extends AppCompatActivity {
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         if(path.endsWith(".jpg")||path.endsWith(".png")||path.endsWith(".webp")){
             imageFragment = new ImageFragment();
-            imageFragment.setMemeImage(path);
+            imageFragment.setMemeImage(new FileHelper(this).getFullPath(path));
             fragmentTransaction.add(R.id.memeViewLayout,imageFragment);
         }
         if(path.endsWith(".mp4")||path.endsWith(".3gp")) {
             videoLocalFragment = new VideoLocalFragment();
-            videoLocalFragment.setMemeImage(path);
+            videoLocalFragment.setMemeImage(new FileHelper(this).getFullPath(path));
             fragmentTransaction.add(R.id.memeViewLayout, videoLocalFragment);
         }
         if(path.startsWith("http")){
             videoFragment = new VideoFragment();
-            videoFragment.setMemeImage(path);
+            videoFragment.setMemeImage(new FileHelper(this).getFullPath(path));
             fragmentTransaction.add(R.id.memeViewLayout, videoFragment);
         }
 
@@ -73,7 +73,7 @@ public class MemeViewerActivity extends AppCompatActivity {
 
         Intent intent = new Intent(this,MainActivity.class);
         intent.setData(Uri.parse(path));
-        setResult(0,intent);
+        setResult(15,intent);
         finish();
         //Support.db.delete(path);
 
@@ -87,12 +87,12 @@ public class MemeViewerActivity extends AppCompatActivity {
                 Intent intent = new Intent(Intent.ACTION_SEND);
                 intent.setType("text/plain");
                 //intent.putExtra(Intent.EXTRA_TEXT,"Если ты это читаешь, значит у меня получилось");
-                intent.putExtra(Intent.EXTRA_TEXT, path + "\n\n "+memeSign.getText() );
+                intent.putExtra(Intent.EXTRA_TEXT, new FileHelper(this).getFullPath(path) + "\n\n "+memeSign.getText() );
                 startActivity(intent);
             }
                 else
             {
-                Uri memeUri = FileProvider.getUriForFile(MemeViewerActivity.this, "com.log28.memesstore", new File(path));
+                Uri memeUri = FileProvider.getUriForFile(MemeViewerActivity.this, "com.log28.memesstore", new File(new FileHelper(this).getFullPath(path)));
                 //Uri memeUri = Uri.parse("file://"+path);
 
                 Intent intent = new Intent(Intent.ACTION_SEND);

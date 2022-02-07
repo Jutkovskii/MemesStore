@@ -23,6 +23,7 @@ import android.provider.OpenableColumns;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.material.tabs.TabLayout;
 
@@ -236,14 +237,14 @@ void setMemesList(int category){
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(resultCode==0)
+        if(resultCode==15)
            testdb.delete(data.getDataString());
         if(resultCode==RESULT_OK)
         {
             Uri uri=data.getData();
             String type=uri.getPath();
             String action=uri.getLastPathSegment();
-
+            Toast.makeText(this,uri.getPath(),Toast.LENGTH_LONG);
             Cursor returnCursor =
                     getContentResolver().query(uri, null, null, null, null);
             try {
@@ -256,8 +257,10 @@ void setMemesList(int category){
                 Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
                 int y=selectedImage.getHeight();
                 y++;
+
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
+
             }
             getMemeFromIntent(data);
 

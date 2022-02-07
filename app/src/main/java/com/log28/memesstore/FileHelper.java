@@ -3,8 +3,6 @@ package com.log28.memesstore;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
@@ -12,7 +10,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.provider.OpenableColumns;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,10 +20,12 @@ import java.io.OutputStream;
 public class FileHelper {
     public Context context;
     public String root;//корневая папка хранилища
-    public String previews;//папка с превью ютуба
-    public String images;//папка с изображениями
-    public String videos;//папка с видео
-    //public String fileLocationForBD;//расположение файла (сохраняется в БД)
+    public String appFolder = "MemesStore2/";//папка с данными приложения
+    public String previews = "Previews/";//папка с превью ютуба
+    public String images= "Images/";//папка с изображениями
+    public String videos="Videos/";//папка с видео
+
+
     public String filename;//имя файла (сохраняется в БД)
     //категории файлов
     public static final int IMAGE=0;
@@ -51,21 +50,22 @@ public class FileHelper {
             return HTTPS;
         return -1;
     }
-    //генерирует полный путь к файлу для записи в БД
-    public String getFileLocation(String filename)
-    {
-        String  fullpath="";
-        switch (getType(filename)) {
-            case IMAGE:
-                fullpath = images + filename;
-                break;
-            case VIDEO:
-                fullpath = videos + filename;
-                break;
-            case HTTPS:
-                fullpath = filename;
+
+    public String getFullPath(String filename){
+        switch (getType(filename)){
+            case IMAGE: return root+"/"+Environment.DIRECTORY_PICTURES+"/"+appFolder+images+filename;
+            case VIDEO: return root+"/"+Environment.DIRECTORY_MOVIES+"/"+appFolder+videos+filename;
+            case HTTPS: return root+"/"+Environment.DIRECTORY_PICTURES+"/"+appFolder+previews+filename;
         }
-        return  fullpath;
+        return "";
+    }
+    public String getRelativePath(String filename){
+        switch (getType(filename)){
+            case IMAGE: return Environment.DIRECTORY_PICTURES+"/"+appFolder+images;
+            case VIDEO: return Environment.DIRECTORY_MOVIES+"/"+appFolder+videos;
+            case HTTPS: return Environment.DIRECTORY_PICTURES+"/"+appFolder+previews;
+        }
+        return "";
     }
     //возвращает Битмап для создания превью
     public Bitmap getPreview(String filename){
@@ -73,7 +73,7 @@ public class FileHelper {
 
     switch(getType(filename)){
         case IMAGE:
-            String path = root+"/Pictures/"+images+filename;
+            String path = getFullPath(filename);
             File file1 = new File(path);
             boolean qwe1= file1.exists();
             preview=BitmapFactory.decodeFile(path);
@@ -81,10 +81,10 @@ public class FileHelper {
         case VIDEO:
             File file = new File(filename);
             boolean qwe= file.exists();
-            preview= ThumbnailUtils.createVideoThumbnail(videos+filename,MediaStore.Images.Thumbnails.MINI_KIND);
+            preview= ThumbnailUtils.createVideoThumbnail(getFullPath(filename),MediaStore.Images.Thumbnails.MINI_KIND);
             break;
         case HTTPS:
-            preview=BitmapFactory.decodeFile(previews+filename+".jpg");
+            preview=BitmapFactory.decodeFile(getFullPath(filename)+".jpg");
             break;
     }
        return preview;
@@ -129,18 +129,9 @@ public class FileHelper {
 
 
         public boolean createLocalFile(InputStream inputStream, String filename) {
-            String fullpath = "";
-            switch (getType(filename)) {
-                case IMAGE:
-                    fullpath = images + filename;
-                    break;
-                case VIDEO:
-                    fullpath = videos + filename;
-                    break;
-                case HTTPS:
-                    fullpath = previews + filename + ".jpg";
-                    break;
-            }
+               String fullpath = getFullPath(filename);
+            if(getType(filename)==HTTPS)
+                fullpath=fullpath+ ".jpg";
             try {
 
                 FileOutputStream outputStream = new FileOutputStream(fullpath);
@@ -154,24 +145,15 @@ public class FileHelper {
         }
 
         public void createDirs(){
-            root = Environment.getExternalStorageDirectory().getAbsolutePath();
-            String pictures= root+"/Pictures/";
-            String homePictures=root+"/Pictures/MemesStore2/";
-            previews = root+"/Pictures/MemesStore2/Previews/";
-            images = root+"/Pictures/MemesStore2/Images/";
+            root = Environment.getExternalStorageDirectory().getAbsolutePath()+"/";
+            new File(root+Environment.DIRECTORY_PICTURES).mkdir();
+            new File(root+Environment.DIRECTORY_PICTURES+appFolder).mkdir();
+            new File(root+Environment.DIRECTORY_PICTURES+appFolder+previews).mkdir();
+            new File(root+Environment.DIRECTORY_PICTURES+appFolder+images).mkdir();
 
-            String movies= root+"/Movies/";
-            String homeMovies=root+"/Movies/MemesStore2/";
-            videos = root+"/Movies/MemesStore2/Videos/";
-
-            new File(pictures).mkdir();
-            new File(homePictures).mkdir();
-            new File(previews).mkdir();
-            new File(images).mkdir();
-
-            new File(movies).mkdir();
-            new File(homeMovies).mkdir();
-            new File(videos).mkdir();
+            new File(root+Environment.DIRECTORY_MOVIES).mkdir();
+            new File(root+Environment.DIRECTORY_MOVIES+appFolder).mkdir();
+            new File(root+Environment.DIRECTORY_MOVIES+appFolder).mkdir();
         }
 
 
@@ -190,28 +172,24 @@ public class FileHelper {
 
         public boolean createLocalFile(InputStream inputStream, String filename) {
 
-            String fullpath="";
             ContentValues contentValues = new ContentValues();
             ContentResolver contentResolver = context.getContentResolver();
             Uri locuri=null;
             switch(getType(filename)){
                 case IMAGE:
-                    contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES+images);
+                    contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, getRelativePath(filename));
                     contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
                     locuri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,contentValues);
-                    fullpath=Environment.DIRECTORY_PICTURES+images+filename;
                     break;
                 case VIDEO:
-                    contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES+videos);
+                    contentValues.put(MediaStore.Video.Media.RELATIVE_PATH,  getRelativePath(filename));
                     contentValues.put(MediaStore.Video.Media.DISPLAY_NAME, filename);
                     locuri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,contentValues);
-                    fullpath=Environment.DIRECTORY_MOVIES+videos+filename;
                     break;
                 case HTTPS:
-                    contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES+previews);
+                    contentValues.put(MediaStore.Images.Media.RELATIVE_PATH,  getRelativePath(filename));
                     contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, filename+".jpg");
                     locuri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,contentValues);
-                    fullpath=filename;//=Environment.DIRECTORY_PICTURES+previews+filename+".jpg";
                     break;
             }
             try {
@@ -227,48 +205,27 @@ public class FileHelper {
         }
 
 
-        public String getFileLocation(String filename) {
-            String  fullpath="";
-            switch (getType(filename)) {
-                case IMAGE:
-                    fullpath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/"+Environment.DIRECTORY_PICTURES+images + filename;
-                    break;
-                case VIDEO:
-                    fullpath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/"+Environment.DIRECTORY_MOVIES+videos + filename;
-                    break;
-                case HTTPS:
-                    fullpath = filename;
-            }
-            return  fullpath;
-
-        }
 
 
         public void createDirs() {
 
-            root ="";// Environment.getExternalStorageDirectory().getAbsolutePath();
-            String homePictures=root+"/MemesStore2/";
-            previews = root+"/MemesStore2/Previews/";
-            images = root+"/MemesStore2/Images/";
-
-            String homeMovies=root+"/MemesStore2/";
-            videos = root+"/MemesStore2/Videos/";
+            root = Environment.getExternalStorageDirectory().getAbsolutePath()+"/";
 
 
-            String []imageDirectories = new String[]{homePictures,images,previews };
+            String []imageDirectories = new String[]{appFolder,appFolder+images,appFolder+previews };
             for(String path:imageDirectories) {
                 ContentValues contentValues = new ContentValues();
                 ContentResolver contentResolver = context.getContentResolver();
                 Uri locUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
-                contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + path);
+                contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES+"/"+path);
                 contentResolver.update(locUri, contentValues, null, null);
             }
-            String []videoDirectories = new String[]{homeMovies,videos };
+            String []videoDirectories = new String[]{appFolder,appFolder+videos };
             for(String path:videoDirectories) {
                 ContentValues contentValues = new ContentValues();
                 ContentResolver contentResolver = context.getContentResolver();
                 Uri locUri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
-                contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + path);
+                contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES+"/"+path);
                 contentResolver.update(locUri, contentValues, null, null);
             }
             root = Environment.getExternalStorageDirectory().getAbsolutePath();
