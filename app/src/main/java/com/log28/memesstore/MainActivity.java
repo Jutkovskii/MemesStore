@@ -186,6 +186,12 @@ else
         int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
         returnCursor.moveToFirst();
         filename = returnCursor.getString(nameIndex);
+        try {
+            inputStream= getContentResolver().openInputStream(localUri);
+            fileHelper.createLocalFile(inputStream, filename);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
         }
