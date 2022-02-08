@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -158,12 +159,15 @@ public class FileHelper {
                String fullpath = getFullPath(filename);
 
             try {
-
+File qwe= new File(fullpath);
+qwe.createNewFile();
                 FileOutputStream outputStream = new FileOutputStream(fullpath);
                 copyFile(inputStream, outputStream);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
                 return false;
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
             return true;
@@ -179,6 +183,9 @@ public class FileHelper {
             new File(root+"/"+Environment.DIRECTORY_MOVIES).mkdir();
             new File(root+"/"+Environment.DIRECTORY_MOVIES+"/"+appFolder).mkdir();
             new File(root+"/"+Environment.DIRECTORY_MOVIES+"/"+appFolder).mkdir();
+
+            //создавать паки так и не трогать мозг!!!!!
+            //new File (root+"/"+Environment.DIRECTORY_PICTURES+"/123/456/678").mkdirs();
         }
 
 
@@ -260,9 +267,17 @@ catch(Exception e){
     e.printStackTrace();
     int y=0;
 }
-
+            //создавать папки так!!!!!!!!!!!!
+            //test();
         }
 
+        public void test(){
+            ContentValues contentValues = new ContentValues();
+            ContentResolver contentResolver = context.getContentResolver();
+            Uri locUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
+            contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/123/456/678");
+            contentResolver.update(locUri, contentValues, null, null);
+        }
 
         public void deleteFile(String path) {
             try{

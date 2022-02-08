@@ -95,11 +95,13 @@ public class MainActivity extends AppCompatActivity {
         //запрос интента при старте
         Intent intent = getIntent();
         //если интент существует и соответствует критерию получаем объект из интента
-        if(intent!=null&&intent.getAction()=="android.intent.action.SEND")
+        if(intent.getAction()!="android.intent.action.MAIN")
+       // if(intent!=null&&intent.getAction()=="android.intent.action.SEND")
             getMemeFromIntent(intent);
         //установка списка согласно выбранной вкладке
         //ВОЗМОЖНО ЗАМЕНИТЬ НА ФРАГМЕНТЫ
         setMemesList(tabNum);
+
         //установка обработчика свайпов
         memesList.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -178,7 +180,7 @@ else
         try {
             //получение потока входных данных
             inputStream= getContentResolver().openInputStream(localUri);
-            //создание локального файла
+              //создание локального файла
             fileHelper.createLocalFile(inputStream, filename);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
