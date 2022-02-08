@@ -56,12 +56,12 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
                cursor.moveToNext();
            }
            else
-           //if(new File(currentFile).exists()) {
+           if(new FileHelper(context).isExist(currentFile)) {
                memesPaths.add(currentFile);
                cursor.moveToNext();
-          // }
-          // else
-           //    this.db.delete(currentFile);
+           }
+           else
+              this.db.delete(currentFile);
        }
    }
 
@@ -86,8 +86,8 @@ holder.memeCardView.setOnClickListener(new View.OnClickListener() {
     public void onClick(View view) {
         String memePath = memesPaths.get(position);
         Intent intent = new Intent(context,MemeViewerActivity.class);
-        if(!memePath.contains("."))
-            memePath="https://www.youtube.com/watch?v="+memePath;
+      /*  if(!memePath.contains("."))
+            memePath="https://www.youtube.com/watch?v="+memePath;*/
         intent.putExtra("path",memePath);
         ((Activity)context).startActivityForResult(intent,2);
         //context.startActivity(intent);

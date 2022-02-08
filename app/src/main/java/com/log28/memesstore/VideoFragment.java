@@ -43,7 +43,7 @@ public class VideoFragment extends Fragment {
         super.onViewCreated(view,null);// savedInstanceState);
 youTubePlayerView = view.findViewById(R.id.memeVideoView);
         getLifecycle().addObserver(youTubePlayerView);
-         currentVideoID = filepath.substring(filepath.lastIndexOf("=")+1);
+         currentVideoID = filepath;//.substring(filepath.lastIndexOf("=")+1);
 
         youTubePlayerView.addYouTubePlayerListener(new YouTubePlayerListener() {
             @Override
@@ -99,6 +99,7 @@ youTubePlayerView = view.findViewById(R.id.memeVideoView);
         });
     }
     public void setMemeImage(String filePath){
+
         filepath  = filePath;
     }
 }

@@ -55,7 +55,7 @@ public class FileHelper {
         switch (getType(filename)){
             case IMAGE: return root+"/"+Environment.DIRECTORY_PICTURES+"/"+appFolder+images+filename;
             case VIDEO: return root+"/"+Environment.DIRECTORY_MOVIES+"/"+appFolder+videos+filename;
-            case HTTPS: return root+"/"+Environment.DIRECTORY_PICTURES+"/"+appFolder+previews+filename;
+            case HTTPS: return root+"/"+Environment.DIRECTORY_PICTURES+"/"+appFolder+previews+filename+".jpg";
         }
         return "";
     }
@@ -73,18 +73,13 @@ public class FileHelper {
 
     switch(getType(filename)){
         case IMAGE:
-            String path = getFullPath(filename);
-            File file1 = new File(path);
-            boolean qwe1= file1.exists();
-            preview=BitmapFactory.decodeFile(path);
+            preview=BitmapFactory.decodeFile(getFullPath(filename));
             break;
         case VIDEO:
-            File file = new File(filename);
-            boolean qwe= file.exists();
             preview= ThumbnailUtils.createVideoThumbnail(getFullPath(filename),MediaStore.Images.Thumbnails.MINI_KIND);
             break;
         case HTTPS:
-            preview=BitmapFactory.decodeFile(getFullPath(filename)+".jpg");
+            preview=BitmapFactory.decodeFile(getFullPath(filename));
             break;
     }
        return preview;
@@ -119,6 +114,9 @@ public class FileHelper {
         this.fileHelper.deleteFile(path);
     }
 
+    public boolean isExist(String filename){
+     return new File(getFullPath(filename)).exists();
+    }
 
     public class innerFileHelperOld implements FileHelperInterface {
 
@@ -130,8 +128,7 @@ public class FileHelper {
 
         public boolean createLocalFile(InputStream inputStream, String filename) {
                String fullpath = getFullPath(filename);
-            if(getType(filename)==HTTPS)
-                fullpath=fullpath+ ".jpg";
+
             try {
 
                 FileOutputStream outputStream = new FileOutputStream(fullpath);
@@ -145,20 +142,21 @@ public class FileHelper {
         }
 
         public void createDirs(){
-            root = Environment.getExternalStorageDirectory().getAbsolutePath()+"/";
-            new File(root+Environment.DIRECTORY_PICTURES).mkdir();
-            new File(root+Environment.DIRECTORY_PICTURES+appFolder).mkdir();
-            new File(root+Environment.DIRECTORY_PICTURES+appFolder+previews).mkdir();
-            new File(root+Environment.DIRECTORY_PICTURES+appFolder+images).mkdir();
+            root = Environment.getExternalStorageDirectory().getAbsolutePath();
+            new File(root+"/"+Environment.DIRECTORY_PICTURES).mkdir();
+            new File(root+"/"+Environment.DIRECTORY_PICTURES+"/"+appFolder).mkdir();
+            new File(root+"/"+Environment.DIRECTORY_PICTURES+"/"+appFolder+previews).mkdir();
+            new File(root+"/"+Environment.DIRECTORY_PICTURES+"/"+appFolder+images).mkdir();
 
-            new File(root+Environment.DIRECTORY_MOVIES).mkdir();
-            new File(root+Environment.DIRECTORY_MOVIES+appFolder).mkdir();
-            new File(root+Environment.DIRECTORY_MOVIES+appFolder).mkdir();
+            new File(root+"/"+Environment.DIRECTORY_MOVIES).mkdir();
+            new File(root+"/"+Environment.DIRECTORY_MOVIES+"/"+appFolder).mkdir();
+            new File(root+"/"+Environment.DIRECTORY_MOVIES+"/"+appFolder).mkdir();
         }
 
 
         public void deleteFile(String path) {
-            new File(path).delete();
+new File(getFullPath(path)).delete();
+
         }
 
 
@@ -234,11 +232,23 @@ public class FileHelper {
 
 
         public void deleteFile(String path) {
-            ContentResolver contentResolver = context.getContentResolver();
-            Uri locuri = Uri.parse(path);
+            try{
+                ContentResolver contentResolver = context.getContentResolver();
+            Uri locuri=null;
+            if(getType(path)==IMAGE||getType(path)==HTTPS)
+            locuri=MediaStore.Images.Media.getContentUri("external");
+            if(getType(path)==VIDEO)
+                locuri=MediaStore.Video.Media.getContentUri("external");
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                contentResolver.delete(locuri,null);
+                contentResolver.delete(locuri, MediaStore.MediaColumns.DATA+"=?",new String[]{getFullPath(path)});
             }
+        }
+            catch(Exception e){
+                e.printStackTrace();
+                int y=0;
+            }
+
         }
     }
 

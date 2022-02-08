@@ -27,13 +27,16 @@ String filepath;
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_video_local, container, false);
+       View view=inflater.inflate(R.layout.fragment_video_local, container, false);
+        filepath = new FileHelper(container.getContext()).getFullPath(filepath);
+        return view;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view,null);// savedInstanceState);
         videoPlayer = view.findViewById(R.id.memeLocalVideoView);
+
         videoPlayer.setVideoPath(filepath);
 
         videoPlayer.start();
@@ -42,7 +45,6 @@ String filepath;
     public void setMemeImage(String filePath){
 
         filepath  = filePath;
-
 
     }
 }

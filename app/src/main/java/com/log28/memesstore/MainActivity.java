@@ -89,11 +89,9 @@ public class MainActivity extends AppCompatActivity {
         fileHelper = new FileHelper(this);
         memesList = findViewById(R.id.memesList);
         memesList.setLayoutManager(new GridLayoutManager(this,2));
-    }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
+
+
         //запрос интента при старте
         Intent intent = getIntent();
         //если интент существует и соответствует критерию получаем объект из интента
@@ -109,6 +107,13 @@ public class MainActivity extends AppCompatActivity {
                 return swipeDetector.onTouchEvent(event);
             }
         });
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
     }
 
     void getMemeFromIntent(Intent intent) {
@@ -118,13 +123,11 @@ public class MainActivity extends AppCompatActivity {
     InputStream inputStream;
     //Если тип данных null
     if (intent.getType() == null)
-//if(true)
     {
         //получение uri файла
         Uri uri = intent.getData();
         //запрос курсора из БД контента всея ОС
-        Cursor returnCursor =
-                getContentResolver().query(uri, null, null, null, null);
+        Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
         //Определение стаолбца, содержащего имя файла
         int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
         returnCursor.moveToFirst();
@@ -157,11 +160,12 @@ if(receivedType.startsWith("text")){
     previewSaver.execute(new String[]{filename});
 }
 //если получено изображение или видео
-if(receivedType.startsWith("image")||receivedType.startsWith("video")){
+else if(receivedType.startsWith("image")||receivedType.startsWith("video")){
 
     Uri localUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
-    if( localUri!=null)
-    {
+    if( localUri==null)
+        localUri = intent.getData();
+
 
         Cursor returnCursor =getContentResolver().query(localUri, null, null, null, null);
         if (returnCursor!=null)
@@ -170,32 +174,19 @@ if(receivedType.startsWith("image")||receivedType.startsWith("video")){
         filename = returnCursor.getString(nameIndex);}
 else
             filename  = localUri.getPath().substring(localUri.getPath().lastIndexOf("/")+1);
-        //получение потока входных данных
+
         try {
+            //получение потока входных данных
             inputStream= getContentResolver().openInputStream(localUri);
+            //создание локального файла
             fileHelper.createLocalFile(inputStream, filename);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        //создание локального файла
-
-    }
-    else{//А СЮДА ВООБЩЕ ЗАХОДИТ?!!!!!!!
-        localUri = intent.getData();
-        Cursor returnCursor =getContentResolver().query(localUri, null, null, null, null);
-        int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-        returnCursor.moveToFirst();
-        filename = returnCursor.getString(nameIndex);
-        try {
-            inputStream= getContentResolver().openInputStream(localUri);
-            fileHelper.createLocalFile(inputStream, filename);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
 
         }
 
+else Toast.makeText(this,"Не удалось добавить файл", Toast.LENGTH_SHORT);
 }
     String DBname="";
     //Определение типа данных для выбора БД
@@ -206,7 +197,7 @@ else
     //открытие и запись в БД
         MemeDatabaseHelper testdb = new MemeDatabaseHelper(this, DBname, 1);
         testdb.getWritableDatabase();
-        testdb.insert(filename);//fileHelper.getFileLocation(filename));
+        testdb.insert(filename);
         testdb.close();
 
 }
@@ -244,7 +235,11 @@ void setMemesList(int category){
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode==15)
-           testdb.delete(data.getDataString());
+        {
+
+            new FileHelper(this).deleteFile(data.getDataString());
+            testdb.delete(data.getDataString());
+        }
         if(resultCode==RESULT_OK)
         {
             Uri uri=data.getData();
@@ -274,9 +269,7 @@ void setMemesList(int category){
 
 
         }
-        memesListAdapter = new MemesListAdapter(this,testdb);
-        memesList.setAdapter(memesListAdapter);
-        memesListAdapter.notifyDataSetChanged();
+        setMemesList(tabNum);
     }
 
 

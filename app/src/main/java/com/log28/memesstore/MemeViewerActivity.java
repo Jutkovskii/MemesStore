@@ -39,20 +39,23 @@ public class MemeViewerActivity extends AppCompatActivity {
 
         //Вот сюда можно FILEHELPER
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        if(path.endsWith(".jpg")||path.endsWith(".png")||path.endsWith(".webp")){
-            imageFragment = new ImageFragment();
-            imageFragment.setMemeImage(new FileHelper(this).getFullPath(path));
-            fragmentTransaction.add(R.id.memeViewLayout,imageFragment);
-        }
-        if(path.endsWith(".mp4")||path.endsWith(".3gp")) {
-            videoLocalFragment = new VideoLocalFragment();
-            videoLocalFragment.setMemeImage(new FileHelper(this).getFullPath(path));
-            fragmentTransaction.add(R.id.memeViewLayout, videoLocalFragment);
-        }
-        if(path.startsWith("http")){
-            videoFragment = new VideoFragment();
-            videoFragment.setMemeImage(new FileHelper(this).getFullPath(path));
-            fragmentTransaction.add(R.id.memeViewLayout, videoFragment);
+        switch (new FileHelper(this).getType(path)){
+            case FileHelper.IMAGE:
+                imageFragment = new ImageFragment();
+                imageFragment.setMemeImage(path);
+                fragmentTransaction.add(R.id.memeViewLayout,imageFragment);
+                break;
+            case FileHelper.HTTPS:
+                videoFragment = new VideoFragment();
+                videoFragment.setMemeImage(path);
+                fragmentTransaction.add(R.id.memeViewLayout, videoFragment);
+                break;
+
+            case FileHelper.VIDEO:
+                videoLocalFragment = new VideoLocalFragment();
+                videoLocalFragment.setMemeImage(path);
+                fragmentTransaction.add(R.id.memeViewLayout, videoLocalFragment);
+                break;
         }
 
         fragmentTransaction.commit();
@@ -83,6 +86,7 @@ public class MemeViewerActivity extends AppCompatActivity {
     public void onSendMeme(View view){
 
         try {
+/*
             if(path.startsWith("http")){
                 Intent intent = new Intent(Intent.ACTION_SEND);
                 intent.setType("text/plain");
@@ -102,6 +106,40 @@ public class MemeViewerActivity extends AppCompatActivity {
                 intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
                 startActivity(intent);
             }
+*/
+            Uri memeUri =null;
+            Intent intent=null;
+                switch (new FileHelper(this).getType(path)){
+                    case FileHelper.IMAGE:
+                         memeUri= FileProvider.getUriForFile(MemeViewerActivity.this, "com.log28.memesstore", new File(new FileHelper(this).getFullPath(path)));
+                        //Uri memeUri = Uri.parse("file://"+path);
+
+                         intent = new Intent(Intent.ACTION_SEND);
+                        intent.setType("image/*");
+                        intent.putExtra(Intent.EXTRA_STREAM, memeUri);
+                        //intent.putExtra(Intent.EXTRA_TEXT,"Если ты это читаешь, значит у меня получилось");
+                        intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
+                        startActivity(intent);
+                        break;
+                    case FileHelper.VIDEO:
+                        memeUri = FileProvider.getUriForFile(MemeViewerActivity.this, "com.log28.memesstore", new File(new FileHelper(this).getFullPath(path)));
+                        //Uri memeUri = Uri.parse("file://"+path);
+
+                        intent= new Intent(Intent.ACTION_SEND);
+                        intent.setType("video/*");
+                        intent.putExtra(Intent.EXTRA_STREAM, memeUri);
+                        //intent.putExtra(Intent.EXTRA_TEXT,"Если ты это читаешь, значит у меня получилось");
+                        intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
+                        startActivity(intent);
+                        break;
+                    case FileHelper.HTTPS:
+                         intent = new Intent(Intent.ACTION_SEND);
+                        intent.setType("text/plain");
+                        //intent.putExtra(Intent.EXTRA_TEXT,"Если ты это читаешь, значит у меня получилось");
+                        intent.putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v="+path +" "+memeSign.getText());
+                        startActivity(intent);
+                        break;
+                }
 
 }
 catch (Exception e){
