@@ -16,7 +16,7 @@ import android.widget.VideoView;
 public class VideoLocalFragment extends Fragment {
     VideoView videoPlayer;
 String filepath;
-
+    String filename;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,9 +26,8 @@ String filepath;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
        View view=inflater.inflate(R.layout.fragment_video_local, container, false);
-        filepath = new FileHelper(container.getContext()).getFullPath(filepath);
+        filepath = new FileHelper(container.getContext()).getFullPath(filename);
         return view;
     }
 
@@ -36,15 +35,12 @@ String filepath;
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view,null);// savedInstanceState);
         videoPlayer = view.findViewById(R.id.memeLocalVideoView);
-
         videoPlayer.setVideoPath(filepath);
-
         videoPlayer.start();
     }
 
-    public void setMemeImage(String filePath){
-
-        filepath  = filePath;
+    public void setMemeImage(String filename){
+        this.filename  = filename;
 
     }
 }

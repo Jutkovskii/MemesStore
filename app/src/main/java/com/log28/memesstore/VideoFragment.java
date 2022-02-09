@@ -19,8 +19,7 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTube
 public class VideoFragment extends Fragment {
 
     YouTubePlayerView youTubePlayerView;
-    String filepath;
-    String currentVideoID;
+    String filename;
     public VideoFragment() {
 
     }
@@ -43,13 +42,11 @@ public class VideoFragment extends Fragment {
         super.onViewCreated(view,null);// savedInstanceState);
 youTubePlayerView = view.findViewById(R.id.memeVideoView);
         getLifecycle().addObserver(youTubePlayerView);
-         currentVideoID = filepath;//.substring(filepath.lastIndexOf("=")+1);
-
         youTubePlayerView.addYouTubePlayerListener(new YouTubePlayerListener() {
             @Override
             public void onReady(YouTubePlayer youTubePlayer) {
 
-                youTubePlayer.cueVideo(currentVideoID,0);
+                youTubePlayer.cueVideo(filename,0);
             }
 
             @Override
@@ -97,9 +94,10 @@ youTubePlayerView = view.findViewById(R.id.memeVideoView);
 
             }
         });
-    }
-    public void setMemeImage(String filePath){
 
-        filepath  = filePath;
+    }
+    public void setMemeImage(String filename){
+
+        this.filename = filename;
     }
 }

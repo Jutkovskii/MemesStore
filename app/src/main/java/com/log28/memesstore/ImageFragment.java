@@ -3,10 +3,12 @@ package com.log28.memesstore;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
@@ -19,7 +21,7 @@ public class ImageFragment extends Fragment {
 
 ImageView memeImageView;
     Bitmap bmp;
-String filePath;
+String filename;
     public ImageFragment() {
         // Required empty public constructor
     }
@@ -30,6 +32,7 @@ String filePath;
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -39,9 +42,7 @@ Context context=container.getContext();
 
         try {
             FileHelper fileHelper = new FileHelper(context);
-
-            filePath = fileHelper.getFullPath(filePath);
-            bmp = BitmapFactory.decodeFile(filePath);
+            bmp = BitmapFactory.decodeFile(fileHelper.getFullPath(filename),fileHelper.getOptions(filename));
         }
         catch (Exception e){
             e.printStackTrace();
@@ -49,8 +50,8 @@ Context context=container.getContext();
         return view;
     }
 
-    public void setMemeImage(String filePath){
-this.filePath=filePath;
+    public void setMemeImage(String filename){
+this.filename =filename;
 
     }
     @Override
