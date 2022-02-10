@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GestureDetectorCompat;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -30,9 +31,13 @@ import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
     //объект списка
-    RecyclerView memesList;
+    //RecyclerView memesList;
     //объект БД
     MemeDatabaseHelper testdb;
+
+    MemeDatabaseHelper imagedb;
+
+    MemeDatabaseHelper videodb;
     //обработчик свайпов
     private GestureDetectorCompat swipeDetector;
     //номер вкладки
@@ -44,7 +49,10 @@ public class MainActivity extends AppCompatActivity {
     //объект для работы с памятью
     FileHelper fileHelper;
     //адаптер для заполнения списка
-    MemesListAdapter memesListAdapter;
+   // MemesListAdapter memesListAdapter;
+
+    MemeListFragment imageListFragment;
+    MemeListFragment videoListFragment;
     private final int REQUEST_DB = 53;
     private final int REQUEST_GALLERY = 84;
 
@@ -83,8 +91,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         fileHelper = new FileHelper(this);
-        memesList = findViewById(R.id.memesList);
-        memesList.setLayoutManager(new GridLayoutManager(this, 2));
+        //memesList = findViewById(R.id.memesList);
+        //memesList.setLayoutManager(new GridLayoutManager(this, 2));
 
 
         //запрос интента при старте
@@ -93,18 +101,33 @@ public class MainActivity extends AppCompatActivity {
         if (intent.getAction() != "android.intent.action.MAIN")
             // if(intent!=null&&intent.getAction()=="android.intent.action.SEND")
             getMemeFromIntent(intent);
-        //установка списка согласно выбранной вкладке
-        //ВОЗМОЖНО ЗАМЕНИТЬ НА ФРАГМЕНТЫ
-        setMemesList(tabNum);
 
+          //установка списка согласно выбранной вкладке
+        //ВОЗМОЖНО ЗАМЕНИТЬ НА ФРАГМЕНТЫ
+
+
+        imagedb=new MemeDatabaseHelper(this, "test", 1);
+        videodb = new MemeDatabaseHelper(this, "video1", 1);
+        imageListFragment=new MemeListFragment(imagedb);
+        videoListFragment=new MemeListFragment(videodb);
+
+
+        /*imageListFragment=new MemeListFragment(new MemeDatabaseHelper(this, "test", 1));
+        videoListFragment=new MemeListFragment(new MemeDatabaseHelper(this, "video1", 1));
+*/
+        FragmentTransaction ft=getSupportFragmentManager().beginTransaction();
+        ft.add(R.id.memeFramelayout,imageListFragment);
+        ft.commit();
+
+        setMemesList(tabNum);
         //установка обработчика свайпов
-        memesList.setOnTouchListener(new View.OnTouchListener() {
+      /*  memesList.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 return swipeDetector.onTouchEvent(event);
             }
         });
-
+*/
     }
 
     @Override
@@ -202,21 +225,30 @@ public class MainActivity extends AppCompatActivity {
 
     //заполнение списка данными из БД
     void setMemesList(int category) {
+        FragmentTransaction ft=getSupportFragmentManager().beginTransaction();
+
 
         switch (category) {
             case IMAGE:
-                testdb = new MemeDatabaseHelper(this, "test", 1);
+                //testdb = new MemeDatabaseHelper(this, "test", 1);
+                // imageListFragment.setDB(testdb);
+                imageListFragment.setDB(imagedb);
 
+                ft.replace(R.id.memeFramelayout,imageListFragment);
                 break;
             case VIDEO:
-                testdb = new MemeDatabaseHelper(this, "video1", 1);
+                //testdb = new MemeDatabaseHelper(this, "video1", 1);
+                // imageListFragment.setDB(testdb);
+               videoListFragment.setDB(videodb);
+
+                ft.replace(R.id.memeFramelayout,videoListFragment);
                 break;
         }
-
-        testdb.getWritableDatabase();
+        ft.commit();
+      /*  testdb.getWritableDatabase();
         memesListAdapter = new MemesListAdapter(this, testdb);
         memesList.setAdapter(memesListAdapter);
-        memesListAdapter.notifyDataSetChanged();
+        memesListAdapter.notifyDataSetChanged();*/
 //testdb.exportDB();
 
     }
@@ -253,12 +285,17 @@ public class MainActivity extends AppCompatActivity {
                 //удаление файла
                 new FileHelper(this).deleteFile(data.getDataString());
                 //удаление записи из БД
-                testdb.delete(data.getDataString());
 
-                if (fileHelper.getType(data.getDataString()) == fileHelper.IMAGE)
+
+                if (fileHelper.getType(data.getDataString()) == fileHelper.IMAGE) {
                     tabNum = 0;
-                else
+                    imagedb.delete(data.getDataString());
+                }
+                else {
                     tabNum = 1;
+                    videodb.delete(data.getDataString());
+                }
+                //testdb.delete(data.getDataString());
                 setMemesList(tabNum);
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             }
@@ -281,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 //получаем и сохраняем мем из uri
                 getMemeFromIntent(data);
-                testdb.getWritableDatabase();
+               // testdb.getWritableDatabase();
                 //выбор вкладки согласно типу файла
                 if (fileHelper.getType(fileName) == fileHelper.IMAGE)
                     tabNum = 0;
