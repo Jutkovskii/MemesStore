@@ -5,9 +5,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GestureDetectorCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
 
 import android.Manifest;
 import android.content.Intent;
@@ -28,6 +32,9 @@ import com.google.android.material.tabs.TabLayout;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     //объект списка
@@ -56,6 +63,10 @@ public class MainActivity extends AppCompatActivity {
     private final int REQUEST_DB = 53;
     private final int REQUEST_GALLERY = 84;
 
+
+
+    ViewPager2 pagerSlider;
+    private FragmentStateAdapter pagerAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
         //обработчик свайпов
-        swipeDetector = new GestureDetectorCompat(this, new SwipeListener());
+       // swipeDetector = new GestureDetectorCompat(this, new SwipeListener());
         //запрет поворота экрана (УДАЛИТЬ ПОЗДНЕЕ!)
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         //объект с вкладками
@@ -76,7 +87,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 tabNum = tab.getPosition();
-                setMemesList(tabNum);
+                pagerSlider.setCurrentItem(tabNum);
+                //setMemesList(tabNum);
             }
 
             @Override
@@ -115,11 +127,11 @@ public class MainActivity extends AppCompatActivity {
         /*imageListFragment=new MemeListFragment(new MemeDatabaseHelper(this, "test", 1));
         videoListFragment=new MemeListFragment(new MemeDatabaseHelper(this, "video1", 1));
 */
-        FragmentTransaction ft=getSupportFragmentManager().beginTransaction();
+     /*   FragmentTransaction ft=getSupportFragmentManager().beginTransaction();
         ft.add(R.id.memeFramelayout,imageListFragment);
         ft.commit();
-
-        setMemesList(tabNum);
+*/
+        //setMemesList(tabNum);
         //установка обработчика свайпов
       /*  memesList.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -128,8 +140,44 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 */
+
+
+
+        pagerSlider=findViewById(R.id.pagerSlider);
+        pagerAdapter=new ScreenSlidePagerAdapter(this, new ArrayList<MemeListFragment>(Arrays.asList(imageListFragment,videoListFragment)));
+        pagerSlider.setAdapter(pagerAdapter);
+
     }
 
+    private class ScreenSlidePagerAdapter extends FragmentStateAdapter {
+
+        List<MemeListFragment> memeLists;
+        public ScreenSlidePagerAdapter(FragmentActivity fa,List<MemeListFragment> memeLists) {
+            super(fa);
+            this.memeLists=memeLists;
+        }
+
+        @Override
+        public long getItemId(int position) {
+            memesCategories.selectTab(memesCategories.getTabAt(position));
+            return super.getItemId(position);
+        }
+
+        @Override
+        public Fragment createFragment(int position) {
+
+
+            if(position==0)
+            return imageListFragment;
+            else
+           return videoListFragment;
+        }
+
+        @Override
+        public int getItemCount() {
+            return memeLists.size();
+        }
+    }
     @Override
     protected void onStart() {
         super.onStart();
@@ -296,9 +344,10 @@ public class MainActivity extends AppCompatActivity {
                     videodb.delete(data.getDataString());
                 }
                 //testdb.delete(data.getDataString());
-                setMemesList(tabNum);
+                //setMemesList(tabNum);
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             }
+
         //результат: файл нужно добавить
         if (requestCode == REQUEST_GALLERY)
             if (resultCode == RESULT_OK) {
@@ -328,34 +377,6 @@ public class MainActivity extends AppCompatActivity {
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             }
 
-    }
-
-
-    //обработчик свайпов
-    private class SwipeListener extends GestureDetector.SimpleOnGestureListener {
-        int DIST = 10;
-
-        @Override
-        public boolean onDown(MotionEvent e) {
-            return true;
-        }
-
-        @Override
-        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            //если скорость свайпа превысила значения
-            if (Math.abs(velocityX) > DIST && Math.abs(velocityX) > Math.abs(velocityY) * 2) {
-                int setCategory = -1;
-                //определение направления свайпа
-                if (velocityX > 0)
-                    setCategory = IMAGE;
-                else
-                    setCategory = VIDEO;
-                //выбор вкладки
-                setMemesList(setCategory);
-                memesCategories.selectTab(memesCategories.getTabAt(setCategory));
-            }
-            return false;
-        }
     }
 
 
