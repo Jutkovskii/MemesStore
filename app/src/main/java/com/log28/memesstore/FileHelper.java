@@ -1,15 +1,20 @@
 package com.log28.memesstore;
 
+import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaMetadataRetriever;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
@@ -87,6 +92,8 @@ public class FileHelper {
             break;
         case VIDEO:
             preview= ThumbnailUtils.createVideoThumbnail(getFullPath(filename),MediaStore.Images.Thumbnails.MINI_KIND);
+            if(preview==null)
+                preview=createThumbnail(filename);
             break;
         case HTTPS:
             preview=BitmapFactory.decodeFile(getFullPath(filename));
@@ -96,16 +103,128 @@ public class FileHelper {
     {
         FileInputStream fis;
         try {
+           fis= onRead(filename);
+           if(fis==null)
             fis = new FileInputStream(getFullPath(filename));
             preview = BitmapFactory.decodeStream(fis);
 
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
        return preview;
+    }
+
+
+    public FileInputStream onRead(String filename) {
+        String[] selectionArgs;
+        if(!filename.contains("."))
+        {
+            filename=filename+".jpg";
+           selectionArgs = new String[]{Environment.DIRECTORY_PICTURES + "/" + appFolder + "Previews/"};
+        }
+        else
+            if(filename.endsWith("mp4"))
+                selectionArgs = new String[]{Environment.DIRECTORY_MOVIES + "/" + appFolder + "Videos/"};
+            else
+            selectionArgs = new String[]{Environment.DIRECTORY_PICTURES + "/" + appFolder + "Images/"};
+        Uri contentUri = MediaStore.Files.getContentUri("external");
+
+        String selection = MediaStore.MediaColumns.RELATIVE_PATH + "=?";
+
+
+
+        Cursor cursor = context.getContentResolver().query(contentUri, null, selection, selectionArgs, null);
+
+        Uri uri = null;
+
+        if (cursor.getCount() == 0) {
+            Toast.makeText(context, "No file found", Toast.LENGTH_LONG).show();
+        } else {
+            while (cursor.moveToNext()) {
+                String fileName = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME));
+
+                if (fileName.equals(filename)) {
+                    long id = cursor.getLong(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
+
+                    uri = ContentUris.withAppendedId(contentUri, id);
+
+                    break;
+                }
+            }
+
+            if (uri == null) {
+                Toast.makeText(context, "file not found", Toast.LENGTH_SHORT).show();
+            } else {
+                try {
+                    InputStream inputStream = context.getContentResolver().openInputStream(uri);
+
+
+//////////////////////////////////////////////////////////////
+return (FileInputStream) inputStream;
+
+                } catch (IOException e) {
+                    Toast.makeText(context, "Fail to read file", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+        return null;
+    }
+
+    public  Bitmap createThumbnail(String filename) {
+        Bitmap bitmap = null;
+        String[] selectionArgs = new String[]{Environment.DIRECTORY_MOVIES + "/" + appFolder + "Videos/"};
+        Uri contentUri = MediaStore.Files.getContentUri("external");
+
+        String selection = MediaStore.MediaColumns.RELATIVE_PATH + "=?";
+
+
+
+        Cursor cursor = context.getContentResolver().query(contentUri, null, selection, selectionArgs, null);
+
+        Uri uri = null;
+
+        if (cursor.getCount() == 0) {
+            Toast.makeText(context, "No file found", Toast.LENGTH_LONG).show();
+        } else {
+            while (cursor.moveToNext()) {
+                String fileName = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME));
+
+                if (fileName.equals(filename)) {
+                    long id = cursor.getLong(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
+
+                    uri = ContentUris.withAppendedId(contentUri, id);
+
+                    break;
+                }
+            }
+
+            if (uri == null) {
+                Toast.makeText(context, "file not found", Toast.LENGTH_SHORT).show();
+            } else {
+
+
+
+
+        MediaMetadataRetriever mediaMetadataRetriever = null;
+
+        try {
+            mediaMetadataRetriever = new MediaMetadataRetriever();
+            mediaMetadataRetriever.setDataSource(context, uri);
+            bitmap = mediaMetadataRetriever.getFrameAtTime(1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (mediaMetadataRetriever != null) {
+                mediaMetadataRetriever.release();
+            }
+        }
+            }
+        }
+
+        return bitmap;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.R)
@@ -248,14 +367,14 @@ new File(getFullPath(path)).delete();
             for (String path : imageDirectories) {
                 ContentValues contentValues = new ContentValues();
                 ContentResolver contentResolver = context.getContentResolver();
-                Uri locUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
                 contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + path);
+                Uri locUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
                 contentResolver.update(locUri, contentValues, null, null);
             }
             ContentValues contentValues = new ContentValues();
             ContentResolver contentResolver = context.getContentResolver();
-            Uri locUri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
             contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/" + appFolder + videos);
+            Uri locUri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
             contentResolver.update(locUri, contentValues, null, null);
         }
 
@@ -270,7 +389,7 @@ new File(getFullPath(path)).delete();
             if(getType(path)==VIDEO)
                 locuri=MediaStore.Video.Media.getContentUri("external");
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 contentResolver.delete(locuri, MediaStore.MediaColumns.DATA+"=?",new String[]{getFullPath(path)});
             }
         }

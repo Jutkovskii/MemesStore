@@ -7,19 +7,18 @@
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <application
 
-        android:requestLegacyExternalStorage="true"
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher_legacy"
-        android:label="@string/app_name"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.MemesStore">
+ android:allowBackup="true"
+ android:icon="@mipmap/ic_launcher_legacy"
+ android:label="@string/app_name"
+ android:supportsRtl="true"
+ android:theme="@style/Theme.MemesStore">
 
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="com.log28.memesstore"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <!-- ressource file to create -->
+ <provider
+     android:name="androidx.core.content.FileProvider"
+     android:authorities="com.log28.memesstore"
+     android:exported="false"
+     android:grantUriPermissions="true">
+     <!-- ressource file to create -->
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_path">

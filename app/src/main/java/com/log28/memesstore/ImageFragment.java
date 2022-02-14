@@ -43,6 +43,8 @@ Context context=container.getContext();
         try {
             FileHelper fileHelper = new FileHelper(context);
             bmp = BitmapFactory.decodeFile(fileHelper.getFullPath(filename),fileHelper.getOptions(filename));
+            if(bmp==null)
+                bmp=fileHelper.getPreview(filename);
         }
         catch (Exception e){
             e.printStackTrace();

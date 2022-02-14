@@ -74,6 +74,8 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
     }
 
     public void delete(String filepath) {
+        if(!memesDatabase.isOpen())
+            getWritableDatabase();
         try {
             memesDatabase.delete(tableName, filepathColumnName + " = ?", new String[]{filepath});
         } catch (Exception e) {

@@ -304,7 +304,9 @@ public class MainActivity extends AppCompatActivity {
     //вызов галерени для добавления мема
     public void addMeme(View v) {
 //Вызываем стандартную галерею для выбора изображения с помощью Intent.ACTION_PICK:
-        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+        //Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+        Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        photoPickerIntent.addCategory(Intent.CATEGORY_OPENABLE);
         //Тип получаемых объектов - image:
         if (tabNum == 0)
             photoPickerIntent.setType("image/*");
