@@ -61,6 +61,10 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
     }
 
     public void insert(String filepath) {
+        if(memesDatabase==null)
+            getWritableDatabase();
+        if(!memesDatabase.isOpen())
+            getWritableDatabase();
         Cursor localCursor = memesDatabase.query(tableName, new String[]{filepathColumnName}, filepathColumnName + " = ?", new String[]{filepath}, null, null, null);
         if (localCursor.getCount() == 0) {
             ContentValues contentValues = new ContentValues();
@@ -74,6 +78,8 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
     }
 
     public void delete(String filepath) {
+        if(memesDatabase==null)
+            getWritableDatabase();
         if(!memesDatabase.isOpen())
             getWritableDatabase();
         try {

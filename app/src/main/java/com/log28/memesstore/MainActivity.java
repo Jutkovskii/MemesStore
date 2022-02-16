@@ -37,16 +37,10 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    //объект списка
-    //RecyclerView memesList;
+
     //объект БД
-    MemeDatabaseHelper testdb;
-
     MemeDatabaseHelper imagedb;
-
     MemeDatabaseHelper videodb;
-    //обработчик свайпов
-    private GestureDetectorCompat swipeDetector;
     //номер вкладки
     int tabNum = 0;
     static final int IMAGE = 0;
@@ -55,8 +49,6 @@ public class MainActivity extends AppCompatActivity {
     TabLayout memesCategories;
     //объект для работы с памятью
     FileHelper fileHelper;
-    //адаптер для заполнения списка
-   // MemesListAdapter memesListAdapter;
 
     MemeListFragment imageListFragment;
     MemeListFragment videoListFragment;
@@ -76,8 +68,7 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
 
         }
-        //обработчик свайпов
-       // swipeDetector = new GestureDetectorCompat(this, new SwipeListener());
+
         //запрет поворота экрана (УДАЛИТЬ ПОЗДНЕЕ!)
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         //объект с вкладками
@@ -103,8 +94,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         fileHelper = new FileHelper(this);
-        //memesList = findViewById(R.id.memesList);
-        //memesList.setLayoutManager(new GridLayoutManager(this, 2));
+
 
 
         //запрос интента при старте
@@ -114,38 +104,14 @@ public class MainActivity extends AppCompatActivity {
             // if(intent!=null&&intent.getAction()=="android.intent.action.SEND")
             getMemeFromIntent(intent);
 
-          //установка списка согласно выбранной вкладке
-        //ВОЗМОЖНО ЗАМЕНИТЬ НА ФРАГМЕНТЫ
 
-
-        imagedb=new MemeDatabaseHelper(this, "test", 1);
-        videodb = new MemeDatabaseHelper(this, "video1", 1);
+        getBD();
         imageListFragment=new MemeListFragment(imagedb);
         videoListFragment=new MemeListFragment(videodb);
-
-
-        /*imageListFragment=new MemeListFragment(new MemeDatabaseHelper(this, "test", 1));
-        videoListFragment=new MemeListFragment(new MemeDatabaseHelper(this, "video1", 1));
-*/
-     /*   FragmentTransaction ft=getSupportFragmentManager().beginTransaction();
-        ft.add(R.id.memeFramelayout,imageListFragment);
-        ft.commit();
-*/
-        //setMemesList(tabNum);
-        //установка обработчика свайпов
-      /*  memesList.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return swipeDetector.onTouchEvent(event);
-            }
-        });
-*/
-
-
-
         pagerSlider=findViewById(R.id.pagerSlider);
         pagerAdapter=new ScreenSlidePagerAdapter(this, new ArrayList<MemeListFragment>(Arrays.asList(imageListFragment,videoListFragment)));
         pagerSlider.setAdapter(pagerAdapter);
+
 
     }
 
@@ -177,19 +143,21 @@ public class MainActivity extends AppCompatActivity {
         public int getItemCount() {
             return memeLists.size();
         }
+
+
     }
     @Override
-    protected void onStart() {
-        super.onStart();
-
+    protected void onResume() {
+        super.onResume();
+        getBD();
     }
 
-    void getMemeFromIntent(Intent intent) {
+    int getMemeFromIntent(Intent intent) {
         //Имя файла (не путь, только имя)
         String filename = "";
         //поток входных данных
         InputStream inputStream;
-        //Если тип данных null
+        //Если интент получен из вызванной галереи, тип null
         if (intent.getType() == null) {
             //получение uri файла
             Uri uri = intent.getData();
@@ -209,38 +177,44 @@ public class MainActivity extends AppCompatActivity {
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
-        } else {
+        }
+        //Если интент получен из другого приложения
+        else {
             //Определение типа входных данных
             String receivedType = intent.getType();
             //Если получен текст, извлекаем имя видеофайла из ссылки
             if (receivedType.startsWith("text")) {
+                //Получение ссылки из интента
                 String localFilename = intent.getClipData().getItemAt(0).getText().toString();
+                //определение имени видеофайла по анализу ключевых символов в ссылке
                 if (localFilename.contains("&"))
                     localFilename = localFilename.substring(localFilename.indexOf("=") + 1, localFilename.lastIndexOf("&"));
                 else if (localFilename.contains("="))
                     localFilename = localFilename.substring(localFilename.lastIndexOf("=") + 1);
                 else localFilename = localFilename.substring(localFilename.lastIndexOf("/") + 1);
+                //фиксируем полученное имя
                 filename = localFilename;
                 //загружаем превью
                 PreviewSaver previewSaver = new PreviewSaver(fileHelper);
                 previewSaver.execute(new String[]{filename});
             }
-//если получено изображение или видео
+            //если получено изображение или видео
             else if (receivedType.startsWith("image") || receivedType.startsWith("video")) {
-
+                // извлекаем uri одним из методов
                 Uri localUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
                 if (localUri == null)
                     localUri = intent.getData();
-
-
+                //определяем имя файла
                 Cursor returnCursor = getContentResolver().query(localUri, null, null, null, null);
+                //Через курсор (для андроид 10 и выше)
                 if (returnCursor != null) {
                     int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                     returnCursor.moveToFirst();
                     filename = returnCursor.getString(nameIndex);
-                } else
+                }
+                //Через путь (для предыдущих версий)
+                else
                     filename = localUri.getPath().substring(localUri.getPath().lastIndexOf("/") + 1);
-
                 try {
                     //получение потока входных данных
                     inputStream = getContentResolver().openInputStream(localUri);
@@ -248,57 +222,45 @@ public class MainActivity extends AppCompatActivity {
                     fileHelper.createLocalFile(inputStream, filename);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
+                    Toast.makeText(this, "Не удалось создать локальный файл", Toast.LENGTH_SHORT);
                 }
 
-            } else Toast.makeText(this, "Не удалось добавить файл", Toast.LENGTH_SHORT);
+            }
+            //если не сработал ни один метод
+            else Toast.makeText(this, "Не удалось обработать файл", Toast.LENGTH_SHORT);
         }
-        String DBname = "";
-        //Определение типа данных для выбора БД
-        switch (fileHelper.getType(filename)) {
-            case FileHelper.VIDEO:
-            case FileHelper.HTTPS:
-                DBname = "video1";
-                break;
-            case FileHelper.IMAGE:
-                DBname = "test";
-                break;
-        }
-        //открытие и запись в БД
-        MemeDatabaseHelper testdb = new MemeDatabaseHelper(this, DBname, 1);
-        testdb.getWritableDatabase();
-        testdb.insert(filename);
-        testdb.close();
 
+if(insertToDB(filename)) {
+    if (fileHelper.getType(filename) == FileHelper.IMAGE) return FileHelper.IMAGE;
+    else return fileHelper.VIDEO;
+}
+else return -1;
+    }
+    //получение баз данных
+    void getBD(){
+        imagedb=new MemeDatabaseHelper(this, "test", 1);
+        videodb = new MemeDatabaseHelper(this, "video1", 1);
     }
 
-    //заполнение списка данными из БД
-    void setMemesList(int category) {
-        FragmentTransaction ft=getSupportFragmentManager().beginTransaction();
-
-
-        switch (category) {
-            case IMAGE:
-                //testdb = new MemeDatabaseHelper(this, "test", 1);
-                // imageListFragment.setDB(testdb);
-                imageListFragment.setDB(imagedb);
-
-                ft.replace(R.id.memeFramelayout,imageListFragment);
-                break;
-            case VIDEO:
-                //testdb = new MemeDatabaseHelper(this, "video1", 1);
-                // imageListFragment.setDB(testdb);
-               videoListFragment.setDB(videodb);
-
-                ft.replace(R.id.memeFramelayout,videoListFragment);
-                break;
+    //добавление файла в базу данных
+    boolean insertToDB(String filename){
+        //получение баз данных, если они не были открыты (приложение стартовало по интенту)
+        getBD();
+        try {
+            switch (fileHelper.getType(filename)) {
+                case FileHelper.VIDEO:
+                case FileHelper.HTTPS:
+                    videodb.insert(filename);
+                    break;
+                case FileHelper.IMAGE:
+                    imagedb.insert(filename);
+                    break;
+            }
         }
-        ft.commit();
-      /*  testdb.getWritableDatabase();
-        memesListAdapter = new MemesListAdapter(this, testdb);
-        memesList.setAdapter(memesListAdapter);
-        memesListAdapter.notifyDataSetChanged();*/
-//testdb.exportDB();
-
+        catch (Exception e){
+            return false;
+        }
+        return true;
     }
 
     //вызов галерени для добавления мема
@@ -335,8 +297,6 @@ public class MainActivity extends AppCompatActivity {
                 //удаление файла
                 new FileHelper(this).deleteFile(data.getDataString());
                 //удаление записи из БД
-
-
                 if (fileHelper.getType(data.getDataString()) == fileHelper.IMAGE) {
                     tabNum = 0;
                     imagedb.delete(data.getDataString());
@@ -345,37 +305,21 @@ public class MainActivity extends AppCompatActivity {
                     tabNum = 1;
                     videodb.delete(data.getDataString());
                 }
-                //testdb.delete(data.getDataString());
-                //setMemesList(tabNum);
+
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             }
 
         //результат: файл нужно добавить
         if (requestCode == REQUEST_GALLERY)
             if (resultCode == RESULT_OK) {
-                //хитрое получение имени файла
-                Uri uri = data.getData();
-                Toast.makeText(this, uri.getPath(), Toast.LENGTH_LONG);
-                Cursor returnCursor =
-                        getContentResolver().query(uri, null, null, null, null);
-                String fileName = null;
-                try {
-                    int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                    returnCursor.moveToFirst();
-                    fileName = returnCursor.getString(nameIndex);
-                } catch (Exception e) {
-                    e.printStackTrace();
 
-                }
                 //получаем и сохраняем мем из uri
-                getMemeFromIntent(data);
-               // testdb.getWritableDatabase();
                 //выбор вкладки согласно типу файла
-                if (fileHelper.getType(fileName) == fileHelper.IMAGE)
+                if (getMemeFromIntent(data)== fileHelper.IMAGE)
                     tabNum = 0;
                 else
                     tabNum = 1;
-                setMemesList(tabNum);
+                //setMemesList(tabNum);
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             }
 

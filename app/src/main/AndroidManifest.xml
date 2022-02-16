@@ -2,57 +2,77 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.log28.memesstore">
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
     <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher_legacy"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MemesStore">
 
- android:allowBackup="true"
- android:icon="@mipmap/ic_launcher_legacy"
- android:label="@string/app_name"
- android:supportsRtl="true"
- android:theme="@style/Theme.MemesStore">
 
- <provider
-     android:name="androidx.core.content.FileProvider"
-     android:authorities="com.log28.memesstore"
-     android:exported="false"
-     android:grantUriPermissions="true">
-     <!-- ressource file to create -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.log28.memesstore"
+            android:exported="false"
+            android:grantUriPermissions="true">
+
+            <!-- ressource file to create -->
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_path">
-            </meta-data>
+                android:resource="@xml/file_path"></meta-data>
         </provider>
 
-        <activity android:name=".MemeViewerActivity"></activity>
+        <activity android:name=".MemeViewerActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter
-                tools:ignore="AppLinkUrlError">
-                <action android:name="android.intent.action.VIEW"/>
+            <intent-filter tools:ignore="AppLinkUrlError">
+                <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http"  android:host="www.youtube.com" android:pathPrefix="/watch" />
-                <data android:scheme="https" android:host="www.youtube.com" android:pathPrefix="/watch" />
-                <data android:scheme="http"  android:host="youtube.com" android:pathPrefix="/watch" />
-                <data android:scheme="https" android:host="youtube.com" android:pathPrefix="/watch" />
-                <data android:scheme="http"  android:host="youtu.be" />
-                <data android:scheme="https" android:host="youtu.be" />
+
+                <data
+                    android:host="www.youtube.com"
+                    android:pathPrefix="/watch"
+                    android:scheme="http" />
+                <data
+                    android:host="www.youtube.com"
+                    android:pathPrefix="/watch"
+                    android:scheme="https" />
+                <data
+                    android:host="youtube.com"
+                    android:pathPrefix="/watch"
+                    android:scheme="http" />
+                <data
+                    android:host="youtube.com"
+                    android:pathPrefix="/watch"
+                    android:scheme="https" />
+                <data
+                    android:host="youtu.be"
+                    android:scheme="http" />
+                <data
+                    android:host="youtu.be"
+                    android:scheme="https" />
                 <data android:mimeType="image/*" />
             </intent-filter>
-            <intent-filter
-                tools:ignore="AppLinkUrlError">
-                <action android:name="android.intent.action.SEND"/>
+            <intent-filter tools:ignore="AppLinkUrlError">
+                <action android:name="android.intent.action.SEND" />
+
                 <category android:name="android.intent.category.DEFAULT" />
 
                 <data android:mimeType="image/*" />
                 <data android:mimeType="video/*" />
                 <data android:mimeType="text/*" />
-                <data android:mimeType="*/*"/>
+                <data android:mimeType="*/*" />
             </intent-filter>
         </activity>
     </application>

@@ -14,6 +14,6 @@ public interface FileHelperInterface {
     //содание директории
     public void createDirs();
     public void deleteFile(String path);
-
+public Bitmap getPreview(String filename);
 
 }
