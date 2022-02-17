@@ -12,7 +12,6 @@ public interface FileHelperInterface {
 
     public boolean createLocalFile(InputStream inputStream, String filename);
     //содание директории
-    public void createDirs();
     public void deleteFile(String path);
 public Bitmap getPreview(String filename);
 

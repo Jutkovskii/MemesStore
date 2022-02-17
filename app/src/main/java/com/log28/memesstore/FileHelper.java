@@ -52,9 +52,9 @@ public class FileHelper {
 
     //возвращает тип данных согласно имени файла
     public static int getType(String filename){
-        if(filename.endsWith(".jpg")||filename.endsWith(".png"))
+        if(filename.toLowerCase().endsWith(".jpg")||filename.toLowerCase().endsWith(".png"))
             return IMAGE;
-        if(filename.endsWith(".mp4"))
+        if(filename.toLowerCase().endsWith(".mp4"))
             return VIDEO;
         if(!filename.contains("."))
             return HTTPS;
@@ -286,10 +286,6 @@ return (FileInputStream) inputStream;
 
     }
 
-    //содание директории
-    public void createDirs(){
-        this.fileHelper.createDirs();
-    }
     //удаление локального файла
     public void deleteFile(String path){
         this.fileHelper.deleteFile(path);
@@ -301,6 +297,7 @@ return (FileInputStream) inputStream;
 
 
         public innerFileHelperOld(Context context) {
+            root = Environment.getExternalStorageDirectory().getAbsolutePath()+"/";
             createDirs();
         }
 
@@ -325,7 +322,7 @@ qwe.createNewFile();
         }
 
         public void createDirs(){
-            root = Environment.getExternalStorageDirectory().getAbsolutePath()+"/";
+
             new File (root+"/"+previews).mkdirs();
             new File (root+"/"+images).mkdirs();
             new File (root+"/"+videos).mkdirs();
@@ -362,7 +359,8 @@ new File(getFullPath(path)).delete();
     public class innerFileHelperNew implements  FileHelperInterface {
 
         public innerFileHelperNew(Context context) {
-            createDirs();
+
+            root = Environment.getExternalStorageDirectory().getAbsolutePath() + "/";
         }
 
         public boolean createLocalFile(InputStream inputStream, String filename) {
@@ -399,19 +397,20 @@ new File(getFullPath(path)).delete();
             return true;
         }
 
+        //Рудимент, создает папки ,но в них пустые файлы
         public void createDirs() {
-            root = Environment.getExternalStorageDirectory().getAbsolutePath() + "/";
-            String[] imageDirectories = new String[]{appFolder + images, appFolder + previews};
+
+            String[] imageDirectories = new String[]{ images, previews};
             for (String path : imageDirectories) {
                 ContentValues contentValues = new ContentValues();
                 ContentResolver contentResolver = context.getContentResolver();
-                contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + path);
+                contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, path);
                 Uri locUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
                 contentResolver.update(locUri, contentValues, null, null);
             }
             ContentValues contentValues = new ContentValues();
             ContentResolver contentResolver = context.getContentResolver();
-            contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/" + appFolder + videos);
+            contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, videos+"qwe.mp4");
             Uri locUri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
             contentResolver.update(locUri, contentValues, null, null);
         }
@@ -450,6 +449,7 @@ new File(getFullPath(path)).delete();
                     selectionArgs = new String[]{videos};
                     break;
                 case HTTPS:
+                    filename=filename+".jpg";
                     selectionArgs = new String[]{previews};
                     break;
             }
@@ -470,7 +470,7 @@ new File(getFullPath(path)).delete();
             }while (cursor.moveToNext());
 
 
-            if (getType(filename) != VIDEO) {
+            if (getType(filename) == IMAGE) {
                 InputStream inputStream = null;
                 try {
                     inputStream = context.getContentResolver().openInputStream(uri);
@@ -479,7 +479,8 @@ new File(getFullPath(path)).delete();
                     e.printStackTrace();
                 }
 
-            } else {
+            }
+            if (getType(filename) == VIDEO||getType(filename) == HTTPS){
                 MediaMetadataRetriever mediaMetadataRetriever = null;
 
                 try {

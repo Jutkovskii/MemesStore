@@ -16,29 +16,29 @@ public class MemeListFragment extends Fragment {
     //объект списка
     RecyclerView memesList;
     //объект БД
-    MemeDatabaseHelper testdb=null;
+    MemeDatabaseHelper testdb = null;
     //адаптер для заполнения списка
     MemesListAdapter memesListAdapter;
-
     //объект для работы с памятью
     FileHelper fileHelper;
 
-    static final int IMAGE = 0;
-    static final int VIDEO = 1;
+    View view;
+
 
     public MemeListFragment() {
 
     }
 
     public MemeListFragment(MemeDatabaseHelper testdb) {
-        this.testdb=testdb;
+        this.testdb = testdb;
 
 
     }
-public void setDB(MemeDatabaseHelper testdb) {
-    this.testdb=testdb;
 
-}
+    public void setDB(MemeDatabaseHelper testdb) {
+        this.testdb = testdb;
+
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -53,18 +53,18 @@ public void setDB(MemeDatabaseHelper testdb) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_meme_list, container, false);
     }
-View view;
+
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-this.view=view;
+        this.view = view;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if(testdb!=null) {
+        if (testdb != null) {
             fileHelper = new FileHelper(view.getContext());
             memesList = view.findViewById(R.id.memesList);
             memesList.setLayoutManager(new GridLayoutManager(view.getContext(), 2));
@@ -79,7 +79,7 @@ this.view=view;
     @Override
     public void onStop() {
         super.onStop();
-        if(testdb!=null)
+        if (testdb != null)
             testdb.close();
     }
 }

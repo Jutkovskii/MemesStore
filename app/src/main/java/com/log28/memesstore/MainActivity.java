@@ -43,8 +43,6 @@ public class MainActivity extends AppCompatActivity {
     MemeDatabaseHelper videodb;
     //номер вкладки
     int tabNum = 0;
-    static final int IMAGE = 0;
-    static final int VIDEO = 1;
     //слой для вкладок
     TabLayout memesCategories;
     //объект для работы с памятью
@@ -56,9 +54,9 @@ public class MainActivity extends AppCompatActivity {
     private final int REQUEST_GALLERY = 84;
 
 
-
     ViewPager2 pagerSlider;
     private FragmentStateAdapter pagerAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,7 +77,6 @@ public class MainActivity extends AppCompatActivity {
             public void onTabSelected(TabLayout.Tab tab) {
                 tabNum = tab.getPosition();
                 pagerSlider.setCurrentItem(tabNum);
-                //setMemesList(tabNum);
             }
 
             @Override
@@ -96,7 +93,6 @@ public class MainActivity extends AppCompatActivity {
         fileHelper = new FileHelper(this);
 
 
-
         //запрос интента при старте
         Intent intent = getIntent();
         //если интент существует и соответствует критерию получаем объект из интента
@@ -106,10 +102,10 @@ public class MainActivity extends AppCompatActivity {
 
 
         getBD();
-        imageListFragment=new MemeListFragment(imagedb);
-        videoListFragment=new MemeListFragment(videodb);
-        pagerSlider=findViewById(R.id.pagerSlider);
-        pagerAdapter=new ScreenSlidePagerAdapter(this, new ArrayList<MemeListFragment>(Arrays.asList(imageListFragment,videoListFragment)));
+        imageListFragment = new MemeListFragment(imagedb);
+        videoListFragment = new MemeListFragment(videodb);
+        pagerSlider = findViewById(R.id.pagerSlider);
+        pagerAdapter = new ScreenSlidePagerAdapter(this, new ArrayList<MemeListFragment>(Arrays.asList(imageListFragment, videoListFragment)));
         pagerSlider.setAdapter(pagerAdapter);
 
 
@@ -118,9 +114,10 @@ public class MainActivity extends AppCompatActivity {
     private class ScreenSlidePagerAdapter extends FragmentStateAdapter {
 
         List<MemeListFragment> memeLists;
-        public ScreenSlidePagerAdapter(FragmentActivity fa,List<MemeListFragment> memeLists) {
+
+        public ScreenSlidePagerAdapter(FragmentActivity fa, List<MemeListFragment> memeLists) {
             super(fa);
-            this.memeLists=memeLists;
+            this.memeLists = memeLists;
         }
 
         @Override
@@ -133,10 +130,10 @@ public class MainActivity extends AppCompatActivity {
         public Fragment createFragment(int position) {
 
 
-            if(position==0)
-            return imageListFragment;
+            if (position == 0)
+                return imageListFragment;
             else
-           return videoListFragment;
+                return videoListFragment;
         }
 
         @Override
@@ -146,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -230,20 +228,20 @@ public class MainActivity extends AppCompatActivity {
             else Toast.makeText(this, "Не удалось обработать файл", Toast.LENGTH_SHORT);
         }
 
-if(insertToDB(filename)) {
-    if (fileHelper.getType(filename) == FileHelper.IMAGE) return FileHelper.IMAGE;
-    else return fileHelper.VIDEO;
-}
-else return -1;
+        if (insertToDB(filename)) {
+            if (fileHelper.getType(filename) == FileHelper.IMAGE) return FileHelper.IMAGE;
+            else return fileHelper.VIDEO;
+        } else return -1;
     }
+
     //получение баз данных
-    void getBD(){
-        imagedb=new MemeDatabaseHelper(this, "test", 1);
+    void getBD() {
+        imagedb = new MemeDatabaseHelper(this, "test", 1);
         videodb = new MemeDatabaseHelper(this, "video1", 1);
     }
 
     //добавление файла в базу данных
-    boolean insertToDB(String filename){
+    boolean insertToDB(String filename) {
         //получение баз данных, если они не были открыты (приложение стартовало по интенту)
         getBD();
         try {
@@ -256,8 +254,7 @@ else return -1;
                     imagedb.insert(filename);
                     break;
             }
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             return false;
         }
         return true;
@@ -300,8 +297,7 @@ else return -1;
                 if (fileHelper.getType(data.getDataString()) == fileHelper.IMAGE) {
                     tabNum = 0;
                     imagedb.delete(data.getDataString());
-                }
-                else {
+                } else {
                     tabNum = 1;
                     videodb.delete(data.getDataString());
                 }
@@ -315,7 +311,7 @@ else return -1;
 
                 //получаем и сохраняем мем из uri
                 //выбор вкладки согласно типу файла
-                if (getMemeFromIntent(data)== fileHelper.IMAGE)
+                if (getMemeFromIntent(data) == fileHelper.IMAGE)
                     tabNum = 0;
                 else
                     tabNum = 1;

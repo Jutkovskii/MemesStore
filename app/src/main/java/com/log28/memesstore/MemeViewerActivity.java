@@ -94,7 +94,6 @@ public class MemeViewerActivity extends AppCompatActivity {
                         intent.setType("image/*");
                         intent.putExtra(Intent.EXTRA_STREAM, memeUri);
                         intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
-                        startActivity(intent);
                         break;
                     case FileHelper.VIDEO:
                         intent.setType("video/*");
