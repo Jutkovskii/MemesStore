@@ -13,6 +13,6 @@ public interface FileHelperInterface {
     public boolean createLocalFile(InputStream inputStream, String filename);
     //содание директории
     public void deleteFile(String path);
-public Bitmap getPreview(String filename);
+public Bitmap getPreview(String filename, BitmapFactory.Options options);
 
 }

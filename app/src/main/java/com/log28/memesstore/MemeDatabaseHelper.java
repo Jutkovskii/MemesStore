@@ -35,17 +35,20 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
 
         super(context, name, null, version);
         this.name = name;
+        Log.d("OLOLOG","БД конструктор "+ name  );
     }
 
     @Override
     public SQLiteDatabase getWritableDatabase() {
         memesDatabase = super.getWritableDatabase();
+        Log.d("OLOLOG","БД для записи "+ name  );
         return memesDatabase;
     }
 
     @Override
     public SQLiteDatabase getReadableDatabase() {
         memesDatabase = super.getReadableDatabase();
+        Log.d("OLOLOG","БД для чтения "+ name  );
         return memesDatabase;
     }
 
@@ -53,6 +56,7 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         memesDatabase = sqLiteDatabase;
         memesDatabase.execSQL("CREATE TABLE " + tableName + " (_id INTEGER PRIMARY KEY AUTOINCREMENT, " + filepathColumnName + " TEXT);");
+        Log.d("OLOLOG","БД Создать "+ name  );
     }
 
     @Override
@@ -61,10 +65,8 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
     }
 
     public void insert(String filepath) {
-        if(memesDatabase==null)
-            getWritableDatabase();
-        if(!memesDatabase.isOpen())
-            getWritableDatabase();
+        Log.d("OLOLOG","БД Вставить"+ name  );
+        checkDB();
         Cursor localCursor = memesDatabase.query(tableName, new String[]{filepathColumnName}, filepathColumnName + " = ?", new String[]{filepath}, null, null, null);
         if (localCursor.getCount() == 0) {
             ContentValues contentValues = new ContentValues();
@@ -78,11 +80,9 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
     }
 
     public void delete(String filepath) {
-        if(memesDatabase==null)
-            getWritableDatabase();
-        if(!memesDatabase.isOpen())
-            getWritableDatabase();
-        try {
+        Log.d("OLOLOG","БД удалить "+ name  );
+
+        try {checkDB();
             memesDatabase.delete(tableName, filepathColumnName + " = ?", new String[]{filepath});
         } catch (Exception e) {
             e.printStackTrace();
@@ -90,9 +90,16 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
     }
 
     public Cursor getCursor() {
+        checkDB();
         return memesDatabase.query(tableName, new String[]{"_id", filepathColumnName}, null, null, null, null, null);
     }
 
+    void checkDB(){
+        if(memesDatabase==null){  Log.d("OLOLOG","БД нулл "+ name  );
+            getWritableDatabase();}
+        if(!memesDatabase.isOpen()){  Log.d("OLOLOG","БД закрыта "+ name  );
+            getWritableDatabase();}
+    }
 
     //////////////////////////////////////////////////
 

@@ -23,6 +23,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -61,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Log.d("OLOLOG","Активность с=Создание " );
         //проверка доступа к памяти
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
@@ -102,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         getBD();
+        Log.d("OLOLOG","Активность Создание фрагментов " );
         imageListFragment = new MemeListFragment(imagedb);
         videoListFragment = new MemeListFragment(videodb);
         pagerSlider = findViewById(R.id.pagerSlider);
@@ -143,12 +146,13 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-
+/*
+//Под вопросом необходимость
     @Override
     protected void onResume() {
         super.onResume();
         getBD();
-    }
+    }*/
 
     int getMemeFromIntent(Intent intent) {
         //Имя файла (не путь, только имя)
@@ -236,12 +240,14 @@ public class MainActivity extends AppCompatActivity {
 
     //получение баз данных
     void getBD() {
+        Log.d("OLOLOG","Активность Создание баз данных " );
         imagedb = new MemeDatabaseHelper(this, "test", 1);
         videodb = new MemeDatabaseHelper(this, "video1", 1);
     }
 
     //добавление файла в базу данных
     boolean insertToDB(String filename) {
+        Log.d("OLOLOG","Активность Добавление в базы данных " );
         //получение баз данных, если они не были открыты (приложение стартовало по интенту)
         getBD();
         try {
@@ -262,6 +268,7 @@ public class MainActivity extends AppCompatActivity {
 
     //вызов галерени для добавления мема
     public void addMeme(View v) {
+        Log.d("OLOLOG","Активность Добавление мема " );
 //Вызываем стандартную галерею для выбора изображения с помощью Intent.ACTION_PICK:
         //Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
         Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -287,10 +294,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         //проверка кода запроса и кода результата
         //результат: файл нужно удалить
         if (requestCode == MemeViewerActivity.REQUEST_CODE)
             if (resultCode == MemeViewerActivity.DELETED_MEME_CODE) {
+                Log.d("OLOLOG","Активность удалить мем " );
                 //удаление файла
                 new FileHelper(this).deleteFile(data.getDataString());
                 //удаление записи из БД
@@ -308,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
         //результат: файл нужно добавить
         if (requestCode == REQUEST_GALLERY)
             if (resultCode == RESULT_OK) {
-
+                Log.d("OLOLOG","Активность Получить мем из галереи " );
                 //получаем и сохраняем мем из uri
                 //выбор вкладки согласно типу файла
                 if (getMemeFromIntent(data) == fileHelper.IMAGE)

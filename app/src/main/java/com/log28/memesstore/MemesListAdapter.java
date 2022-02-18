@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Build;
+import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,6 +32,7 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
     Context context;
     MemeDatabaseHelper db;
    public MemesListAdapter(Context context,  MemeDatabaseHelper db){
+       Log.d("OLOLOG","Адаптер созадние "+db.name );
        this.db=db;
        this.context = context;
        Cursor cursor = db.getCursor();

@@ -9,6 +9,7 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.media.MediaMetadataRetriever;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
@@ -103,7 +104,8 @@ public class FileHelper {
     //возвращает Битмап для создания превью
     @RequiresApi(api = Build.VERSION_CODES.R)
     public Bitmap getPreview(String filename){
-        return fileHelper.getPreview(filename);
+
+        return fileHelper.getPreview(filename,getOptions(filename));
       /* Bitmap preview=null;
 
     switch(getType(filename)){
@@ -336,12 +338,12 @@ new File(getFullPath(path)).delete();
 
         //возвращает Битмап для создания превью
         @RequiresApi(api = Build.VERSION_CODES.R)
-        public Bitmap getPreview(String filename){
+        public Bitmap getPreview(String filename, BitmapFactory.Options options){
             Bitmap preview=null;
 
             switch(getType(filename)){
                 case IMAGE:
-                    preview=BitmapFactory.decodeFile(getFullPath(filename),getOptions(filename));
+                    preview=BitmapFactory.decodeFile(getFullPath(filename),options);
                     break;
                 case VIDEO:
                     preview= ThumbnailUtils.createVideoThumbnail(getFullPath(filename),MediaStore.Images.Thumbnails.MINI_KIND);
@@ -436,7 +438,7 @@ new File(getFullPath(path)).delete();
 
         //возвращает Битмап для создания превью
         @RequiresApi(api = Build.VERSION_CODES.R)
-        public Bitmap getPreview(String filename) {
+        public Bitmap getPreview(String filename, BitmapFactory.Options options) {
             Bitmap preview = null;
 
 
@@ -474,8 +476,8 @@ new File(getFullPath(path)).delete();
                 InputStream inputStream = null;
                 try {
                     inputStream = context.getContentResolver().openInputStream(uri);
-                    preview = BitmapFactory.decodeStream(inputStream);
-                } catch (FileNotFoundException e) {
+                    preview = BitmapFactory.decodeStream(inputStream,new Rect(),options);
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
