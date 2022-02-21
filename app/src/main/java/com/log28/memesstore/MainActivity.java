@@ -1,6 +1,7 @@
 package com.log28.memesstore;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -21,6 +22,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.util.Log;
@@ -154,6 +156,7 @@ public class MainActivity extends AppCompatActivity {
         getBD();
     }*/
 
+    @RequiresApi(api = Build.VERSION_CODES.R)
     int getMemeFromIntent(Intent intent) {
         //Имя файла (не путь, только имя)
         String filename = "";
@@ -175,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
                 inputStream = getContentResolver().openInputStream(uri);
                 //создание локального файла
                 fileHelper.createLocalFile(inputStream, filename);
-
+//fileHelper.resizeImageForTG(filename);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -222,6 +225,7 @@ public class MainActivity extends AppCompatActivity {
                     inputStream = getContentResolver().openInputStream(localUri);
                     //создание локального файла
                     fileHelper.createLocalFile(inputStream, filename);
+                    //fileHelper.resizeImageForTG(filename);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                     Toast.makeText(this, "Не удалось создать локальный файл", Toast.LENGTH_SHORT);

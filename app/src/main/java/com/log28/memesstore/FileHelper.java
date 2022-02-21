@@ -21,6 +21,8 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -283,9 +285,12 @@ return (FileInputStream) inputStream;
 
     }
     //создание локального файла
+    @RequiresApi(api = Build.VERSION_CODES.R)
     public boolean createLocalFile(InputStream inputStream, String filename){
-    return this.fileHelper.createLocalFile(inputStream,filename);
 
+     boolean res=this.fileHelper.createLocalFile(inputStream,filename);
+        resizeImageForTG(filename);
+        return res;
     }
 
     //удаление локального файла
@@ -293,6 +298,28 @@ return (FileInputStream) inputStream;
         this.fileHelper.deleteFile(path);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    public void resizeImageForTG(String filename){
+       if (getType(filename)==IMAGE) {
+           BitmapFactory.Options options = getOptions(filename);
+           float width = options.outWidth;
+           float height = options.outHeight;
+           final float WIDTH = 1200;
+           final float HEIGHT = 1200;
+           float scaleParameter = Math.max(WIDTH / width , HEIGHT / height );
+           float criteria = 2;
+           if (scaleParameter > criteria )/*|| scaleParameter < 1.0 / criteria) */{
+               Bitmap tempBitmap = getPreview(filename);
+               tempBitmap = Bitmap.createScaledBitmap(tempBitmap, Math.round(tempBitmap.getWidth() * scaleParameter), Math.round(tempBitmap.getHeight() * scaleParameter), false);
+               ByteArrayOutputStream bos = new ByteArrayOutputStream();
+               tempBitmap.compress(Bitmap.CompressFormat.JPEG, 100 /*ignored for PNG*/, bos);
+               byte[] bitmapdata = bos.toByteArray();
+               ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
+               this.fileHelper.createLocalFile(bs, filename);
+           }
+       }
+
+    }
 
 
     public class innerFileHelperOld implements FileHelperInterface {
@@ -365,6 +392,7 @@ new File(getFullPath(path)).delete();
             root = Environment.getExternalStorageDirectory().getAbsolutePath() + "/";
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.R)
         public boolean createLocalFile(InputStream inputStream, String filename) {
 
             ContentValues contentValues = new ContentValues();
