@@ -178,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
                 inputStream = getContentResolver().openInputStream(uri);
                 //создание локального файла
                 fileHelper.createLocalFile(inputStream, filename);
-//fileHelper.resizeImageForTG(filename);
+
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -225,7 +225,6 @@ public class MainActivity extends AppCompatActivity {
                     inputStream = getContentResolver().openInputStream(localUri);
                     //создание локального файла
                     fileHelper.createLocalFile(inputStream, filename);
-                    //fileHelper.resizeImageForTG(filename);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                     Toast.makeText(this, "Не удалось создать локальный файл", Toast.LENGTH_SHORT);
@@ -295,6 +294,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //получение результата от дочерней активности
+    @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

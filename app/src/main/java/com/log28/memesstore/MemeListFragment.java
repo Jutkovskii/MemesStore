@@ -22,7 +22,7 @@ public class MemeListFragment extends Fragment {
     //адаптер для заполнения списка
     MemesListAdapter memesListAdapter;
     //объект для работы с памятью
-   // FileHelper fileHelper;
+
 
     View view;
 
@@ -30,21 +30,20 @@ public class MemeListFragment extends Fragment {
     public MemeListFragment() {
     }
 
+
+
     public MemeListFragment(MemeDatabaseHelper testdb) {
         this.testdb = testdb;
 
         Log.d("OLOLOG","Фрагмент Конструктор для "+testdb.name );
-    }
-
-    public void setDB(MemeDatabaseHelper testdb) {
-        this.testdb = testdb;
 
     }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("OLOLOG","Фрагмент Созадние для "+ testdb.name  );
+        Log.d("OLOLOG","Фрагмент Созадние для "+ testdb.name );
 
     }
 
@@ -53,7 +52,9 @@ public class MemeListFragment extends Fragment {
                              Bundle savedInstanceState) {
         Log.d("OLOLOG","Фрагмент Создать view для  "+ testdb.name  );
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_meme_list, container, false);
+        this.view = inflater.inflate(R.layout.fragment_meme_list, container, false);
+
+        return view;
     }
 
 
@@ -62,6 +63,13 @@ public class MemeListFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         this.view = view;
         Log.d("OLOLOG","Фрагмент Создан view  для "+ testdb.name  );
+        if (testdb != null) {
+            Log.d("OLOLOG","База данных "+ testdb.name );
+            // fileHelper = new FileHelper(view.getContext());
+            memesList = view.findViewById(R.id.memesList);
+            memesList.setLayoutManager(new GridLayoutManager(view.getContext(), 2));
+
+        }
     }
 
     @Override
@@ -69,7 +77,7 @@ public class MemeListFragment extends Fragment {
         super.onResume();
         Log.d("OLOLOG","Фрагмент Восстановить "+ testdb.name  );
 
-        if (testdb != null) {
+     /*   if (testdb != null) {
             Log.d("OLOLOG","База данных "+ testdb.name );
            // fileHelper = new FileHelper(view.getContext());
             memesList = view.findViewById(R.id.memesList);
@@ -79,15 +87,18 @@ public class MemeListFragment extends Fragment {
             memesListAdapter = new MemesListAdapter(view.getContext(), testdb);
             memesList.setAdapter(memesListAdapter);
             memesListAdapter.notifyDataSetChanged();
-        }
+        }*/
+        memesListAdapter = new MemesListAdapter(view.getContext(), testdb);
+        memesList.setAdapter(memesListAdapter);
+        memesListAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onStop() {
         super.onStop();
         Log.d("OLOLOG","Фрагмент Остановить "+ testdb.name  );
-        if (testdb != null)
-            testdb.close();
+        /*if (testdb != null)
+            testdb.close();*/
     }
 
 

@@ -97,7 +97,7 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
     void checkDB(){
         if(memesDatabase==null){  Log.d("OLOLOG","БД нулл "+ name  );
             getWritableDatabase();}
-        if(!memesDatabase.isOpen()){  Log.d("OLOLOG","БД закрыта "+ name  );
+        if(!memesDatabase.isOpen()){  Log.d("OLOLOG","БД была закрыта "+ name  );
             getWritableDatabase();}
     }
 
