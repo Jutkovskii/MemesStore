@@ -28,6 +28,7 @@ import static android.widget.Toast.LENGTH_LONG;
 public class MemeDatabaseHelper extends SQLiteOpenHelper {
     String tableName = "memesTable";
     String filepathColumnName = "filepath";
+    String filetagColumnName = "filetag";
     SQLiteDatabase memesDatabase;
     String name;
 
@@ -56,7 +57,7 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         memesDatabase = sqLiteDatabase;
-        memesDatabase.execSQL("CREATE TABLE " + tableName + " (_id INTEGER PRIMARY KEY AUTOINCREMENT, " + filepathColumnName + " TEXT);");
+        memesDatabase.execSQL("CREATE TABLE " + tableName + " (_id INTEGER PRIMARY KEY AUTOINCREMENT, " + filepathColumnName + " TEXT, " + filetagColumnName + " TEXT );");
         Log.d("OLOLOG","БД Создать "+ name  );
     }
 
@@ -65,15 +66,22 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
         memesDatabase = sqLiteDatabase;
     }
 
-    public void insert(String filepath) {
+    public void insert(String filepath, String  filetag) {
         Log.d("OLOLOG","БД Вставить"+ name  );
         checkDB();
-        Cursor localCursor = memesDatabase.query(tableName, new String[]{filepathColumnName}, filepathColumnName + " = ?", new String[]{filepath}, null, null, null);
-        if (localCursor.getCount() == 0) {
+       /* Cursor localCursor = memesDatabase.query(tableName, new String[]{filepathColumnName,filetagColumnName}, null, new String[]{filepath,filetag}, null, null, null);
+        if (localCursor.getCount() == 0)
+        */{
             ContentValues contentValues = new ContentValues();
             contentValues.put(this.filepathColumnName, filepath);
+            contentValues.put(this.filetagColumnName, filetag);
             memesDatabase.insert(tableName, null, contentValues);
         }
+    }
+    public void insert(String filepath) {
+        Log.d("OLOLOG","БД Вставить без тэга"+ name  );
+
+        insert(filepath,"");
     }
 
     public void delete(Integer id) {
@@ -92,7 +100,7 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
 
     public Cursor getCursor() {
         checkDB();
-        return memesDatabase.query(tableName, new String[]{"_id", filepathColumnName}, null, null, null, null, null);
+        return memesDatabase.query(tableName, new String[]{"_id", filepathColumnName, filetagColumnName}, null, null, null, null, null);
     }
 
     void checkDB(){

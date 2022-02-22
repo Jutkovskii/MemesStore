@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GestureDetectorCompat;
+import androidx.core.view.MenuItemCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
@@ -15,6 +16,8 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.Manifest;
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -25,10 +28,14 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.google.android.material.tabs.TabLayout;
@@ -153,6 +160,54 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)  {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        MenuItem searchItem = menu.findItem(R.id.app_bar_search);
+        final SearchManager searchManager =
+                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView =
+                (SearchView) MenuItemCompat.getActionView(searchItem);
+
+        searchView.setSearchableInfo(
+                searchManager.getSearchableInfo(getComponentName()));
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String queryText) {
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+              /*  String newFilter = !TextUtils.isEmpty(newText) ? newText : null;
+                if (mSearchTerm == null && newFilter == null) {
+                    return true;
+                }
+                if (mSearchTerm != null && mSearchTerm.equals(newFilter)) {
+                    return true;
+                }
+                mSearchTerm = newFilter;
+                mSearchQueryChanged = true;*/
+                //searchText(newText); //handle this
+                return true;
+            }
+        });
+
+        MenuItemCompat.OnActionExpandListener expandListener = new MenuItemCompat.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem menuItem) {
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem menuItem) {
+
+                return true;
+            }
+        };
+        MenuItemCompat.setOnActionExpandListener(searchItem, expandListener);
+        return super.onCreateOptionsMenu(menu);
+    }
 
     @Override
     protected void onResume() {
@@ -250,8 +305,8 @@ public class MainActivity extends AppCompatActivity {
     //получение баз данных
     void getBD() {
         Log.d("OLOLOG","Активность Создание баз данных " );
-        imagedb = new MemeDatabaseHelper(this, "test", 1);
-        videodb = new MemeDatabaseHelper(this, "video1", 1);
+        imagedb = new MemeDatabaseHelper(this, "test1", 1);
+        videodb = new MemeDatabaseHelper(this, "video", 1);
     }
 
     //добавление файла в базу данных

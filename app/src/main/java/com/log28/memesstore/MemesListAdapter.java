@@ -14,8 +14,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -29,6 +31,7 @@ import static android.content.Context.WINDOW_SERVICE;
 
 public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.ViewHolder>/* implements View.OnClickListener*/ {
     List<String> memesPaths;
+    List<String> memesTags;
     Context context;
     MemeDatabaseHelper db;
    public MemesListAdapter(Context context,  MemeDatabaseHelper db){
@@ -39,14 +42,17 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
        cursor.moveToFirst();
        //получаем из курсора список имён файлов
        memesPaths = new ArrayList<>();
+       memesTags=new ArrayList<>();
        int listSize=cursor.getCount();
        for(int i=0;i<listSize;i++){
            String currentFile=cursor.getString(1);
+           String currentTag=cursor.getString(2)+" подпись";
            //еcли  имя файла не имеет расширения (ссылка на веб-ресурс)
            //или сам файл существует на диске, то добавляется в список
            if(!currentFile.contains(".")||new FileHelper(context).isExist(currentFile))
            {
                memesPaths.add(currentFile);
+               memesTags.add(currentTag);
                cursor.moveToNext();
            }
            //если файла нет, то он удаляется из БД
@@ -72,6 +78,7 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
 
         //устанавливаем битмап согласно имени файла
         holder.memeImageView.setImageBitmap(new FileHelper(context).getPreview(memesPaths.get(position)));
+        holder.memeTag.setText(memesTags.get(position));
         //установка обработчика кликов для вызова активности просмотра
 holder.memeCardView.setOnClickListener(new View.OnClickListener() {
     @Override
@@ -92,11 +99,13 @@ holder.memeCardView.setOnClickListener(new View.OnClickListener() {
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public ImageView memeImageView;
         public CardView memeCardView;
+        public TextView memeTag;
         MemesListAdapter memesListAdapter;
          public ViewHolder(@NonNull View itemView) {
             super(itemView);
             memeCardView = itemView.findViewById(R.id.memeCardView);
             memeImageView = itemView.findViewById(R.id.memeImageView);
+            memeTag=itemView.findViewById(R.id.memeTag);
             //ЗДЕСТ БУДЕТ РЕЖИМ ВЫДЕЛЕНИЯ
             memeCardView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
