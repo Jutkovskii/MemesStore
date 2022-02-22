@@ -22,6 +22,7 @@ public class ImageFragment extends Fragment {
 ImageView memeImageView;
     Bitmap bmp;
 String filename;
+    Context context;
     public ImageFragment() {
         // Required empty public constructor
     }
@@ -38,9 +39,9 @@ String filename;
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_image, container, false);
-Context context=container.getContext();
+context=container.getContext();
 
-        try {
+       /* try {
             FileHelper fileHelper = new FileHelper(context);
             bmp = BitmapFactory.decodeFile(fileHelper.getFullPath(filename),fileHelper.getOptions(filename));
             if(bmp==null)
@@ -48,7 +49,7 @@ Context context=container.getContext();
         }
         catch (Exception e){
             e.printStackTrace();
-        }
+        }*/
         return view;
     }
 
@@ -56,11 +57,13 @@ Context context=container.getContext();
 this.filename =filename;
 
     }
+    @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view,null);// savedInstanceState);
         memeImageView = view.findViewById(R.id.memeImageView);
-        memeImageView.setImageBitmap(bmp);
+       // memeImageView.setImageBitmap(bmp);
+        memeImageView.setImageBitmap(new FileHelper(context).getPreview(filename));
     }
 
 }

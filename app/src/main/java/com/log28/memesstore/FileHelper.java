@@ -158,7 +158,6 @@ public class FileHelper {
        return preview;*/
     }
 
-
     public FileInputStream onRead(String filename) {
         String[] selectionArgs;
         if(!filename.contains("."))
@@ -322,6 +321,10 @@ return (FileInputStream) inputStream;
     }
 
 
+    public Uri getVideoUri(String filename){
+        return fileHelper.getVideoUri(filename);
+    }
+
     public class innerFileHelperOld implements FileHelperInterface {
 
 
@@ -381,6 +384,11 @@ new File(getFullPath(path)).delete();
             }
             if(preview==null)  preview = BitmapFactory.decodeResource(context.getResources(),R.raw.notfound);
             return preview;
+        }
+
+        public Uri getVideoUri(String filename){
+Uri uri = Uri.parse(getFullPath(filename));
+return uri;
         }
 
     }
@@ -528,6 +536,35 @@ new File(getFullPath(path)).delete();
 
             }
             return preview;
+        }
+
+        public Uri getVideoUri(String filename) {
+            String[] selectionArgs = new String[]{Environment.DIRECTORY_MOVIES + "/" + "MemesStore2/" + "Videos/"};
+            Uri contentUri = MediaStore.Files.getContentUri("external");
+
+            String selection = MediaStore.MediaColumns.RELATIVE_PATH + "=?";
+
+
+            Cursor cursor = context.getContentResolver().query(contentUri, null, selection, selectionArgs, null);
+
+            Uri uri = null;
+
+            if (cursor.getCount() == 0) {
+                Toast.makeText(context, "No file found", Toast.LENGTH_LONG).show();
+            } else {
+                while (cursor.moveToNext()) {
+                    String fileName = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME));
+
+                    if (fileName.equals(filename)) {
+                        long id = cursor.getLong(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
+
+                        uri = ContentUris.withAppendedId(contentUri, id);
+
+                        break;
+                    }
+                }
+            }
+return uri;
         }
     }
 }

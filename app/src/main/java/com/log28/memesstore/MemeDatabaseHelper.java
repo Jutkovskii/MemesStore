@@ -36,6 +36,7 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
         super(context, name, null, version);
         this.name = name;
         Log.d("OLOLOG","БД конструктор "+ name  );
+        getWritableDatabase();
     }
 
     @Override

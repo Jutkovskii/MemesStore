@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     ViewPager2 pagerSlider;
     private FragmentStateAdapter pagerAdapter;
 
+    @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,6 +71,11 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
 
         }
+        getBD();
+        Log.d("OLOLOG","Активность Создание фрагментов " );
+        imageListFragment = new MemeListFragment(imagedb);
+        videoListFragment = new MemeListFragment(videodb);
+
 
         //запрет поворота экрана (УДАЛИТЬ ПОЗДНЕЕ!)
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
@@ -105,10 +111,8 @@ public class MainActivity extends AppCompatActivity {
             getMemeFromIntent(intent);
 
 
-        getBD();
-        Log.d("OLOLOG","Активность Создание фрагментов " );
-        imageListFragment = new MemeListFragment(imagedb);
-        videoListFragment = new MemeListFragment(videodb);
+
+
         pagerSlider = findViewById(R.id.pagerSlider);
         pagerAdapter = new ScreenSlidePagerAdapter(this, new ArrayList<MemeListFragment>(Arrays.asList(imageListFragment, videoListFragment)));
         pagerSlider.setAdapter(pagerAdapter);
@@ -148,13 +152,13 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-/*
-//Под вопросом необходимость
+
+
     @Override
     protected void onResume() {
         super.onResume();
-        getBD();
-    }*/
+
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.R)
     int getMemeFromIntent(Intent intent) {
@@ -179,7 +183,9 @@ public class MainActivity extends AppCompatActivity {
                 //создание локального файла
                 fileHelper.createLocalFile(inputStream, filename);
 
-            } catch (FileNotFoundException e) {
+            } catch (Exception e) {
+
+                Toast.makeText(this, "Не удалось обработать файл", Toast.LENGTH_LONG);
                 e.printStackTrace();
             }
         }
@@ -252,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
     boolean insertToDB(String filename) {
         Log.d("OLOLOG","Активность Добавление в базы данных " );
         //получение баз данных, если они не были открыты (приложение стартовало по интенту)
-        getBD();
+        //getBD();
         try {
             switch (fileHelper.getType(filename)) {
                 case FileHelper.VIDEO:
