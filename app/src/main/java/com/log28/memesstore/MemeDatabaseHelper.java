@@ -98,6 +98,13 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    public void update(String filename, String filetag){
+        ContentValues contentValues = new ContentValues();
+        //contentValues.put(this.filepathColumnName,  filename);
+        contentValues.put(this.filetagColumnName, filetag);
+        memesDatabase.update(tableName,contentValues,filepathColumnName + " = ?",new String[]{filename});
+    }
+
     public Cursor getCursor() {
         checkDB();
         return memesDatabase.query(tableName, new String[]{"_id", filepathColumnName, filetagColumnName}, null, null, null, null, null);

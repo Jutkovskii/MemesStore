@@ -378,6 +378,20 @@ public class MainActivity extends AppCompatActivity {
 
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             }
+        if (resultCode == MemeViewerActivity.CHANGE_CODE)
+            {
+
+               String filetag= data.getStringExtra(MemeViewerActivity.FILETAG_EXTRA);
+               String filename = data.getStringExtra(MemeViewerActivity.FILENAME_EXTRA);
+                if (fileHelper.getType(filename) == fileHelper.IMAGE) {
+                    tabNum = 0;
+                    imagedb.update(filename,filetag);
+                } else {
+                    tabNum = 1;
+                    imagedb.update(filename,filetag);
+                }
+                memesCategories.selectTab(memesCategories.getTabAt(tabNum));
+            }
 
         //результат: файл нужно добавить
         if (requestCode == REQUEST_GALLERY)

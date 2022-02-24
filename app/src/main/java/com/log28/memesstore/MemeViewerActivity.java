@@ -9,6 +9,9 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,16 +24,25 @@ public class MemeViewerActivity extends AppCompatActivity {
     public static String FILENAME_EXTRA = "memeFilename";
     //код удаления
     public static int DELETED_MEME_CODE =55;
+    //параметр для извлечения тегов
+    public static String  FILETAG_EXTRA= "memeFiletag";
     //код запроса данный активности
     public static int REQUEST_CODE =104;
+
+    public static int CHANGE_CODE =38;
     //имя файла из БД
     String filename;
     //сообщение, добавляемое при отправке
     EditText memeSign;
+
+    EditText currentMemeTag;
     //фрагменты, выбираемые в зависимости от типа файла
     ImageFragment imageFragment;
     VideoLocalFragment videoLocalFragment;
     VideoFragment videoFragment;
+
+    String memeTag="";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +51,7 @@ public class MemeViewerActivity extends AppCompatActivity {
         Intent intent = getIntent();
         //получение имени файла
         filename = intent.getStringExtra(FILENAME_EXTRA);
+        memeTag=intent.getStringExtra(FILETAG_EXTRA);
         //ЗАГЛУШКА!!!!
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         //выбор фрагмента в зависимости от типа
@@ -63,6 +76,10 @@ public class MemeViewerActivity extends AppCompatActivity {
 
         fragmentTransaction.commit();
         memeSign=findViewById(R.id.memeSign);
+        currentMemeTag=findViewById(R.id.currentMemeTag);
+        currentMemeTag.setText(memeTag);
+        currentMemeTag.setEnabled(false);
+
     }
 
     @Override
@@ -74,12 +91,30 @@ public class MemeViewerActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         //РАСШИРИТЬ И ДОБАВИТЬ РЕДАКТИРОВАНИЕ ПОДПИСИ
-        Intent intent = new Intent(this,MainActivity.class);
-        intent.setData(Uri.parse(filename));
-        setResult(DELETED_MEME_CODE,intent);
-        finish();
+        if(item.getItemId()==R.id.deleteMem) {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.setData(Uri.parse(filename));
+            setResult(DELETED_MEME_CODE, intent);
+            finish();
+        }
+        if(item.getItemId()==R.id.editMem){
+            currentMemeTag.setEnabled(true);
+        }
 
-        return false;//super.onOptionsItemSelected(item);
+            return false;//super.onOptionsItemSelected(item);
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(this,MainActivity.class);
+        intent.putExtra(FILENAME_EXTRA,filename);
+
+        String tag=currentMemeTag.getText().toString();
+        intent.putExtra(FILETAG_EXTRA,tag);
+        setResult(CHANGE_CODE,intent);
+        finish();
+        super.onBackPressed();
     }
 
     public void onSendMeme(View view){

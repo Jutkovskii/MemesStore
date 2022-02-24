@@ -15,6 +15,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -29,7 +31,7 @@ import java.util.List;
 
 import static android.content.Context.WINDOW_SERVICE;
 
-public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.ViewHolder>/* implements View.OnClickListener*/ {
+public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.ViewHolder> implements Filterable /* implements View.OnClickListener*/ {
     List<String> memesPaths;
     List<String> memesTags;
     Context context;
@@ -46,7 +48,7 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
        int listSize=cursor.getCount();
        for(int i=0;i<listSize;i++){
            String currentFile=cursor.getString(1);
-           String currentTag=cursor.getString(2)+" подпись";
+           String currentTag=cursor.getString(2);
            //еcли  имя файла не имеет расширения (ссылка на веб-ресурс)
            //или сам файл существует на диске, то добавляется в список
            if(!currentFile.contains(".")||new FileHelper(context).isExist(currentFile))
@@ -60,6 +62,7 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
               this.db.delete(currentFile);
        }
    }
+
 
 
     @NonNull
@@ -85,6 +88,7 @@ holder.memeCardView.setOnClickListener(new View.OnClickListener() {
     public void onClick(View view) {
         Intent intent = new Intent(context,MemeViewerActivity.class);
         intent.putExtra(MemeViewerActivity.FILENAME_EXTRA,memesPaths.get(position));
+        intent.putExtra(MemeViewerActivity.FILETAG_EXTRA,memesTags.get(position));
         ((Activity)context).startActivityForResult(intent,MemeViewerActivity.REQUEST_CODE);
     }
 });
@@ -94,6 +98,40 @@ holder.memeCardView.setOnClickListener(new View.OnClickListener() {
     @Override
     public int getItemCount() {
         return memesPaths.size();
+    }
+
+    @Override
+    public Filter getFilter() {
+      /*  return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence charSequence) {
+               /* String charString = charSequence.toString();
+                if (charString.isEmpty()) {
+                    movieListFiltered = movieList;
+                } else {
+                    List<Movie> filteredList = new ArrayList<>();
+                    for (Movie movie : movieList) {
+                        if (movie.getTitle().toLowerCase().contains(charString.toLowerCase())) {
+                            filteredList.add(movie);
+                        }
+                    }
+                    movieListFiltered = filteredList;
+                }
+
+                FilterResults filterResults = new FilterResults();
+                filterResults.values = movieListFiltered;
+                return filterResults;
+
+            }
+
+            @Override
+            protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+                movieListFiltered = (ArrayList<Movie>) filterResults.values;
+
+                notifyDataSetChanged();
+            }
+        };*/
+        return null;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -150,5 +188,7 @@ holder.memeCardView.setOnClickListener(new View.OnClickListener() {
 
 
     }
+
+
 
 }
