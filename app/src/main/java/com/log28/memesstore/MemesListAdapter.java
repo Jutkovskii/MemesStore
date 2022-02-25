@@ -32,10 +32,31 @@ import java.util.List;
 import static android.content.Context.WINDOW_SERVICE;
 
 public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.ViewHolder> implements Filterable /* implements View.OnClickListener*/ {
-    List<String> memesPaths;
+   /* List<String> memesPaths;
     List<String> memesTags;
+    List<String> filteredTags;*/
     Context context;
     MemeDatabaseHelper db;
+
+    class MemeGroup{
+String name;
+String tag;
+public MemeGroup(String name, String tag){
+    this.name=name;
+    this.tag=tag;
+}
+
+        public String getName() {
+            return name;
+        }
+
+        public String getTag() {
+            return tag;
+        }
+    }
+
+    List<MemeGroup> memeGroups;
+    List<MemeGroup> filteredGroups;
    public MemesListAdapter(Context context,  MemeDatabaseHelper db){
        Log.d("OLOLOG","Адаптер созадние "+db.name );
        this.db=db;
@@ -43,24 +64,35 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
        Cursor cursor = db.getCursor();
        cursor.moveToFirst();
        //получаем из курсора список имён файлов
-       memesPaths = new ArrayList<>();
-       memesTags=new ArrayList<>();
+      // memesPaths = new ArrayList<>();
+      // memesTags=new ArrayList<>();
+
+       memeGroups=new ArrayList<>();
+       filteredGroups=new ArrayList<>();
+
+
        int listSize=cursor.getCount();
        for(int i=0;i<listSize;i++){
+
            String currentFile=cursor.getString(1);
            String currentTag=cursor.getString(2);
+
+
            //еcли  имя файла не имеет расширения (ссылка на веб-ресурс)
            //или сам файл существует на диске, то добавляется в список
            if(!currentFile.contains(".")||new FileHelper(context).isExist(currentFile))
            {
-               memesPaths.add(currentFile);
-               memesTags.add(currentTag);
+               //memesPaths.add(currentFile);
+               //memesTags.add(currentTag);
+               memeGroups.add(new MemeGroup(currentFile,currentTag));
+
                cursor.moveToNext();
            }
            //если файла нет, то он удаляется из БД
            else
               this.db.delete(currentFile);
        }
+       filteredGroups = memeGroups;
    }
 
 
@@ -79,16 +111,21 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
     @Override
     public void onBindViewHolder(@NonNull MemesListAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
 
+
         //устанавливаем битмап согласно имени файла
-        holder.memeImageView.setImageBitmap(new FileHelper(context).getPreview(memesPaths.get(position)));
-        holder.memeTag.setText(memesTags.get(position));
+       /* holder.memeImageView.setImageBitmap(new FileHelper(context).getPreview(memesPaths.get(pos)));
+        holder.memeTag.setText(memesTags.get(pos));*/
+        holder.memeImageView.setImageBitmap(new FileHelper(context).getPreview(filteredGroups.get(position).getName()));
+        holder.memeTag.setText(filteredGroups.get(position).getTag());
         //установка обработчика кликов для вызова активности просмотра
 holder.memeCardView.setOnClickListener(new View.OnClickListener() {
     @Override
     public void onClick(View view) {
         Intent intent = new Intent(context,MemeViewerActivity.class);
-        intent.putExtra(MemeViewerActivity.FILENAME_EXTRA,memesPaths.get(position));
-        intent.putExtra(MemeViewerActivity.FILETAG_EXTRA,memesTags.get(position));
+        /*intent.putExtra(MemeViewerActivity.FILENAME_EXTRA,memesPaths.get(position));
+        intent.putExtra(MemeViewerActivity.FILETAG_EXTRA,memesTags.get(position));*/
+        intent.putExtra(MemeViewerActivity.FILENAME_EXTRA,memeGroups.get(position).getName());
+        intent.putExtra(MemeViewerActivity.FILETAG_EXTRA,memeGroups.get(position).getTag());
         ((Activity)context).startActivityForResult(intent,MemeViewerActivity.REQUEST_CODE);
     }
 });
@@ -97,41 +134,46 @@ holder.memeCardView.setOnClickListener(new View.OnClickListener() {
 
     @Override
     public int getItemCount() {
-        return memesPaths.size();
+       // return memesPaths.size();
+        return filteredGroups.size();
     }
+
+    public void setFilter(String newText){
+        getFilter().filter(newText);
+    }
+
 
     @Override
     public Filter getFilter() {
-      /*  return new Filter() {
+        return new Filter() {
             @Override
             protected FilterResults performFiltering(CharSequence charSequence) {
-               /* String charString = charSequence.toString();
+                String charString = charSequence.toString();
                 if (charString.isEmpty()) {
-                    movieListFiltered = movieList;
+                    filteredGroups = memeGroups;
                 } else {
-                    List<Movie> filteredList = new ArrayList<>();
-                    for (Movie movie : movieList) {
-                        if (movie.getTitle().toLowerCase().contains(charString.toLowerCase())) {
-                            filteredList.add(movie);
+                    filteredGroups = new ArrayList<>();
+                    for(MemeGroup currentMeme: memeGroups)
+                        if (currentMeme.getTag().toLowerCase().contains(charString.toLowerCase())) {
+                            filteredGroups.add(currentMeme);
                         }
                     }
-                    movieListFiltered = filteredList;
-                }
+                //filteredTags = memesTags;
+
 
                 FilterResults filterResults = new FilterResults();
-                filterResults.values = movieListFiltered;
+                filterResults.values = filteredGroups;
                 return filterResults;
 
             }
 
             @Override
             protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
-                movieListFiltered = (ArrayList<Movie>) filterResults.values;
+                filteredGroups = (ArrayList<MemeGroup>) filterResults.values;
 
                 notifyDataSetChanged();
             }
-        };*/
-        return null;
+        };
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

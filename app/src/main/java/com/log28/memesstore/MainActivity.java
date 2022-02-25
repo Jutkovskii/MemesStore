@@ -1,5 +1,6 @@
 package com.log28.memesstore;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,6 +14,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.adapter.FragmentViewHolder;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.Manifest;
@@ -48,6 +50,8 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+
+    String searchMemeTag="";
     //объект БД
     MemeDatabaseHelper imagedb;
     MemeDatabaseHelper videodb;
@@ -82,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
         Log.d("OLOLOG","Активность Создание фрагментов " );
         imageListFragment = new MemeListFragment(imagedb);
         videoListFragment = new MemeListFragment(videodb);
-
 
         //запрет поворота экрана (УДАЛИТЬ ПОЗДНЕЕ!)
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
@@ -130,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
     private class ScreenSlidePagerAdapter extends FragmentStateAdapter {
 
         List<MemeListFragment> memeLists;
-
+int pos;
         public ScreenSlidePagerAdapter(FragmentActivity fa, List<MemeListFragment> memeLists) {
             super(fa);
             this.memeLists = memeLists;
@@ -139,17 +142,29 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public long getItemId(int position) {
             memesCategories.selectTab(memesCategories.getTabAt(position));
+            if (position == 0) {
+                imageListFragment.setFilter(searchMemeTag);
+
+            }
+            else {
+                videoListFragment.setFilter(searchMemeTag);;
+
+            }
             return super.getItemId(position);
         }
 
         @Override
         public Fragment createFragment(int position) {
 
-
-            if (position == 0)
+            pos=position;
+            if (position == 0) {
+imageListFragment.setFilter(searchMemeTag);
                 return imageListFragment;
-            else
+            }
+            else {
+                videoListFragment.setFilter(searchMemeTag);
                 return videoListFragment;
+            }
         }
 
         @Override
@@ -189,6 +204,14 @@ public class MainActivity extends AppCompatActivity {
                 mSearchTerm = newFilter;
                 mSearchQueryChanged = true;*/
                 //searchText(newText); //handle this
+
+                searchMemeTag=newText;
+                if (tabNum == 0)
+                    imageListFragment.memesListAdapter.getFilter().filter(newText);
+                else
+                    videoListFragment.memesListAdapter.getFilter().filter(newText);
+
+
                 return true;
             }
         });
@@ -388,7 +411,7 @@ public class MainActivity extends AppCompatActivity {
                     imagedb.update(filename,filetag);
                 } else {
                     tabNum = 1;
-                    imagedb.update(filename,filetag);
+                    videodb.update(filename,filetag);
                 }
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             }

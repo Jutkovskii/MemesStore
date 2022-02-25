@@ -71,7 +71,10 @@ public class MemeListFragment extends Fragment {
 
         }
     }
-
+String filterText="";
+    public void setFilter(String newText){
+        filterText=newText;
+    }
     @Override
     public void onResume() {
         super.onResume();
@@ -89,6 +92,7 @@ public class MemeListFragment extends Fragment {
             memesListAdapter.notifyDataSetChanged();
         }*/
         memesListAdapter = new MemesListAdapter(view.getContext(), testdb);
+        memesListAdapter.setFilter(filterText);
         memesList.setAdapter(memesListAdapter);
         memesListAdapter.notifyDataSetChanged();
     }
