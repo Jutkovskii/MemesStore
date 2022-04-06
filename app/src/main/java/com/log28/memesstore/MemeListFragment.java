@@ -20,7 +20,7 @@ public class MemeListFragment extends Fragment {
     //объект БД
     MemeDatabaseHelper testdb = null;
     //адаптер для заполнения списка
-    MemesListAdapter memesListAdapter;
+   public MemesListAdapter memesListAdapter;
     //объект для работы с памятью
 
 
@@ -96,6 +96,7 @@ String filterText="";
         memesList.setAdapter(memesListAdapter);
         memesListAdapter.notifyDataSetChanged();
     }
+
 
     @Override
     public void onStop() {

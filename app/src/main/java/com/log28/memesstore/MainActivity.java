@@ -26,16 +26,20 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.ActionProvider;
+import android.view.ContextMenu;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.SubMenu;
 import android.view.View;
 import android.widget.SearchView;
 import android.widget.Toast;
@@ -66,8 +70,8 @@ public class MainActivity extends AppCompatActivity {
     MemeListFragment videoListFragment;
     private final int REQUEST_DB = 53;
     private final int REQUEST_GALLERY = 84;
-
-
+   public static boolean deletingMode=false;
+public static Menu menu1;
     ViewPager2 pagerSlider;
     private FragmentStateAdapter pagerAdapter;
 
@@ -128,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
         pagerSlider.setAdapter(pagerAdapter);
 
 
+
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStateAdapter {
@@ -175,9 +180,11 @@ imageListFragment.setFilter(searchMemeTag);
 
     }
 
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu)  {
         getMenuInflater().inflate(R.menu.main_menu, menu);
+
         MenuItem searchItem = menu.findItem(R.id.app_bar_search);
         final SearchManager searchManager =
                 (SearchManager) getSystemService(Context.SEARCH_SERVICE);
@@ -229,7 +236,34 @@ imageListFragment.setFilter(searchMemeTag);
             }
         };
         MenuItemCompat.setOnActionExpandListener(searchItem, expandListener);
+        menu1=menu;
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        Toast.makeText(this, item.getTitle(), Toast.LENGTH_SHORT).show();
+        if(item.getTitle()=="Удалить")
+        {
+            for (Integer pos:
+                    imageListFragment.memesListAdapter.selected) {
+String toDelete = imageListFragment.memesListAdapter.memeGroups.get(pos).getName();
+                new FileHelper(this).deleteFile(toDelete);
+                imagedb.delete(toDelete);
+                MainActivity.menu1.removeItem(imageListFragment.memesListAdapter.deleteItem.getItemId());
+                imageListFragment.memesListAdapter.getDB();
+                //imageListFragment.memesListAdapter.filteredGroups.remove( pos);
+                //imageListFragment.memesListAdapter.notifyItemChanged(pos);
+
+                imageListFragment.memesListAdapter.notifyItemRemoved(pos);
+
+
+            }
+            imageListFragment.memesListAdapter.selected.clear();
+            imageListFragment.memesListAdapter.deletingMode=false;
+            imageListFragment.memesListAdapter.notifyDataSetChanged();
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -259,7 +293,7 @@ imageListFragment.setFilter(searchMemeTag);
                 //получение потока входных данных
                 inputStream = getContentResolver().openInputStream(uri);
                 //создание локального файла
-                fileHelper.createLocalFile(inputStream, filename);
+                filename=  fileHelper.createLocalFile(inputStream, filename);
 
             } catch (Exception e) {
 
@@ -308,7 +342,7 @@ imageListFragment.setFilter(searchMemeTag);
                     //получение потока входных данных
                     inputStream = getContentResolver().openInputStream(localUri);
                     //создание локального файла
-                    fileHelper.createLocalFile(inputStream, filename);
+                  filename=  fileHelper.createLocalFile(inputStream, filename);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                     Toast.makeText(this, "Не удалось создать локальный файл", Toast.LENGTH_SHORT);

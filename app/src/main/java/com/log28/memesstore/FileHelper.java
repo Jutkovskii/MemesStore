@@ -55,7 +55,7 @@ public class FileHelper {
 
     //возвращает тип данных согласно имени файла
     public static int getType(String filename){
-        if(filename.toLowerCase().endsWith(".jpg")||filename.toLowerCase().endsWith(".png"))
+        if(filename.toLowerCase().endsWith(".jpg")||filename.toLowerCase().endsWith(".png")||filename.toLowerCase().endsWith(".webp"))
             return IMAGE;
         if(filename.toLowerCase().endsWith(".mp4"))
             return VIDEO;
@@ -285,11 +285,12 @@ return (FileInputStream) inputStream;
     }
     //создание локального файла
     @RequiresApi(api = Build.VERSION_CODES.R)
-    public boolean createLocalFile(InputStream inputStream, String filename){
-
+    public String createLocalFile(InputStream inputStream, String filename){
+        filename= filename.replaceAll(".webp",".jpg");
      boolean res=this.fileHelper.createLocalFile(inputStream,filename);
-        resizeImageForTG(filename);
-        return res;
+     //добавить в виде опции
+         // resizeImageForTG(filename);
+        return filename;
     }
 
     //удаление локального файла
@@ -314,7 +315,10 @@ return (FileInputStream) inputStream;
                tempBitmap.compress(Bitmap.CompressFormat.JPEG, 100 /*ignored for PNG*/, bos);
                byte[] bitmapdata = bos.toByteArray();
                ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
+               deleteFile(filename);
+             // filename= filename.replaceAll(".webp",".jpg");
                this.fileHelper.createLocalFile(bs, filename);
+
            }
        }
 
