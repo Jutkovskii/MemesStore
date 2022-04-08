@@ -125,6 +125,10 @@ public void getDB(){
             holder.deleteCheck.setVisibility(CheckBox.VISIBLE);
         else
             holder.deleteCheck.setVisibility(CheckBox.INVISIBLE);
+        if (selected.contains(position))
+        holder.deleteCheck.setChecked(true);
+        else
+            holder.deleteCheck.setChecked(false);
         holder.memeImageView.setImageBitmap(new FileHelper(context).getPreview(filteredGroups.get(position).getName()));
         holder.memeTag.setText(filteredGroups.get(position).getTag());
         //установка обработчика кликов для вызова активности просмотра

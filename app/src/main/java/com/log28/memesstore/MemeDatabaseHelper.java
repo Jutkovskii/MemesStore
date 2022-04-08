@@ -69,9 +69,9 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
     public void insert(String filepath, String  filetag) {
         Log.d("OLOLOG","БД Вставить"+ name  );
         checkDB();
-       /* Cursor localCursor = memesDatabase.query(tableName, new String[]{filepathColumnName,filetagColumnName}, null, new String[]{filepath,filetag}, null, null, null);
+        Cursor localCursor = memesDatabase.query(tableName, new String[]{filepathColumnName},  filepathColumnName+" =?",new String[]{filepath}, null, null, null);
         if (localCursor.getCount() == 0)
-        */{
+        {
             ContentValues contentValues = new ContentValues();
             contentValues.put(this.filepathColumnName, filepath);
             contentValues.put(this.filetagColumnName, filetag);
