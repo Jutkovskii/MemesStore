@@ -245,23 +245,37 @@ imageListFragment.setFilter(searchMemeTag);
         Toast.makeText(this, item.getTitle(), Toast.LENGTH_SHORT).show();
         if(item.getTitle()=="Удалить")
         {
-            for (Integer pos:
-                    imageListFragment.memesListAdapter.selected) {
-String toDelete = imageListFragment.memesListAdapter.memeGroups.get(pos).getName();
-                new FileHelper(this).deleteFile(toDelete);
-                imagedb.delete(toDelete);
-                MainActivity.menu1.removeItem(imageListFragment.memesListAdapter.deleteItem.getItemId());
-                imageListFragment.memesListAdapter.getDB();
-                //imageListFragment.memesListAdapter.filteredGroups.remove( pos);
-                //imageListFragment.memesListAdapter.notifyItemChanged(pos);
+            MemeListFragment currentFragment;
+            MemeDatabaseHelper currentDatabase;
+            if (tabNum == 0)
+            {
+                currentFragment=imageListFragment;
+                currentDatabase=imagedb;
+            }
+            else
+            {
+                currentFragment=videoListFragment;
+                currentDatabase=videodb;
+            }
 
-                imageListFragment.memesListAdapter.notifyItemRemoved(pos);
+            for (Integer pos:
+                    currentFragment.memesListAdapter.selected) {
+                String toDelete = currentFragment.memesListAdapter.memeGroups.get(pos).getName();
+                new FileHelper(this).deleteFile(toDelete);
+                currentDatabase.delete(toDelete);
+                MainActivity.menu1.removeItem(currentFragment.memesListAdapter.deleteItem.getItemId());
+                currentFragment.memesListAdapter.getDB();
+                //currentFragment.memesListAdapter.filteredGroups.remove( pos);
+                //currentFragment.memesListAdapter.notifyItemChanged(pos);
+
+                currentFragment.memesListAdapter.notifyItemRemoved(pos);
 
 
             }
-            imageListFragment.memesListAdapter.selected.clear();
-            imageListFragment.memesListAdapter.deletingMode=false;
-            imageListFragment.memesListAdapter.notifyDataSetChanged();
+            currentFragment.memesListAdapter.selected.clear();
+            currentFragment.memesListAdapter.deletingMode=false;
+            currentFragment.memesListAdapter.notifyDataSetChanged();
+
         }
         return super.onOptionsItemSelected(item);
     }
