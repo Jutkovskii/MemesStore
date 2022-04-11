@@ -40,7 +40,7 @@ public class MemeViewerActivity extends AppCompatActivity {
     ImageFragment imageFragment;
     VideoLocalFragment videoLocalFragment;
     VideoFragment videoFragment;
-
+    GifFragment gifFragment;
     String memeTag="";
 
 
@@ -71,6 +71,11 @@ public class MemeViewerActivity extends AppCompatActivity {
                 videoLocalFragment = new VideoLocalFragment();
                 videoLocalFragment.setMemeImage(filename);
                 fragmentTransaction.add(R.id.memeViewLayout, videoLocalFragment);
+                break;
+            case FileHelper.GIF:
+                gifFragment = new GifFragment();
+                gifFragment.setMemeImage(filename);
+                fragmentTransaction.add(R.id.memeViewLayout, gifFragment);
                 break;
         }
 
@@ -139,6 +144,12 @@ public class MemeViewerActivity extends AppCompatActivity {
                         intent.setType("text/plain");
                         intent.putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v="+ filename +" "+memeSign.getText());
                         break;
+                    case FileHelper.GIF:
+                        memeUri=Uri.fromFile(new File(new FileHelper(this).getFullPath(filename)));
+                        intent.setType("image/gif");
+                        intent.putExtra(Intent.EXTRA_STREAM, memeUri);
+                        intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
+
                 }
             startActivity(intent);
 }

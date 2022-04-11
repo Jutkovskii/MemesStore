@@ -369,6 +369,7 @@ imageListFragment.setFilter(searchMemeTag);
 
         if (insertToDB(filename)) {
             if (fileHelper.getType(filename) == FileHelper.IMAGE) return FileHelper.IMAGE;
+            else if (fileHelper.getType(filename) == FileHelper.GIF) return FileHelper.GIF;
             else return fileHelper.VIDEO;
         } else return -1;
     }
@@ -388,6 +389,7 @@ imageListFragment.setFilter(searchMemeTag);
         try {
             switch (fileHelper.getType(filename)) {
                 case FileHelper.VIDEO:
+                case FileHelper.GIF:
                 case FileHelper.HTTPS:
                     videodb.insert(filename);
                     break;

@@ -39,11 +39,13 @@ public class FileHelper {
     public static String previews = Environment.DIRECTORY_PICTURES+"/"+appFolder+"Previews/";//папка с превью ютуба
     public static String images= Environment.DIRECTORY_PICTURES+"/"+appFolder+"Images/";//папка с изображениями
     public static String videos=Environment.DIRECTORY_MOVIES+"/"+appFolder+"Videos/";//папка с видео
+    public static String gifs=Environment.DIRECTORY_MOVIES+"/"+appFolder+"Gifs/";//папка с Gif
 
     //категории файлов
     public static final int IMAGE=0;
     public static final int VIDEO=1;
     public static final int HTTPS=2;
+    public static final int GIF=3;
     public  FileHelperInterface fileHelper;
     public FileHelper(Context context){
         this.context=context;
@@ -59,6 +61,8 @@ public class FileHelper {
             return IMAGE;
         if(filename.toLowerCase().endsWith(".mp4"))
             return VIDEO;
+        if(filename.toLowerCase().endsWith(".gif"))
+            return GIF;
         if(!filename.contains("."))
             return HTTPS;
         return -1;
@@ -69,6 +73,8 @@ public class FileHelper {
         result=result.replace("//","/");
         result=result.replace(".jpg.jpg",".jpg");
         result=result.replace(".png.png",".png");
+        result=result.replace(".webp.webp.",".webp.");
+        result=result.replace(".gif.gif",".gif");
         result=result.replace(".mp4.mp4",".mp4");
         return result;
     }
@@ -78,6 +84,7 @@ public class FileHelper {
         switch (getType(filename)){
             case IMAGE: path=root+images+filename; break;
             case VIDEO: path= root+videos+filename;break;
+            case GIF:   path= root+gifs+filename;break;
             case HTTPS: path= root+previews+filename+".jpg";break;
         }
         path=checkPath(path);
@@ -361,6 +368,7 @@ qwe.createNewFile();
 
             new File (root+"/"+previews).mkdirs();
             new File (root+"/"+images).mkdirs();
+            new File (root+"/"+gifs).mkdirs();
             new File (root+"/"+videos).mkdirs();
         }
 
@@ -381,6 +389,9 @@ new File(getFullPath(path)).delete();
                     break;
                 case VIDEO:
                     preview= ThumbnailUtils.createVideoThumbnail(getFullPath(filename),MediaStore.Images.Thumbnails.MINI_KIND);
+                    break;
+                case GIF:
+                    preview=BitmapFactory.decodeFile(getFullPath(filename),options);
                     break;
                 case HTTPS:
                     preview=BitmapFactory.decodeFile(getFullPath(filename));
@@ -418,6 +429,11 @@ return uri;
                     break;
                 case VIDEO:
                     contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, videos);
+                    contentValues.put(MediaStore.Video.Media.DISPLAY_NAME, filename);
+                    locuri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
+                    break;
+                case GIF:
+                    contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, gifs);
                     contentValues.put(MediaStore.Video.Media.DISPLAY_NAME, filename);
                     locuri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
                     break;
@@ -463,7 +479,7 @@ return uri;
                 Uri locuri = null;
                 if (getType(path) == IMAGE || getType(path) == HTTPS)
                     locuri = MediaStore.Images.Media.getContentUri("external");
-                if (getType(path) == VIDEO)
+                if (getType(path) == VIDEO|| getType(path) == GIF)
                     locuri = MediaStore.Video.Media.getContentUri("external");
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -488,6 +504,9 @@ return uri;
                     selectionArgs = new String[]{images};
                     break;
                 case VIDEO:
+                    selectionArgs = new String[]{videos};
+                    break;
+                case GIF:
                     selectionArgs = new String[]{videos};
                     break;
                 case HTTPS:
@@ -522,6 +541,17 @@ return uri;
                 }
 
             }
+            if (getType(filename) == GIF) {
+                InputStream inputStream = null;
+                try {
+                    inputStream = context.getAssets().open(filename);
+                    preview = BitmapFactory.decodeStream(inputStream,new Rect(),options);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
             if (getType(filename) == VIDEO||getType(filename) == HTTPS){
                 MediaMetadataRetriever mediaMetadataRetriever = null;
 
