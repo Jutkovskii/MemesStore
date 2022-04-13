@@ -30,7 +30,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class FileHelper {
     public Context context;
@@ -46,6 +49,7 @@ public class FileHelper {
     public static final int VIDEO=1;
     public static final int HTTPS=2;
     public static final int GIF=3;
+    public static final int FILE=-1;
     public  FileHelperInterface fileHelper;
     public FileHelper(Context context){
         this.context=context;
@@ -65,6 +69,7 @@ public class FileHelper {
             return GIF;
         if(!filename.contains("."))
             return HTTPS;
+
         return -1;
     }
     //проверка на двойной слеш
@@ -86,6 +91,7 @@ public class FileHelper {
             case VIDEO: path= root+videos+filename;break;
             case GIF:   path= root+gifs+filename;break;
             case HTTPS: path= root+previews+filename+".jpg";break;
+            case FILE: path=root+Environment.DIRECTORY_DOWNLOADS+"/"+filename;break;
         }
         path=checkPath(path);
         return path;
@@ -300,6 +306,10 @@ return (FileInputStream) inputStream;
         return filename;
     }
 
+    public OutputStream createFile(String filename)
+    {
+        return this.fileHelper.createFile(filename);
+    }
     //удаление локального файла
     public void deleteFile(String path){
         this.fileHelper.deleteFile(path);
@@ -336,6 +346,34 @@ return (FileInputStream) inputStream;
         return fileHelper.getVideoUri(filename);
     }
 
+public String zipPack(List<String> files){
+     String zipFilename = "database.zip";
+    try {
+        OutputStream outputStream=createFile(zipFilename);
+        ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
+
+    for(String file:files){
+file=file.substring(1);
+        FileInputStream fileInputStream = new FileInputStream(file);
+        ZipEntry entry1=new ZipEntry(file);
+        zipOutputStream.putNextEntry(entry1);
+        // считываем содержимое файла в массив byte
+        byte[] buffer = new byte[fileInputStream.available()];
+        fileInputStream.read(buffer);
+        // добавляем содержимое к архиву
+        zipOutputStream.write(buffer);
+        // закрываем текущую запись для новой записи
+        zipOutputStream.closeEntry();
+     }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+     return zipFilename;
+}
+
+
+
     public class innerFileHelperOld implements FileHelperInterface {
 
 
@@ -344,23 +382,26 @@ return (FileInputStream) inputStream;
             createDirs();
         }
 
-
-        public boolean createLocalFile(InputStream inputStream, String filename) {
-               String fullpath = getFullPath(filename);
+        public OutputStream createFile(String filename)
+        {
+FileOutputStream outputStream=null;
+            String fullpath = getFullPath(filename);
 
             try {
-File qwe= new File(fullpath);
-qwe.createNewFile();
-                FileOutputStream outputStream = new FileOutputStream(fullpath);
-                copyFile(inputStream, outputStream);
+                File qwe= new File(fullpath);
+                qwe.createNewFile();
+                outputStream = new FileOutputStream(fullpath);
 
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                return false;
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
+return outputStream;
+        }
+        public boolean createLocalFile(InputStream inputStream, String filename) {
 
+            FileOutputStream outputStream = (FileOutputStream) createFile(filename);
+            copyFile(inputStream, outputStream);
             return true;
         }
 
@@ -415,8 +456,10 @@ return uri;
             root = Environment.getExternalStorageDirectory().getAbsolutePath() + "/";
         }
 
-        @RequiresApi(api = Build.VERSION_CODES.R)
-        public boolean createLocalFile(InputStream inputStream, String filename) {
+        @RequiresApi(api = Build.VERSION_CODES.Q)
+        public OutputStream createFile(String filename)
+        { OutputStream outputStream=null;
+            try {
 
             ContentValues contentValues = new ContentValues();
             ContentResolver contentResolver = context.getContentResolver();
@@ -442,18 +485,35 @@ return uri;
                     contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, filename + ".jpg");
                     locuri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
                     break;
+                case FILE:
+                    String folderPath = Environment.DIRECTORY_DOWNLOADS+File.separator + "appFolderName/";
+                    contentValues.put(MediaStore.DownloadColumns.RELATIVE_PATH, folderPath);
+                    contentValues.put(MediaStore.DownloadColumns.DISPLAY_NAME, filename);
+                    contentValues.put(MediaStore.DownloadColumns.MIME_TYPE, "application/zip");
+                    locuri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues);
+                    break;
             }
-            try {
-                OutputStream outputStream = contentResolver.openOutputStream(locuri);
+
+                outputStream = contentResolver.openOutputStream(locuri);
+
+            contentResolver.update(locuri, contentValues, null, null);            }
+            catch (Exception e) {
+            e.printStackTrace();
+
+        }
+            return outputStream;
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.R)
+        public boolean createLocalFile(InputStream inputStream, String filename) {
+
+                OutputStream outputStream=createFile(filename);
                 copyFile(inputStream, outputStream);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-            contentResolver.update(locuri, contentValues, null, null);
+
 
             return true;
         }
+
 
         //Рудимент, создает папки ,но в них пустые файлы
         public void createDirs() {

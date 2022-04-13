@@ -12,6 +12,7 @@ import java.io.OutputStream;
 public interface FileHelperInterface {
 
     public boolean createLocalFile(InputStream inputStream, String filename);
+    public OutputStream createFile(String filename);
     //содание директории
     public void deleteFile(String path);
 public Bitmap getPreview(String filename, BitmapFactory.Options options);

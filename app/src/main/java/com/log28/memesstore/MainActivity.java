@@ -236,6 +236,8 @@ imageListFragment.setFilter(searchMemeTag);
             }
         };
         MenuItemCompat.setOnActionExpandListener(searchItem, expandListener);
+        menu.add("Экспорт");
+        menu.add("Импорт");
         menu1=menu;
         return super.onCreateOptionsMenu(menu);
     }
@@ -276,6 +278,24 @@ imageListFragment.setFilter(searchMemeTag);
             currentFragment.memesListAdapter.deletingMode=false;
             currentFragment.memesListAdapter.notifyDataSetChanged();
 
+        }
+        if(item.getTitle()=="Экспорт"){
+            ArrayList<String> memepaths = new ArrayList<>();
+          Cursor localcursor=  imagedb.getCursor();
+          localcursor.moveToFirst();
+                  for(int i=0;i<localcursor.getCount();i++)
+                  {
+                      memepaths.add( FileHelper.getFullPath(localcursor.getString(1)));
+                      localcursor.moveToNext();
+
+                  }
+
+            new FileHelper(this).zipPack(memepaths);
+          /*imagedb.exportDB();
+          videodb.exportDB();*/
+        }
+        if(item.getTitle()=="Импорт"){
+            selectDBforImport();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -425,6 +445,7 @@ imageListFragment.setFilter(searchMemeTag);
         chooseFile.setType("*/*");
         chooseFile = Intent.createChooser(chooseFile, "Choose a file");
         startActivityForResult(chooseFile, REQUEST_DB);
+        imagedb.importDB();
     }
 
     //получение результата от дочерней активности
@@ -479,8 +500,8 @@ imageListFragment.setFilter(searchMemeTag);
                 //setMemesList(tabNum);
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             }
+     if (requestCode == REQUEST_DB){
 
-    }
-
-
+     }
+}
 }

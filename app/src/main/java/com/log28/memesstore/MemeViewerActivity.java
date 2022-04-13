@@ -145,8 +145,7 @@ public class MemeViewerActivity extends AppCompatActivity {
                         intent.putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v="+ filename +" "+memeSign.getText());
                         break;
                     case FileHelper.GIF:
-                        memeUri=Uri.fromFile(new File(new FileHelper(this).getFullPath(filename)));
-                        intent.setType("image/gif");
+                        intent.setType("*/*");
                         intent.putExtra(Intent.EXTRA_STREAM, memeUri);
                         intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
 

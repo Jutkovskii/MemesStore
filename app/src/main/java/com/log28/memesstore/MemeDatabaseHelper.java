@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import static android.widget.Toast.LENGTH_LONG;
@@ -178,4 +179,33 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
             e.printStackTrace();
         }
     }
+
+    public void importDB()
+    {
+        File sd = Environment.getExternalStorageDirectory();
+        try {
+            ZipInputStream zin = new ZipInputStream(new FileInputStream(sd + "/Download/database.meme"));
+            ZipEntry entry;
+            String name;
+            long size;
+            while((entry=zin.getNextEntry())!=null){
+
+                name = entry.getName(); // получим название файла
+                size=entry.getSize();  // получим его размер в байтах
+                Log.d("OLOLOG","File name:"+name+" File size: "+size);
+
+                // распаковка
+                FileOutputStream fout = new FileOutputStream(sd + "/Download/" + name);
+                for (int c = zin.read(); c != -1; c = zin.read()) {
+                    fout.write(c);
+                }
+                fout.flush();
+                zin.closeEntry();
+                fout.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }
