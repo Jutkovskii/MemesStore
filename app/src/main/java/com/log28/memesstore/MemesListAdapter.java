@@ -42,22 +42,7 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
     MemeDatabaseHelper db;
     public boolean deletingMode=false;
 MenuItem deleteItem;
-    class MemeGroup{
-String name;
-String tag;
-public MemeGroup(String name, String tag){
-    this.name=name;
-    this.tag=tag;
-}
 
-        public String getName() {
-            return name;
-        }
-
-        public String getTag() {
-            return tag;
-        }
-    }
     public List<Integer> selected;
     public List<MemeGroup> memeGroups;
     List<MemeGroup> filteredGroups;

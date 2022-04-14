@@ -279,20 +279,23 @@ imageListFragment.setFilter(searchMemeTag);
             currentFragment.memesListAdapter.notifyDataSetChanged();
 
         }
-        if(item.getTitle()=="Экспорт"){
+        if(item.getTitle()=="Экспорт") {
             ArrayList<String> memepaths = new ArrayList<>();
-          Cursor localcursor=  imagedb.getCursor();
-          localcursor.moveToFirst();
-                  for(int i=0;i<localcursor.getCount();i++)
-                  {
-                      memepaths.add( FileHelper.getFullPath(localcursor.getString(1)));
-                      localcursor.moveToNext();
+            for (MemeDatabaseHelper thisdb:  new MemeDatabaseHelper[]{imagedb, videodb}) {
 
-                  }
+                memepaths.add(thisdb.getDbPath());
+                Cursor localcursor = thisdb.getCursor();
+                localcursor.moveToFirst();
+                for (int i = 0; i < localcursor.getCount(); i++) {
+                    memepaths.add(FileHelper.getFullPath(localcursor.getString(1)));
+                    localcursor.moveToNext();
 
+                }
+
+
+
+            }
             new FileHelper(this).zipPack(memepaths);
-          /*imagedb.exportDB();
-          videodb.exportDB();*/
         }
         if(item.getTitle()=="Импорт"){
             selectDBforImport();
@@ -391,7 +394,9 @@ imageListFragment.setFilter(searchMemeTag);
             if (fileHelper.getType(filename) == FileHelper.IMAGE) return FileHelper.IMAGE;
             else if (fileHelper.getType(filename) == FileHelper.GIF) return FileHelper.GIF;
             else return fileHelper.VIDEO;
-        } else return -1;
+        }
+        else
+            return -1;
     }
 
     //получение баз данных
@@ -501,6 +506,41 @@ imageListFragment.setFilter(searchMemeTag);
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             }
      if (requestCode == REQUEST_DB){
+         //Имя файла (не путь, только имя)
+         String filename = "";
+         //поток входных данных
+         InputStream inputStream;
+         //Если интент получен из вызванной галереи, тип null
+         if (data.getType() == null) {
+             //получение uri файла
+             Uri uri = data.getData();
+             //запрос курсора из БД контента всея ОС
+             Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
+             //Определение стаолбца, содержащего имя файла
+             int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+             returnCursor.moveToFirst();
+             //определение имени файла
+             filename = returnCursor.getString(nameIndex);
+             try {
+                 //получение потока входных данных
+                 inputStream = getContentResolver().openInputStream(uri);
+                 //String localFile=new FileHelper(this).createLocalFile(inputStream,filename);
+                 ArrayList<MemeGroup> imported =  new FileHelper(this).unzipPack( inputStream,FileHelper.getFullPath(filename));
+                 for(MemeGroup thisGroup: imported){
+                     if(FileHelper.getType(thisGroup.name)==FileHelper.IMAGE)
+                         imagedb.insert(thisGroup.getName(),thisGroup.getTag());
+                     if(FileHelper.getType(thisGroup.name)==FileHelper.VIDEO||FileHelper.getType(thisGroup.name)==FileHelper.GIF)
+                         videodb.insert(thisGroup.getName(),thisGroup.getTag());
+
+                 }
+
+             } catch (Exception e) {
+
+                 Toast.makeText(this, "Не удалось обработать файл", Toast.LENGTH_LONG);
+                 e.printStackTrace();
+             }
+         }
+
 
      }
 }

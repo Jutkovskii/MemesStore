@@ -7,6 +7,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
@@ -17,6 +19,8 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
+import android.util.Log;
+import android.util.TimeUtils;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
@@ -30,9 +34,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class FileHelper {
@@ -67,6 +75,8 @@ public class FileHelper {
             return VIDEO;
         if(filename.toLowerCase().endsWith(".gif"))
             return GIF;
+        if(filename.contains("/"))
+            return FILE;
         if(!filename.contains("."))
             return HTTPS;
 
@@ -347,32 +357,82 @@ return (FileInputStream) inputStream;
     }
 
 public String zipPack(List<String> files){
-     String zipFilename = "database.zip";
+    SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    Date date = new Date(System.currentTimeMillis());
+     String zipFilename = formatter.format(date)+".zip";
     try {
         OutputStream outputStream=createFile(zipFilename);
         ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
 
     for(String file:files){
-file=file.substring(1);
+
         FileInputStream fileInputStream = new FileInputStream(file);
+        if(file.contains("data"))
+            file=file.substring(file.lastIndexOf("databases"));
+        else
+            file=file.substring(file.lastIndexOf("0/")+2);
         ZipEntry entry1=new ZipEntry(file);
+
         zipOutputStream.putNextEntry(entry1);
         // считываем содержимое файла в массив byte
         byte[] buffer = new byte[fileInputStream.available()];
         fileInputStream.read(buffer);
         // добавляем содержимое к архиву
         zipOutputStream.write(buffer);
-        // закрываем текущую запись для новой записи
+
+        zipOutputStream.flush();
+         // закрываем текущую запись для новой записи
         zipOutputStream.closeEntry();
      }
+        zipOutputStream.finish();
 
     } catch (Exception e) {
         e.printStackTrace();
     }
+
      return zipFilename;
 }
 
+public ArrayList<MemeGroup> unzipPack(InputStream inputStream, String zipPath){
+    ArrayList<MemeGroup> imported = new ArrayList<>();
+        try {
+        ZipInputStream zipInputStream = new ZipInputStream(inputStream);
+        ZipEntry entry;
+        String name;
+        //  long size;
+        while ((entry = zipInputStream.getNextEntry()) != null) {
 
+            name = entry.getName(); // получим название файла
+            // size=entry.getSize();  // получим его размер в байтах
+            //Log.d("OLOLOG","File name:"+name+" File size: "+size);
+            if (getType(name) == FILE) {
+                SQLiteDatabase importedDB = SQLiteDatabase.openOrCreateDatabase(name,null);
+                Cursor cursor = importedDB.rawQuery("SELECT * FROM memesTable", null);
+
+                if (cursor.moveToFirst()) {
+                    do {
+                       imported.add(new MemeGroup(cursor.getString(1),cursor.getString(2)));
+                    } while (cursor.moveToNext());
+
+                }
+                } else {
+                // распаковка
+                FileOutputStream fout = (FileOutputStream) createFile(name);
+                for (int c = zipInputStream.read(); c != -1; c = zipInputStream.read()) {
+                    fout.write(c);
+                }
+
+                fout.flush();
+                zipInputStream.closeEntry();
+                fout.close();
+            }
+        }
+        }
+    catch(Exception e){
+            e.printStackTrace();
+        }
+return imported;
+}
 
     public class innerFileHelperOld implements FileHelperInterface {
 
@@ -486,7 +546,7 @@ return uri;
                     locuri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
                     break;
                 case FILE:
-                    String folderPath = Environment.DIRECTORY_DOWNLOADS+File.separator + "appFolderName/";
+                    String folderPath = Environment.DIRECTORY_DOWNLOADS+File.separator + "MemesStoreExport/";
                     contentValues.put(MediaStore.DownloadColumns.RELATIVE_PATH, folderPath);
                     contentValues.put(MediaStore.DownloadColumns.DISPLAY_NAME, filename);
                     contentValues.put(MediaStore.DownloadColumns.MIME_TYPE, "application/zip");

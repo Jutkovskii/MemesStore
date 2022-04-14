@@ -120,6 +120,12 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
 
     //////////////////////////////////////////////////
 
+    public String getDbPath()
+    {
+        String DatabaseName = this.name;
+        String currentDBPath = "/data/data/com.log28.memesstore/databases/" + DatabaseName;
+        return currentDBPath;
+    }
     public void exportDB() {
         String DatabaseName = this.name;
         File sd = Environment.getExternalStorageDirectory();
