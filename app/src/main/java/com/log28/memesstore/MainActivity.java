@@ -244,61 +244,62 @@ imageListFragment.setFilter(searchMemeTag);
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        Toast.makeText(this, item.getTitle(), Toast.LENGTH_SHORT).show();
-        if(item.getTitle()=="Удалить")
-        {
-            MemeListFragment currentFragment;
-            MemeDatabaseHelper currentDatabase;
-            if (tabNum == 0)
-            {
-                currentFragment=imageListFragment;
-                currentDatabase=imagedb;
-            }
-            else
-            {
-                currentFragment=videoListFragment;
-                currentDatabase=videodb;
-            }
-
-            for (Integer pos:
-                    currentFragment.memesListAdapter.selected) {
-                String toDelete = currentFragment.memesListAdapter.memeGroups.get(pos).getName();
-                new FileHelper(this).deleteFile(toDelete);
-                currentDatabase.delete(toDelete);
-                MainActivity.menu1.removeItem(currentFragment.memesListAdapter.deleteItem.getItemId());
-                currentFragment.memesListAdapter.getDB();
-                //currentFragment.memesListAdapter.filteredGroups.remove( pos);
-                //currentFragment.memesListAdapter.notifyItemChanged(pos);
-
-                currentFragment.memesListAdapter.notifyItemRemoved(pos);
-
-
-            }
-            currentFragment.memesListAdapter.selected.clear();
-            currentFragment.memesListAdapter.deletingMode=false;
-            currentFragment.memesListAdapter.notifyDataSetChanged();
-
-        }
-        if(item.getTitle()=="Экспорт") {
-            ArrayList<String> memepaths = new ArrayList<>();
-            for (MemeDatabaseHelper thisdb:  new MemeDatabaseHelper[]{imagedb, videodb}) {
-
-                memepaths.add(thisdb.getDbPath());
-                Cursor localcursor = thisdb.getCursor();
-                localcursor.moveToFirst();
-                for (int i = 0; i < localcursor.getCount(); i++) {
-                    memepaths.add(FileHelper.getFullPath(localcursor.getString(1)));
-                    localcursor.moveToNext();
-
+        try {
+            Toast.makeText(this, item.getTitle(), Toast.LENGTH_SHORT).show();
+            if (item.getTitle() == "Удалить") {
+                MemeListFragment currentFragment;
+                MemeDatabaseHelper currentDatabase;
+                if (tabNum == 0) {
+                    currentFragment = imageListFragment;
+                    currentDatabase = imagedb;
+                } else {
+                    currentFragment = videoListFragment;
+                    currentDatabase = videodb;
                 }
 
+                for (Integer pos :
+                        currentFragment.memesListAdapter.selected) {
+                    String toDelete = currentFragment.memesListAdapter.memeGroups.get(pos).getName();
+                    new FileHelper(this).deleteFile(toDelete);
+                    currentDatabase.delete(toDelete);
+                    MainActivity.menu1.removeItem(currentFragment.memesListAdapter.deleteItem.getItemId());
+                    currentFragment.memesListAdapter.getDB();
+                    //currentFragment.memesListAdapter.filteredGroups.remove( pos);
+                    //currentFragment.memesListAdapter.notifyItemChanged(pos);
 
+                    currentFragment.memesListAdapter.notifyItemRemoved(pos);
+
+
+                }
+                currentFragment.memesListAdapter.selected.clear();
+                currentFragment.memesListAdapter.deletingMode = false;
+                currentFragment.memesListAdapter.notifyDataSetChanged();
 
             }
-            new FileHelper(this).zipPack(memepaths);
+            if (item.getTitle() == "Экспорт") {
+                ArrayList<String> memepaths = new ArrayList<>();
+                for (MemeDatabaseHelper thisdb : new MemeDatabaseHelper[]{imagedb, videodb}) {
+
+                    memepaths.add(thisdb.getDbPath());
+                    Cursor localcursor = thisdb.getCursor();
+                    localcursor.moveToFirst();
+                    for (int i = 0; i < localcursor.getCount(); i++) {
+                        memepaths.add(FileHelper.getFullPath(localcursor.getString(1)));
+                        localcursor.moveToNext();
+
+                    }
+
+
+                }
+                new FileHelper(this).zipPack(memepaths);
+            }
+            if (item.getTitle() == "Импорт") {
+                selectDBforImport();
+            }
         }
-        if(item.getTitle()=="Импорт"){
-            selectDBforImport();
+        catch (Exception e)
+        {
+            e.printStackTrace();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -402,8 +403,8 @@ imageListFragment.setFilter(searchMemeTag);
     //получение баз данных
     void getBD() {
         Log.d("OLOLOG","Активность Создание баз данных " );
-        imagedb = new MemeDatabaseHelper(this, "test1", 1);
-        videodb = new MemeDatabaseHelper(this, "video", 1);
+        imagedb = new MemeDatabaseHelper(this, "imagedb", 1);
+        videodb = new MemeDatabaseHelper(this, "videodb", 1);
     }
 
     //добавление файла в базу данных

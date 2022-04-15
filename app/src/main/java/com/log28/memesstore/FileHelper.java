@@ -75,7 +75,7 @@ public class FileHelper {
             return VIDEO;
         if(filename.toLowerCase().endsWith(".gif"))
             return GIF;
-        if(filename.contains("/"))
+        if(filename.contains("db"))
             return FILE;
         if(!filename.contains("."))
             return HTTPS;
@@ -368,9 +368,9 @@ public String zipPack(List<String> files){
 
         FileInputStream fileInputStream = new FileInputStream(file);
         if(file.contains("data"))
-            file=file.substring(file.lastIndexOf("databases"));
+            file=file.substring(file.lastIndexOf("databases")+10);
         else
-            file=file.substring(file.lastIndexOf("0/")+2);
+            file=file.substring(file.lastIndexOf("/")+1);
         ZipEntry entry1=new ZipEntry(file);
 
         zipOutputStream.putNextEntry(entry1);
@@ -405,7 +405,8 @@ public ArrayList<MemeGroup> unzipPack(InputStream inputStream, String zipPath){
             name = entry.getName(); // получим название файла
             // size=entry.getSize();  // получим его размер в байтах
             //Log.d("OLOLOG","File name:"+name+" File size: "+size);
-            if (getType(name) == FILE) {
+       /*     if (getType(name) == FILE) {
+//name=context.getCacheDir().getAbsolutePath();
                 SQLiteDatabase importedDB = SQLiteDatabase.openOrCreateDatabase(name,null);
                 Cursor cursor = importedDB.rawQuery("SELECT * FROM memesTable", null);
 
@@ -415,7 +416,8 @@ public ArrayList<MemeGroup> unzipPack(InputStream inputStream, String zipPath){
                     } while (cursor.moveToNext());
 
                 }
-                } else {
+                }*/ //else
+                    {
                 // распаковка
                 FileOutputStream fout = (FileOutputStream) createFile(name);
                 for (int c = zipInputStream.read(); c != -1; c = zipInputStream.read()) {
@@ -425,6 +427,21 @@ public ArrayList<MemeGroup> unzipPack(InputStream inputStream, String zipPath){
                 fout.flush();
                 zipInputStream.closeEntry();
                 fout.close();
+
+
+                        if (getType(name) == FILE) {
+//name=context.getCacheDir().getAbsolutePath();
+                            String path=getFullPath(name);
+                            SQLiteDatabase importedDB = SQLiteDatabase.openOrCreateDatabase(path,null);
+                            Cursor cursor = importedDB.rawQuery("SELECT * FROM memesTable", null);
+
+                            if (cursor.moveToFirst()) {
+                                do {
+                                    imported.add(new MemeGroup(cursor.getString(1),cursor.getString(2)));
+                                } while (cursor.moveToNext());
+
+                            }
+                        }
             }
         }
         }
@@ -546,10 +563,10 @@ return uri;
                     locuri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
                     break;
                 case FILE:
-                    String folderPath = Environment.DIRECTORY_DOWNLOADS+File.separator + "MemesStoreExport/";
+                    String folderPath = Environment.DIRECTORY_DOWNLOADS;//+File.separator + "MemesStoreExport/";
                     contentValues.put(MediaStore.DownloadColumns.RELATIVE_PATH, folderPath);
                     contentValues.put(MediaStore.DownloadColumns.DISPLAY_NAME, filename);
-                    contentValues.put(MediaStore.DownloadColumns.MIME_TYPE, "application/zip");
+                    //contentValues.put(MediaStore.DownloadColumns.MIME_TYPE, "application/zip");
                     locuri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues);
                     break;
             }
