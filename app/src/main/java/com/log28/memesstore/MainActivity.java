@@ -4,17 +4,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.GestureDetectorCompat;
 import androidx.core.view.MenuItemCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
-import androidx.viewpager2.adapter.FragmentViewHolder;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.Manifest;
@@ -24,22 +20,13 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
-import android.text.TextUtils;
 import android.util.Log;
-import android.view.ActionProvider;
-import android.view.ContextMenu;
-import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.SubMenu;
 import android.view.View;
 import android.widget.SearchView;
 import android.widget.Toast;
@@ -50,6 +37,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -59,22 +47,30 @@ public class MainActivity extends AppCompatActivity {
     //объект БД
     MemeDatabaseHelper imagedb;
     MemeDatabaseHelper videodb;
-    //номер вкладки
-    int tabNum = 0;
+    //номера вкладок
+    private final int IMAGE_POS=0;
+    private final int VIDEO_POS=1;
+    //номер текущей вкладки
+    int tabNum = IMAGE_POS;
     //слой для вкладок
     TabLayout memesCategories;
     //объект для работы с памятью
     FileHelper fileHelper;
-
+    //фрагменты с отображением списков мемов
     MemeListFragment imageListFragment;
     MemeListFragment videoListFragment;
-    private final int REQUEST_DB = 53;
-    private final int REQUEST_GALLERY = 84;
+    //коды идентификации входящих Intent'ов
+    private final int REQUEST_DB = 53;//импорт БД
+    private final int REQUEST_GALLERY = 84;//добавление из галереи
+    //флаг режима мультивыбора для удалени
    public static boolean deletingMode=false;
-public static Menu menu1;
+   //меню в ActionBar
+    public static Menu mainMenu;
+
     ViewPager2 pagerSlider;
     private FragmentStateAdapter pagerAdapter;
-
+    //создание тулбара для главного окна
+    Toolbar toolbar;
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,8 +82,10 @@ public static Menu menu1;
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
 
         }
+        //запрос БД
         getBD();
         Log.d("OLOLOG","Активность Создание фрагментов " );
+        //создание фрагментов с мемами
         imageListFragment = new MemeListFragment(imagedb);
         videoListFragment = new MemeListFragment(videodb);
 
@@ -99,6 +97,7 @@ public static Menu menu1;
         memesCategories.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
+                //перелистывание при выборе вкладки
                 tabNum = tab.getPosition();
                 pagerSlider.setCurrentItem(tabNum);
             }
@@ -113,7 +112,7 @@ public static Menu menu1;
 
             }
         });
-
+        //создание объекта для работы с файловой системой
         fileHelper = new FileHelper(this);
 
 
@@ -123,22 +122,22 @@ public static Menu menu1;
         if (intent.getAction() != "android.intent.action.MAIN")
             // if(intent!=null&&intent.getAction()=="android.intent.action.SEND")
             getMemeFromIntent(intent);
-
-
-
-
+        //создание слайдера
         pagerSlider = findViewById(R.id.pagerSlider);
         pagerAdapter = new ScreenSlidePagerAdapter(this, new ArrayList<MemeListFragment>(Arrays.asList(imageListFragment, videoListFragment)));
         pagerSlider.setAdapter(pagerAdapter);
 
-
+    toolbar=findViewById(R.id.mainToolbar);
+    setSupportActionBar(toolbar);
 
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStateAdapter {
 
+        //список мемов
         List<MemeListFragment> memeLists;
-int pos;
+        //текущая позиция
+        int pos;
         public ScreenSlidePagerAdapter(FragmentActivity fa, List<MemeListFragment> memeLists) {
             super(fa);
             this.memeLists = memeLists;
@@ -146,29 +145,32 @@ int pos;
 
         @Override
         public long getItemId(int position) {
+            //обновление при смене вкладки
             memesCategories.selectTab(memesCategories.getTabAt(position));
-            if (position == 0) {
-                imageListFragment.setFilter(searchMemeTag);
 
+            switch (position){
+                case IMAGE_POS:
+                    imageListFragment.setFilter(searchMemeTag); break;
+                case VIDEO_POS:
+                    videoListFragment.setFilter(searchMemeTag); break;
+                default:
+                    imageListFragment.setFilter(searchMemeTag); break;
             }
-            else {
-                videoListFragment.setFilter(searchMemeTag);;
 
-            }
             return super.getItemId(position);
         }
 
         @Override
         public Fragment createFragment(int position) {
-
+            //обновление при создании
             pos=position;
-            if (position == 0) {
-imageListFragment.setFilter(searchMemeTag);
-                return imageListFragment;
-            }
-            else {
-                videoListFragment.setFilter(searchMemeTag);
-                return videoListFragment;
+            switch (position){
+                case IMAGE_POS:
+                    imageListFragment.setFilter(searchMemeTag);  return imageListFragment;
+                case VIDEO_POS:
+                    videoListFragment.setFilter(searchMemeTag); return videoListFragment;
+                default:
+                    imageListFragment.setFilter(searchMemeTag); return imageListFragment;
             }
         }
 
@@ -180,12 +182,13 @@ imageListFragment.setFilter(searchMemeTag);
 
     }
 
-
+    //создание меню
     @Override
     public boolean onCreateOptionsMenu(Menu menu)  {
         getMenuInflater().inflate(R.menu.main_menu, menu);
 
         MenuItem searchItem = menu.findItem(R.id.app_bar_search);
+        //создание поисковика
         final SearchManager searchManager =
                 (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         SearchView searchView =
@@ -201,52 +204,33 @@ imageListFragment.setFilter(searchMemeTag);
 
             @Override
             public boolean onQueryTextChange(String newText) {
-              /*  String newFilter = !TextUtils.isEmpty(newText) ? newText : null;
-                if (mSearchTerm == null && newFilter == null) {
-                    return true;
-                }
-                if (mSearchTerm != null && mSearchTerm.equals(newFilter)) {
-                    return true;
-                }
-                mSearchTerm = newFilter;
-                mSearchQueryChanged = true;*/
-                //searchText(newText); //handle this
-
+                //сохранение поисковой фразы
                 searchMemeTag=newText;
-                if (tabNum == 0)
-                    imageListFragment.memesListAdapter.getFilter().filter(newText);
-                else
-                    videoListFragment.memesListAdapter.getFilter().filter(newText);
-
+                //определение вкладки для поиска
+                switch (tabNum){
+                    case IMAGE_POS:
+                        imageListFragment.memesListAdapter.getFilter().filter(newText);break;
+                    case VIDEO_POS:
+                        videoListFragment.memesListAdapter.getFilter().filter(newText); break;
+                    default:
+                        imageListFragment.memesListAdapter.getFilter().filter(newText);break;
+                }
 
                 return true;
             }
         });
 
-        MenuItemCompat.OnActionExpandListener expandListener = new MenuItemCompat.OnActionExpandListener() {
-            @Override
-            public boolean onMenuItemActionExpand(MenuItem menuItem) {
-                return true;
-            }
-
-            @Override
-            public boolean onMenuItemActionCollapse(MenuItem menuItem) {
-
-                return true;
-            }
-        };
-        MenuItemCompat.setOnActionExpandListener(searchItem, expandListener);
-        menu.add("Экспорт");
-        menu.add("Импорт");
-        menu1=menu;
-        return super.onCreateOptionsMenu(menu);
+        mainMenu =menu;
+            return super.onCreateOptionsMenu(menu);
     }
 
+    //опции выбора меню
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         try {
             Toast.makeText(this, item.getTitle(), Toast.LENGTH_SHORT).show();
-            if (item.getTitle() == "Удалить") {
+            String qwe=item.getTitle().toString();
+            if (qwe.matches("Удалить")) {
                 MemeListFragment currentFragment;
                 MemeDatabaseHelper currentDatabase;
                 if (tabNum == 0) {
@@ -256,13 +240,14 @@ imageListFragment.setFilter(searchMemeTag);
                     currentFragment = videoListFragment;
                     currentDatabase = videodb;
                 }
-
+                //Collections.reverse(currentFragment.memesListAdapter.selected);
+                currentFragment.memesListAdapter.selected.sort((a, b) -> b.compareTo(a));
                 for (Integer pos :
                         currentFragment.memesListAdapter.selected) {
                     String toDelete = currentFragment.memesListAdapter.memeGroups.get(pos).getName();
                     new FileHelper(this).deleteFile(toDelete);
                     currentDatabase.delete(toDelete);
-                    MainActivity.menu1.removeItem(currentFragment.memesListAdapter.deleteItem.getItemId());
+                    //MainActivity.menu1.removeItem(currentFragment.memesListAdapter.deleteItem.getItemId());
                     currentFragment.memesListAdapter.getDB();
                     //currentFragment.memesListAdapter.filteredGroups.remove( pos);
                     //currentFragment.memesListAdapter.notifyItemChanged(pos);
@@ -273,10 +258,14 @@ imageListFragment.setFilter(searchMemeTag);
                 }
                 currentFragment.memesListAdapter.selected.clear();
                 currentFragment.memesListAdapter.deletingMode = false;
+                mainMenu.getItem(3).setVisible(false);
+                mainMenu.getItem(2).setVisible(true);
+                mainMenu.getItem(1).setVisible(true);
                 currentFragment.memesListAdapter.notifyDataSetChanged();
 
             }
-            if (item.getTitle() == "Экспорт") {
+            //сбор всех мемов в zip файл
+            if (item.getTitle().toString().matches("Экспорт")) {
                 ArrayList<String> memepaths = new ArrayList<>();
                 for (MemeDatabaseHelper thisdb : new MemeDatabaseHelper[]{imagedb, videodb}) {
 
@@ -293,7 +282,8 @@ imageListFragment.setFilter(searchMemeTag);
                 }
                 new FileHelper(this).zipPack(memepaths);
             }
-            if (item.getTitle() == "Импорт") {
+            //извлечение мемов из zip-файла
+            if (item.getTitle().toString().matches("Импорт")) {
                 selectDBforImport();
             }
         }
@@ -304,12 +294,7 @@ imageListFragment.setFilter(searchMemeTag);
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-    }
-
+    //получение мема из входящего Intent'а
     @RequiresApi(api = Build.VERSION_CODES.R)
     int getMemeFromIntent(Intent intent) {
         //Имя файла (не путь, только имя)
@@ -451,7 +436,7 @@ imageListFragment.setFilter(searchMemeTag);
         chooseFile.setType("*/*");
         chooseFile = Intent.createChooser(chooseFile, "Choose a file");
         startActivityForResult(chooseFile, REQUEST_DB);
-        imagedb.importDB();
+       // imagedb.importDB();
     }
 
     //получение результата от дочерней активности
@@ -478,6 +463,7 @@ imageListFragment.setFilter(searchMemeTag);
 
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             }
+        //результат: подпись нужно изменить
         if (resultCode == MemeViewerActivity.CHANGE_CODE)
             {
 

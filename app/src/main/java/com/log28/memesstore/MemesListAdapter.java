@@ -2,22 +2,18 @@ package com.log28.memesstore;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Build;
 import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
@@ -33,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.content.Context.WINDOW_SERVICE;
+import static com.log28.memesstore.MainActivity.mainMenu;
 
 public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.ViewHolder> implements Filterable /* implements View.OnClickListener*/ {
    /* List<String> memesPaths;
@@ -131,8 +128,11 @@ holder.memeCardView.setOnClickListener(new View.OnClickListener() {
             if(selected.isEmpty()) {
                 deletingMode = false;
                 MainActivity.deletingMode=false;
-                MainActivity.menu1.removeItem(deleteItem.getItemId());
-
+                //MainActivity.menu1.removeItem(deleteItem.getItemId());
+                //menu1=MainActivity.mainMenu;
+                mainMenu.getItem(3).setVisible(false);
+                mainMenu.getItem(2).setVisible(true);
+                mainMenu.getItem(1).setVisible(true);
                 redrawList();
             }
         }
@@ -161,8 +161,19 @@ holder.memeCardView.setOnClickListener(new View.OnClickListener() {
                 deletingMode=true;
                 redrawList();
                 MainActivity.deletingMode=true;
-                    deleteItem= MainActivity.menu1.add("Удалить");
-                    deleteItem.setShowAsAction(1);}
+                  /*  deleteItem= MainActivity.menu1.add("Удалить");
+                    deleteItem.setShowAsAction(1);*/
+                    //MainActivity.menu1=MainActivity.deleteMenu;
+                    try {
+                        MenuItem qwe = mainMenu.getItem(3);
+                        qwe.setVisible(true);
+                        mainMenu.getItem(2).setVisible(false);
+                        mainMenu.getItem(1).setVisible(false);
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
                 // объект Builder для создания диалогового окна
                   /*  AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
                     // добавляем различные компоненты в диалоговое окно

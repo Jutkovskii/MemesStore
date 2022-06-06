@@ -15,6 +15,7 @@ import android.graphics.Rect;
 import android.media.MediaMetadataRetriever;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -64,6 +65,8 @@ public class FileHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
             fileHelper = new innerFileHelperNew(context);
         else
+
+
             fileHelper = new innerFileHelperOld(context);
     }
 
@@ -395,16 +398,21 @@ public String zipPack(List<String> files){
 
 public ArrayList<MemeGroup> unzipPack(InputStream inputStream, String zipPath){
     ArrayList<MemeGroup> imported = new ArrayList<>();
-        try {
-        ZipInputStream zipInputStream = new ZipInputStream(inputStream);
-        ZipEntry entry;
-        String name;
-        //  long size;
-        while ((entry = zipInputStream.getNextEntry()) != null) {
 
-            name = entry.getName(); // получим название файла
-            // size=entry.getSize();  // получим его размер в байтах
-            //Log.d("OLOLOG","File name:"+name+" File size: "+size);
+            ZipInputStream zipInputStream = new ZipInputStream(inputStream);
+            ZipEntry entry=null;
+            String name;
+            //  long size;
+            while (true) {
+                try {
+                    if (!((entry = zipInputStream.getNextEntry()) != null)) break;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                try {
+                name = entry.getName(); // получим название файла
+                long size = entry.getSize();  // получим его размер в байтах
+                //Log.d("OLOLOG","File name:"+name+" File size: "+size);
        /*     if (getType(name) == FILE) {
 //name=context.getCacheDir().getAbsolutePath();
                 SQLiteDatabase importedDB = SQLiteDatabase.openOrCreateDatabase(name,null);
@@ -417,36 +425,37 @@ public ArrayList<MemeGroup> unzipPack(InputStream inputStream, String zipPath){
 
                 }
                 }*/ //else
-                    {
-                // распаковка
-                FileOutputStream fout = (FileOutputStream) createFile(name);
-                for (int c = zipInputStream.read(); c != -1; c = zipInputStream.read()) {
-                    fout.write(c);
+                {
+                    // распаковка
+                    FileOutputStream fout = (FileOutputStream) createFile(name);
+                    for (int c = zipInputStream.read(); c != -1; c = zipInputStream.read()) {
+                        fout.write(c);
+                    }
+
+                    fout.flush();
+                    zipInputStream.closeEntry();
+                    fout.close();
+
+
+                    if (getType(name) == FILE) {
+//name=context.getCacheDir().getAbsolutePath();
+                        String path = getFullPath(name);
+                        SQLiteDatabase importedDB = SQLiteDatabase.openOrCreateDatabase(path, null);
+                        Cursor cursor = importedDB.rawQuery("SELECT * FROM memesTable", null);
+
+                        if (cursor.moveToFirst()) {
+                            do {
+                                imported.add(new MemeGroup(cursor.getString(1), cursor.getString(2)));
+                            } while (cursor.moveToNext());
+
+                        }
+                    }
                 }
 
-                fout.flush();
-                zipInputStream.closeEntry();
-                fout.close();
-
-
-                        if (getType(name) == FILE) {
-//name=context.getCacheDir().getAbsolutePath();
-                            String path=getFullPath(name);
-                            SQLiteDatabase importedDB = SQLiteDatabase.openOrCreateDatabase(path,null);
-                            Cursor cursor = importedDB.rawQuery("SELECT * FROM memesTable", null);
-
-                            if (cursor.moveToFirst()) {
-                                do {
-                                    imported.add(new MemeGroup(cursor.getString(1),cursor.getString(2)));
-                                } while (cursor.moveToNext());
-
-                            }
-                        }
             }
-        }
-        }
     catch(Exception e){
-            e.printStackTrace();
+                e.printStackTrace();
+            }
         }
 return imported;
 }
@@ -738,4 +747,5 @@ return uri;
 return uri;
         }
     }
+
 }

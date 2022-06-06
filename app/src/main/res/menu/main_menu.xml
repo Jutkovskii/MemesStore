@@ -8,4 +8,18 @@
         android:title="Search"
         app:actionViewClass="android.widget.SearchView"
         app:showAsAction="always" />
+    <item
+        android:id="@+id/exportDB"
+        android:title="Экспорт"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/importDB"
+        android:title="Импорт"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/Delete"
+        android:title="Удалить"
+        android:titleTextColor="#FBFBFB"
+        android:visible="false"
+        app:showAsAction="always" />
 </menu>

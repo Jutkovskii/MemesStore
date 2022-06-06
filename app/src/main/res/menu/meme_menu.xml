@@ -9,4 +9,5 @@
         android:id="@+id/deleteMem"
         android:title="Удалить"
         app:showAsAction="never" />
+    
 </menu>

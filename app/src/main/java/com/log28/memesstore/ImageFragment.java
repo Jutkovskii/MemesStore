@@ -20,7 +20,6 @@ import android.widget.ImageView;
 public class ImageFragment extends Fragment {
 
 ImageView memeImageView;
-    Bitmap bmp;
 String filename;
     Context context;
     public ImageFragment() {
@@ -41,15 +40,6 @@ String filename;
         View view = inflater.inflate(R.layout.fragment_image, container, false);
 context=container.getContext();
 
-       /* try {
-            FileHelper fileHelper = new FileHelper(context);
-            bmp = BitmapFactory.decodeFile(fileHelper.getFullPath(filename),fileHelper.getOptions(filename));
-            if(bmp==null)
-                bmp=fileHelper.getPreview(filename);
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }*/
         return view;
     }
 
@@ -62,7 +52,6 @@ this.filename =filename;
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view,null);// savedInstanceState);
         memeImageView = view.findViewById(R.id.memeImageView);
-       // memeImageView.setImageBitmap(bmp);
         memeImageView.setImageBitmap(new FileHelper(context).getPreview(filename));
     }
 

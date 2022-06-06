@@ -2,6 +2,7 @@ package com.log28.memesstore;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -15,7 +16,9 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+
 
 import java.io.File;
 
@@ -43,11 +46,14 @@ public class MemeViewerActivity extends AppCompatActivity {
     GifFragment gifFragment;
     String memeTag="";
 
-
+Toolbar toolbar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_meme_viewer);
+        toolbar=findViewById(R.id.currentMemetoolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("ДЩДЩ");
         Intent intent = getIntent();
         //получение имени файла
         filename = intent.getStringExtra(FILENAME_EXTRA);
@@ -89,6 +95,7 @@ public class MemeViewerActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+
         getMenuInflater().inflate(R.menu.meme_menu,menu);
         return true;
     }
