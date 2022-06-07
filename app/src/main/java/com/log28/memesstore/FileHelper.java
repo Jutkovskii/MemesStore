@@ -26,6 +26,7 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -395,6 +396,57 @@ public String zipPack(List<String> files){
 
      return zipFilename;
 }
+
+
+
+
+    public ArrayList<MemeGroup> unzipPack(InputStream inputStream){
+        ArrayList<MemeGroup> imported = new ArrayList<>();
+        try {
+
+            ZipInputStream zipStream = new ZipInputStream(inputStream);
+            ZipEntry zEntry = null;
+            String name;
+            while ((zEntry = zipStream.getNextEntry()) != null) {
+
+       {
+           name=zEntry.getName();
+           FileOutputStream fout = (FileOutputStream) createFile(name);
+                   // FileOutputStream fout = new FileOutputStream(zEntry.getName());
+                    BufferedOutputStream bufout = new BufferedOutputStream(fout);
+                    byte[] buffer = new byte[1024];
+                    int read = 0;
+                    while ((read = zipStream.read(buffer)) != -1) {
+                        bufout.write(buffer, 0, read);
+                    }
+
+                    zipStream.closeEntry();
+                    bufout.close();
+                    fout.close();
+                }
+                if (getType(name) == FILE) {
+//name=context.getCacheDir().getAbsolutePath();
+                    String path = getFullPath(name);
+                    SQLiteDatabase importedDB = SQLiteDatabase.openOrCreateDatabase(path, null);
+                    Cursor cursor = importedDB.rawQuery("SELECT * FROM memesTable", null);
+
+                    if (cursor.moveToFirst()) {
+                        do {
+                            imported.add(new MemeGroup(cursor.getString(1), cursor.getString(2)));
+                        } while (cursor.moveToNext());
+
+                    }
+                }
+            }
+            zipStream.close();
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+        return imported;
+}
+
 
 public ArrayList<MemeGroup> unzipPack(InputStream inputStream, String zipPath){
     ArrayList<MemeGroup> imported = new ArrayList<>();

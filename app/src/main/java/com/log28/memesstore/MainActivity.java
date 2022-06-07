@@ -512,7 +512,7 @@ public class MainActivity extends AppCompatActivity {
                  //получение потока входных данных
                  inputStream = getContentResolver().openInputStream(uri);
                  //String localFile=new FileHelper(this).createLocalFile(inputStream,filename);
-                 ArrayList<MemeGroup> imported =  new FileHelper(this).unzipPack( inputStream,FileHelper.getFullPath(filename));
+                 ArrayList<MemeGroup> imported =  new FileHelper(this).unzipPack( inputStream);//,FileHelper.getFullPath(filename));
                  for(MemeGroup thisGroup: imported){
                      if(FileHelper.getType(thisGroup.name)==FileHelper.IMAGE)
                          imagedb.insert(thisGroup.getName(),thisGroup.getTag());
