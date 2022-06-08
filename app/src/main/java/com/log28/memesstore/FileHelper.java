@@ -83,6 +83,8 @@ public class FileHelper {
             return GIF;
         if (filename.contains("db"))
             return FILE;
+        if (filename.contains("zip"))
+            return FILE;
         if (!filename.contains("."))
             return HTTPS;
 
