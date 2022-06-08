@@ -46,23 +46,25 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class FileHelper {
-    public Context context;
+    public static Context context = null;
     public static String root;//корневая папка хранилища
     public static String appFolder = "MemesStore2/";//папка с данными приложения
-    public static String previews = Environment.DIRECTORY_PICTURES+"/"+appFolder+"Previews/";//папка с превью ютуба
-    public static String images= Environment.DIRECTORY_PICTURES+"/"+appFolder+"Images/";//папка с изображениями
-    public static String videos=Environment.DIRECTORY_MOVIES+"/"+appFolder+"Videos/";//папка с видео
-    public static String gifs=Environment.DIRECTORY_MOVIES+"/"+appFolder+"Gifs/";//папка с Gif
+    public static String previews = Environment.DIRECTORY_PICTURES + "/" + appFolder + "Previews/";//папка с превью ютуба
+    public static String images = Environment.DIRECTORY_PICTURES + "/" + appFolder + "Images/";//папка с изображениями
+    public static String videos = Environment.DIRECTORY_MOVIES + "/" + appFolder + "Videos/";//папка с видео
+    public static String gifs = Environment.DIRECTORY_MOVIES + "/" + appFolder + "Gifs/";//папка с Gif
 
     //категории файлов
-    public static final int IMAGE=0;
-    public static final int VIDEO=1;
-    public static final int HTTPS=2;
-    public static final int GIF=3;
-    public static final int FILE=-1;
-    public  FileHelperInterface fileHelper;
-    public FileHelper(Context context){
-        this.context=context;
+    public static final int IMAGE = 0;
+    public static final int VIDEO = 1;
+    public static final int HTTPS = 2;
+    public static final int GIF = 3;
+    public static final int FILE = 4;
+    public static final int TEMP = -1;
+    public FileHelperInterface fileHelper;
+
+    public FileHelper(Context context) {
+        this.context = context;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
             fileHelper = new innerFileHelperNew(context);
         else
@@ -72,50 +74,79 @@ public class FileHelper {
     }
 
     //возвращает тип данных согласно имени файла
-    public static int getType(String filename){
-        if(filename.toLowerCase().endsWith(".jpg")||filename.toLowerCase().endsWith(".png")||filename.toLowerCase().endsWith(".webp"))
+    public static int getType(String filename) {
+        if (filename.toLowerCase().endsWith(".jpg") || filename.toLowerCase().endsWith(".png") || filename.toLowerCase().endsWith(".webp"))
             return IMAGE;
-        if(filename.toLowerCase().endsWith(".mp4"))
+        if (filename.toLowerCase().endsWith(".mp4"))
             return VIDEO;
-        if(filename.toLowerCase().endsWith(".gif"))
+        if (filename.toLowerCase().endsWith(".gif"))
             return GIF;
-        if(filename.contains("db"))
+        if (filename.contains("db"))
             return FILE;
-        if(!filename.contains("."))
+        if (!filename.contains("."))
             return HTTPS;
 
         return -1;
     }
+
     //проверка на двойной слеш
-    public static String checkPath(String path){
-        String result=path;
-        result=result.replace("//","/");
-        result=result.replace(".jpg.jpg",".jpg");
-        result=result.replace(".png.png",".png");
-        result=result.replace(".webp.webp.",".webp.");
-        result=result.replace(".gif.gif",".gif");
-        result=result.replace(".mp4.mp4",".mp4");
+    public static String checkPath(String path) {
+        String result = path;
+        result = result.replace("//", "/");
+        result = result.replace(".jpg.jpg", ".jpg");
+        result = result.replace(".png.png", ".png");
+        result = result.replace(".webp.webp.", ".webp.");
+        result = result.replace(".gif.gif", ".gif");
+        result = result.replace(".mp4.mp4", ".mp4");
         return result;
     }
+
     //получение полного пути к файлу
-    public static String getFullPath(String filename){
-        String path="";
-        switch (getType(filename)){
-            case IMAGE: path=root+images+filename; break;
-            case VIDEO: path= root+videos+filename;break;
-            case GIF:   path= root+gifs+filename;break;
-            case HTTPS: path= root+previews+filename+".jpg";break;
-            case FILE: path=root+Environment.DIRECTORY_DOWNLOADS+"/"+filename;break;
+    public static String getFullPath(String filename) {
+        String path = "";
+        switch (getType(filename)) {
+            case IMAGE:
+                path = root + images + filename;
+                break;
+            case VIDEO:
+                path = root + videos + filename;
+                break;
+            case GIF:
+                path = root + gifs + filename;
+                break;
+            case HTTPS:
+                path = root + previews + filename + ".jpg";
+                break;
+            case FILE:
+                path = root + Environment.DIRECTORY_DOWNLOADS + "/" + filename;
+                break;
+            case TEMP:
+               // path = ((context == null) ? root + Environment.DIRECTORY_DOWNLOADS : context.getExternalCacheDir().getAbsolutePath()) + "/" + filename;
+                path = root + Environment.DIRECTORY_DOWNLOADS + "/" + filename;
+                break;
         }
-        path=checkPath(path);
+        path = checkPath(path);
         return path;
     }
+
     //проверка существования файла
-    public static boolean isExist(String filename){
+    public static boolean isExist(String filename) {
         return new File(getFullPath(filename)).exists();
     }
+
+    //создание файла
+    public OutputStream createFile(String filename) {
+
+       return this.fileHelper.createFile(filename);
+
+    }
+
+    //удаление  файла
+    public void deleteFile(String path) {
+        this.fileHelper.deleteFile(path);
+    }
     //копирование данных в файл
-    public static void copyFile(InputStream inputStream, OutputStream outputStream){
+    public static void copyFile(InputStream inputStream, OutputStream outputStream) {
         try {
 
             int n;
@@ -129,12 +160,16 @@ public class FileHelper {
         }
     }
 
+    //получение uri видеофайла
+    public Uri getVideoUri(String filename) {
+        return fileHelper.getVideoUri(filename);
+    }
 
     //возвращает Битмап для создания превью
     @RequiresApi(api = Build.VERSION_CODES.R)
-    public Bitmap getPreview(String filename){
+    public Bitmap getPreview(String filename) {
 
-        return fileHelper.getPreview(filename,getOptions(filename));
+        return fileHelper.getPreview(filename, getOptions(filename));
       /* Bitmap preview=null;
 
     switch(getType(filename)){
@@ -185,222 +220,88 @@ public class FileHelper {
        return preview;*/
     }
 
-    public FileInputStream onRead(String filename) {
-        String[] selectionArgs;
-        if(!filename.contains("."))
-        {
-            filename=filename+".jpg";
-           selectionArgs = new String[]{Environment.DIRECTORY_PICTURES + "/" + appFolder + "Previews/"};
-        }
-        else
-            if(filename.endsWith("mp4"))
-                selectionArgs = new String[]{Environment.DIRECTORY_MOVIES + "/" + appFolder + "Videos/"};
-            else
-            selectionArgs = new String[]{Environment.DIRECTORY_PICTURES + "/" + appFolder + "Images/"};
-
-
-        Uri contentUri = MediaStore.Files.getContentUri("external");
-        String selection = MediaStore.MediaColumns.RELATIVE_PATH + "=?";
-
-
-
-        Cursor cursor = context.getContentResolver().query(contentUri, null, selection, selectionArgs, null);
-
-        Uri uri = null;
-
-        if (cursor.getCount() == 0) {
-            Toast.makeText(context, "No file found", Toast.LENGTH_LONG).show();
-        } else {
-            while (cursor.moveToNext()) {
-                String fileName = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME));
-
-                if (fileName.equals(filename)) {
-                    long id = cursor.getLong(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
-
-                    uri = ContentUris.withAppendedId(contentUri, id);
-
-                    break;
-                }
-            }
-
-            if (uri == null) {
-                Toast.makeText(context, "file not found", Toast.LENGTH_SHORT).show();
-            } else {
-                try {
-                    InputStream inputStream = context.getContentResolver().openInputStream(uri);
-
-
-//////////////////////////////////////////////////////////////
-return (FileInputStream) inputStream;
-
-                } catch (IOException e) {
-                    Toast.makeText(context, "Fail to read file", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }
-        return null;
-    }
-
-    public  Bitmap createThumbnail(String filename) {
-        Bitmap bitmap = null;
-        String[] selectionArgs = new String[]{Environment.DIRECTORY_MOVIES + "/" + appFolder + "Videos/"};
-        Uri contentUri = MediaStore.Files.getContentUri("external");
-
-        String selection = MediaStore.MediaColumns.RELATIVE_PATH + "=?";
-
-
-
-        Cursor cursor = context.getContentResolver().query(contentUri, null, selection, selectionArgs, null);
-
-        Uri uri = null;
-
-        if (cursor.getCount() == 0) {
-            Toast.makeText(context, "No file found", Toast.LENGTH_LONG).show();
-        } else {
-            while (cursor.moveToNext()) {
-                String fileName = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME));
-
-                if (fileName.equals(filename)) {
-                    long id = cursor.getLong(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
-
-                    uri = ContentUris.withAppendedId(contentUri, id);
-
-                    break;
-                }
-            }
-
-            if (uri == null) {
-                Toast.makeText(context, "file not found", Toast.LENGTH_SHORT).show();
-            } else {
-
-
-
-
-        MediaMetadataRetriever mediaMetadataRetriever = null;
-
-        try {
-            mediaMetadataRetriever = new MediaMetadataRetriever();
-            mediaMetadataRetriever.setDataSource(context, uri);
-            bitmap = mediaMetadataRetriever.getFrameAtTime(1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (mediaMetadataRetriever != null) {
-                mediaMetadataRetriever.release();
-            }
-        }
-            }
-        }
-
-        return bitmap;
-    }
-
+    //изменение размера слишком больших файлов для ускорения работы
     @RequiresApi(api = Build.VERSION_CODES.R)
     public BitmapFactory.Options getOptions(String filename) {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
-        if (getType(filename) != VIDEO){
+        if (getType(filename) != VIDEO) {
             BitmapFactory.decodeFile(getFullPath(filename), options);
-        int koef = (int) ((float) (options.outWidth) / (float) (context.getDisplay().getWidth()) * 2);
-        if (koef % 2 != 0) koef++;
-        options.inSampleSize = koef;
-    }
+            int koef = (int) ((float) (options.outWidth) / (float) (context.getDisplay().getWidth()) * 2);
+            if (koef % 2 != 0) koef++;
+            options.inSampleSize = koef;
+        }
         options.inJustDecodeBounds = false;
 
-          return options;
+        return options;
 
     }
-    //создание локального файла
+
+    //рудимент. Использовался для борьбы со стикеризацией изображений в Телеграме
     @RequiresApi(api = Build.VERSION_CODES.R)
-    public String createLocalFile(InputStream inputStream, String filename){
-        filename= filename.replaceAll(".webp",".jpg");
-     boolean res=this.fileHelper.createLocalFile(inputStream,filename);
-     //добавить в виде опции
-         // resizeImageForTG(filename);
-        return filename;
-    }
+    public void resizeImageForTG(String filename) {
+        if (getType(filename) == IMAGE) {
+            BitmapFactory.Options options = getOptions(filename);
+            float width = options.outWidth;
+            float height = options.outHeight;
+            final float WIDTH = 1200;
+            final float HEIGHT = 1200;
+            float scaleParameter = Math.max(WIDTH / width, HEIGHT / height);
+            float criteria = 2;
+            if (scaleParameter > criteria)/*|| scaleParameter < 1.0 / criteria) */ {
+                Bitmap tempBitmap = getPreview(filename);
+                tempBitmap = Bitmap.createScaledBitmap(tempBitmap, Math.round(tempBitmap.getWidth() * scaleParameter), Math.round(tempBitmap.getHeight() * scaleParameter), false);
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                tempBitmap.compress(Bitmap.CompressFormat.JPEG, 100 /*ignored for PNG*/, bos);
+                byte[] bitmapdata = bos.toByteArray();
+                ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
+                deleteFile(filename);
+                // filename= filename.replaceAll(".webp",".jpg");
+                FileHelper.copyFile(bs, createFile(filename));
 
-    public OutputStream createFile(String filename)
-    {
-        return this.fileHelper.createFile(filename);
-    }
-    //удаление локального файла
-    public void deleteFile(String path){
-        this.fileHelper.deleteFile(path);
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.R)
-    public void resizeImageForTG(String filename){
-       if (getType(filename)==IMAGE) {
-           BitmapFactory.Options options = getOptions(filename);
-           float width = options.outWidth;
-           float height = options.outHeight;
-           final float WIDTH = 1200;
-           final float HEIGHT = 1200;
-           float scaleParameter = Math.max(WIDTH / width , HEIGHT / height );
-           float criteria = 2;
-           if (scaleParameter > criteria )/*|| scaleParameter < 1.0 / criteria) */{
-               Bitmap tempBitmap = getPreview(filename);
-               tempBitmap = Bitmap.createScaledBitmap(tempBitmap, Math.round(tempBitmap.getWidth() * scaleParameter), Math.round(tempBitmap.getHeight() * scaleParameter), false);
-               ByteArrayOutputStream bos = new ByteArrayOutputStream();
-               tempBitmap.compress(Bitmap.CompressFormat.JPEG, 100 /*ignored for PNG*/, bos);
-               byte[] bitmapdata = bos.toByteArray();
-               ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
-               deleteFile(filename);
-             // filename= filename.replaceAll(".webp",".jpg");
-               this.fileHelper.createLocalFile(bs, filename);
-
-           }
-       }
+            }
+        }
 
     }
+    //архивация указанных файлов в ZIP-архив
+    public String zipPack(List<String> files) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date = new Date(System.currentTimeMillis());
+        String zipFilename = formatter.format(date) + ".zip";
+        try {
+            OutputStream outputStream = createFile(zipFilename);
+            ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
 
+            for (String file : files) {
 
-    public Uri getVideoUri(String filename){
-        return fileHelper.getVideoUri(filename);
+                FileInputStream fileInputStream = new FileInputStream(file);
+                if (file.contains("data"))
+                    file = file.substring(file.lastIndexOf("databases") + 10);
+                else
+                    file = file.substring(file.lastIndexOf("/") + 1);
+                ZipEntry entry1 = new ZipEntry(file);
+
+                zipOutputStream.putNextEntry(entry1);
+                // считываем содержимое файла в массив byte
+                byte[] buffer = new byte[fileInputStream.available()];
+                fileInputStream.read(buffer);
+                // добавляем содержимое к архиву
+                zipOutputStream.write(buffer);
+
+                zipOutputStream.flush();
+                // закрываем текущую запись для новой записи
+                zipOutputStream.closeEntry();
+            }
+            zipOutputStream.finish();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return zipFilename;
     }
-
-public String zipPack(List<String> files){
-    SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    Date date = new Date(System.currentTimeMillis());
-     String zipFilename = formatter.format(date)+".zip";
-    try {
-        OutputStream outputStream=createFile(zipFilename);
-        ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
-
-    for(String file:files){
-
-        FileInputStream fileInputStream = new FileInputStream(file);
-        if(file.contains("data"))
-            file=file.substring(file.lastIndexOf("databases")+10);
-        else
-            file=file.substring(file.lastIndexOf("/")+1);
-        ZipEntry entry1=new ZipEntry(file);
-
-        zipOutputStream.putNextEntry(entry1);
-        // считываем содержимое файла в массив byte
-        byte[] buffer = new byte[fileInputStream.available()];
-        fileInputStream.read(buffer);
-        // добавляем содержимое к архиву
-        zipOutputStream.write(buffer);
-
-        zipOutputStream.flush();
-         // закрываем текущую запись для новой записи
-        zipOutputStream.closeEntry();
-     }
-        zipOutputStream.finish();
-
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-
-     return zipFilename;
-}
-
-
-
-
-    public ArrayList<MemeGroup> unzipPack(InputStream inputStream){
+    //разархивирование архива, возврат пар {имя файла; тэги}
+    public ArrayList<MemeGroup> unzipPack(InputStream inputStream) {
         ArrayList<MemeGroup> imported = new ArrayList<>();
         try {
 
@@ -409,10 +310,10 @@ public String zipPack(List<String> files){
             String name;
             while ((zEntry = zipStream.getNextEntry()) != null) {
 
-       {
-           name=zEntry.getName();
-           FileOutputStream fout = (FileOutputStream) createFile(name);
-                   // FileOutputStream fout = new FileOutputStream(zEntry.getName());
+                {
+                    name = zEntry.getName();
+                    FileOutputStream fout = (FileOutputStream) createFile(name);
+                    // FileOutputStream fout = new FileOutputStream(zEntry.getName());
                     BufferedOutputStream bufout = new BufferedOutputStream(fout);
                     byte[] buffer = new byte[1024];
                     int read = 0;
@@ -445,88 +346,26 @@ public String zipPack(List<String> files){
             e.printStackTrace();
         }
         return imported;
-}
+    }
 
-
-public ArrayList<MemeGroup> unzipPack(InputStream inputStream, String zipPath){
-    ArrayList<MemeGroup> imported = new ArrayList<>();
-
-            ZipInputStream zipInputStream = new ZipInputStream(inputStream);
-            ZipEntry entry=null;
-            String name;
-            //  long size;
-            while (true) {
-                try {
-                    if (!((entry = zipInputStream.getNextEntry()) != null)) break;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                try {
-                name = entry.getName(); // получим название файла
-                long size = entry.getSize();  // получим его размер в байтах
-                //Log.d("OLOLOG","File name:"+name+" File size: "+size);
-       /*     if (getType(name) == FILE) {
-//name=context.getCacheDir().getAbsolutePath();
-                SQLiteDatabase importedDB = SQLiteDatabase.openOrCreateDatabase(name,null);
-                Cursor cursor = importedDB.rawQuery("SELECT * FROM memesTable", null);
-
-                if (cursor.moveToFirst()) {
-                    do {
-                       imported.add(new MemeGroup(cursor.getString(1),cursor.getString(2)));
-                    } while (cursor.moveToNext());
-
-                }
-                }*/ //else
-                {
-                    // распаковка
-                    FileOutputStream fout = (FileOutputStream) createFile(name);
-                    for (int c = zipInputStream.read(); c != -1; c = zipInputStream.read()) {
-                        fout.write(c);
-                    }
-
-                    fout.flush();
-                    zipInputStream.closeEntry();
-                    fout.close();
-
-
-                    if (getType(name) == FILE) {
-//name=context.getCacheDir().getAbsolutePath();
-                        String path = getFullPath(name);
-                        SQLiteDatabase importedDB = SQLiteDatabase.openOrCreateDatabase(path, null);
-                        Cursor cursor = importedDB.rawQuery("SELECT * FROM memesTable", null);
-
-                        if (cursor.moveToFirst()) {
-                            do {
-                                imported.add(new MemeGroup(cursor.getString(1), cursor.getString(2)));
-                            } while (cursor.moveToNext());
-
-                        }
-                    }
-                }
-
-            }
-    catch(Exception e){
-                e.printStackTrace();
-            }
-        }
-return imported;
-}
-
+    //подклассы, нужный избирается в зависимости от версии ОС
     public class innerFileHelperOld implements FileHelperInterface {
 
 
         public innerFileHelperOld(Context context) {
-            root = Environment.getExternalStorageDirectory().getAbsolutePath()+"/";
-            createDirs();
+            root = Environment.getExternalStorageDirectory().getAbsolutePath() + "/";
+            new File(root + "/" + previews).mkdirs();
+            new File(root + "/" + images).mkdirs();
+            new File(root + "/" + gifs).mkdirs();
+            new File(root + "/" + videos).mkdirs();
         }
 
-        public OutputStream createFile(String filename)
-        {
-FileOutputStream outputStream=null;
+        public OutputStream createFile(String filename) {
+            FileOutputStream outputStream = null;
             String fullpath = getFullPath(filename);
 
             try {
-                File qwe= new File(fullpath);
+                File qwe = new File(fullpath);
                 qwe.createNewFile();
                 outputStream = new FileOutputStream(fullpath);
 
@@ -534,60 +373,46 @@ FileOutputStream outputStream=null;
             } catch (IOException e) {
                 e.printStackTrace();
             }
-return outputStream;
+            return outputStream;
         }
-        public boolean createLocalFile(InputStream inputStream, String filename) {
-
-            FileOutputStream outputStream = (FileOutputStream) createFile(filename);
-            copyFile(inputStream, outputStream);
-            return true;
-        }
-
-        public void createDirs(){
-
-            new File (root+"/"+previews).mkdirs();
-            new File (root+"/"+images).mkdirs();
-            new File (root+"/"+gifs).mkdirs();
-            new File (root+"/"+videos).mkdirs();
-        }
-
 
         public void deleteFile(String path) {
-new File(getFullPath(path)).delete();
+            new File(getFullPath(path)).delete();
 
         }
 
-        //возвращает Битмап для создания превью
-        @RequiresApi(api = Build.VERSION_CODES.R)
-        public Bitmap getPreview(String filename, BitmapFactory.Options options){
-            Bitmap preview=null;
+        public Uri getVideoUri(String filename) {
+            Uri uri = Uri.parse(getFullPath(filename));
+            return uri;
+        }
 
-            switch(getType(filename)){
+        @RequiresApi(api = Build.VERSION_CODES.R)
+        public Bitmap getPreview(String filename, BitmapFactory.Options options) {
+            Bitmap preview = null;
+
+            switch (getType(filename)) {
                 case IMAGE:
-                    preview=BitmapFactory.decodeFile(getFullPath(filename),options);
+                    preview = BitmapFactory.decodeFile(getFullPath(filename), options);
                     break;
                 case VIDEO:
-                    preview= ThumbnailUtils.createVideoThumbnail(getFullPath(filename),MediaStore.Images.Thumbnails.MINI_KIND);
+                    preview = ThumbnailUtils.createVideoThumbnail(getFullPath(filename), MediaStore.Images.Thumbnails.MINI_KIND);
                     break;
                 case GIF:
-                    preview=BitmapFactory.decodeFile(getFullPath(filename),options);
+                    preview = BitmapFactory.decodeFile(getFullPath(filename), options);
                     break;
                 case HTTPS:
-                    preview=BitmapFactory.decodeFile(getFullPath(filename));
+                    preview = BitmapFactory.decodeFile(getFullPath(filename));
                     break;
             }
-            if(preview==null)  preview = BitmapFactory.decodeResource(context.getResources(),R.raw.notfound);
+            if (preview == null)
+                preview = BitmapFactory.decodeResource(context.getResources(), R.raw.notfound);
             return preview;
         }
 
-        public Uri getVideoUri(String filename){
-Uri uri = Uri.parse(getFullPath(filename));
-return uri;
-        }
 
     }
 
-    public class innerFileHelperNew implements  FileHelperInterface {
+    public class innerFileHelperNew implements FileHelperInterface {
 
         public innerFileHelperNew(Context context) {
 
@@ -595,80 +420,56 @@ return uri;
         }
 
         @RequiresApi(api = Build.VERSION_CODES.Q)
-        public OutputStream createFile(String filename)
-        { OutputStream outputStream=null;
+        public OutputStream createFile(String filename) {
+            OutputStream outputStream = null;
             try {
 
-            ContentValues contentValues = new ContentValues();
-            ContentResolver contentResolver = context.getContentResolver();
-            Uri locuri = null;
-            switch (getType(filename)) {
-                case IMAGE:
-                    contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, images);
-                    contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
-                    locuri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
-                    break;
-                case VIDEO:
-                    contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, videos);
-                    contentValues.put(MediaStore.Video.Media.DISPLAY_NAME, filename);
-                    locuri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
-                    break;
-                case GIF:
-                    contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, gifs);
-                    contentValues.put(MediaStore.Video.Media.DISPLAY_NAME, filename);
-                    locuri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
-                    break;
-                case HTTPS:
-                    contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, previews);
-                    contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, filename + ".jpg");
-                    locuri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
-                    break;
-                case FILE:
-                    String folderPath = Environment.DIRECTORY_DOWNLOADS;//+File.separator + "MemesStoreExport/";
-                    contentValues.put(MediaStore.DownloadColumns.RELATIVE_PATH, folderPath);
-                    contentValues.put(MediaStore.DownloadColumns.DISPLAY_NAME, filename);
-                    //contentValues.put(MediaStore.DownloadColumns.MIME_TYPE, "application/zip");
-                    locuri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues);
-                    break;
-            }
-
-                outputStream = contentResolver.openOutputStream(locuri);
-
-            contentResolver.update(locuri, contentValues, null, null);            }
-            catch (Exception e) {
-            e.printStackTrace();
-
-        }
-            return outputStream;
-        }
-
-        @RequiresApi(api = Build.VERSION_CODES.R)
-        public boolean createLocalFile(InputStream inputStream, String filename) {
-
-                OutputStream outputStream=createFile(filename);
-                copyFile(inputStream, outputStream);
-
-
-            return true;
-        }
-
-
-        //Рудимент, создает папки ,но в них пустые файлы
-        public void createDirs() {
-
-            String[] imageDirectories = new String[]{ images, previews};
-            for (String path : imageDirectories) {
                 ContentValues contentValues = new ContentValues();
                 ContentResolver contentResolver = context.getContentResolver();
-                contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, path);
-                Uri locUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
-                contentResolver.update(locUri, contentValues, null, null);
+                Uri locuri = null;
+                deleteFile(filename);
+                switch (getType(filename)) {
+                    case IMAGE:
+                        contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, images);
+                        contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
+                        locuri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
+                        break;
+                    case VIDEO:
+                        contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, videos);
+                        contentValues.put(MediaStore.Video.Media.DISPLAY_NAME, filename);
+                        locuri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
+                        break;
+                    case GIF:
+                        contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, gifs);
+                        contentValues.put(MediaStore.Video.Media.DISPLAY_NAME, filename);
+                        locuri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
+                        break;
+                    case HTTPS:
+                        contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, previews);
+                        contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, filename + ".jpg");
+                        locuri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
+                        break;
+                    case FILE:
+                        String folderPath = Environment.DIRECTORY_DOWNLOADS;//+File.separator + "MemesStoreExport/";
+                        contentValues.put(MediaStore.DownloadColumns.RELATIVE_PATH, folderPath);
+                        contentValues.put(MediaStore.DownloadColumns.DISPLAY_NAME, filename);
+                        //contentValues.put(MediaStore.DownloadColumns.MIME_TYPE, "application/zip");
+                       // if(contentResolver.query(MediaStore.Downloads.getContentUri("external"),null,MediaStore.DownloadColumns.RELATIVE_PATH + "=?",new String[]{Environment.DIRECTORY_DOWNLOADS + filename},null).getCount()!=0)
+                        locuri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues);
+
+
+                        break;
+                }
+
+
+
+                outputStream = contentResolver.openOutputStream(locuri);
+                      contentResolver.update(locuri, contentValues, null, null);
+            } catch (Exception e) {
+                e.printStackTrace();
+
             }
-            ContentValues contentValues = new ContentValues();
-            ContentResolver contentResolver = context.getContentResolver();
-            contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, videos+"qwe.mp4");
-            Uri locUri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
-            contentResolver.update(locUri, contentValues, null, null);
+            return outputStream;
         }
 
         public void deleteFile(String path) {
@@ -677,9 +478,10 @@ return uri;
                 Uri locuri = null;
                 if (getType(path) == IMAGE || getType(path) == HTTPS)
                     locuri = MediaStore.Images.Media.getContentUri("external");
-                if (getType(path) == VIDEO|| getType(path) == GIF)
+                if (getType(path) == VIDEO || getType(path) == GIF)
                     locuri = MediaStore.Video.Media.getContentUri("external");
-
+                if (getType(path) == FILE)
+                    locuri = MediaStore.Downloads.getContentUri("external");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     contentResolver.delete(locuri, MediaStore.MediaColumns.DATA + "=?", new String[]{getFullPath(path)});
                 }
@@ -688,86 +490,6 @@ return uri;
                 int y = 0;
             }
 
-        }
-
-        //возвращает Битмап для создания превью
-        @RequiresApi(api = Build.VERSION_CODES.R)
-        public Bitmap getPreview(String filename, BitmapFactory.Options options) {
-            Bitmap preview = null;
-
-
-            String[] selectionArgs = null;
-            switch (getType(filename)) {
-                case IMAGE:
-                    selectionArgs = new String[]{images};
-                    break;
-                case VIDEO:
-                    selectionArgs = new String[]{videos};
-                    break;
-                case GIF:
-                    selectionArgs = new String[]{videos};
-                    break;
-                case HTTPS:
-                    filename=filename+".jpg";
-                    selectionArgs = new String[]{previews};
-                    break;
-            }
-
-            Uri contentUri = MediaStore.Files.getContentUri("external");
-            String selection = MediaStore.MediaColumns.RELATIVE_PATH + "=?";
-            Cursor cursor = context.getContentResolver().query(contentUri, null, selection, selectionArgs, null);
-            cursor.moveToFirst();
-
-            Uri uri=null;
-            do {
-                String fileName = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME));
-                if (fileName.equals(filename)) {
-                    long id = cursor.getLong(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
-                    uri = ContentUris.withAppendedId(contentUri, id);
-                    break;
-                }
-            }while (cursor.moveToNext());
-
-
-            if (getType(filename) == IMAGE) {
-                InputStream inputStream = null;
-                try {
-                    inputStream = context.getContentResolver().openInputStream(uri);
-                    preview = BitmapFactory.decodeStream(inputStream,new Rect(),options);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-            }
-            if (getType(filename) == GIF) {
-                InputStream inputStream = null;
-                try {
-                    inputStream = context.getAssets().open(filename);
-                    preview = BitmapFactory.decodeStream(inputStream,new Rect(),options);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (getType(filename) == VIDEO||getType(filename) == HTTPS){
-                MediaMetadataRetriever mediaMetadataRetriever = null;
-
-                try {
-                    mediaMetadataRetriever = new MediaMetadataRetriever();
-                    mediaMetadataRetriever.setDataSource(context, uri);
-                    preview = mediaMetadataRetriever.getFrameAtTime(1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    if (mediaMetadataRetriever != null) {
-                        mediaMetadataRetriever.release();
-                    }
-                }
-
-
-            }
-            return preview;
         }
 
         public Uri getVideoUri(String filename) {
@@ -796,8 +518,88 @@ return uri;
                     }
                 }
             }
-return uri;
+            return uri;
         }
+        //возвращает Битмап для создания превью
+        @RequiresApi(api = Build.VERSION_CODES.R)
+        public Bitmap getPreview(String filename, BitmapFactory.Options options) {
+            Bitmap preview = null;
+
+
+            String[] selectionArgs = null;
+            switch (getType(filename)) {
+                case IMAGE:
+                    selectionArgs = new String[]{images};
+                    break;
+                case VIDEO:
+                    selectionArgs = new String[]{videos};
+                    break;
+                case GIF:
+                    selectionArgs = new String[]{videos};
+                    break;
+                case HTTPS:
+                    filename = filename + ".jpg";
+                    selectionArgs = new String[]{previews};
+                    break;
+            }
+
+            Uri contentUri = MediaStore.Files.getContentUri("external");
+            String selection = MediaStore.MediaColumns.RELATIVE_PATH + "=?";
+            Cursor cursor = context.getContentResolver().query(contentUri, null, selection, selectionArgs, null);
+            cursor.moveToFirst();
+
+            Uri uri = null;
+            do {
+                String fileName = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME));
+                if (fileName.equals(filename)) {
+                    long id = cursor.getLong(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
+                    uri = ContentUris.withAppendedId(contentUri, id);
+                    break;
+                }
+            } while (cursor.moveToNext());
+
+
+            if (getType(filename) == IMAGE) {
+                InputStream inputStream = null;
+                try {
+                    inputStream = context.getContentResolver().openInputStream(uri);
+                    preview = BitmapFactory.decodeStream(inputStream, new Rect(), options);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+            if (getType(filename) == GIF) {
+                InputStream inputStream = null;
+                try {
+                    inputStream = context.getAssets().open(filename);
+                    preview = BitmapFactory.decodeStream(inputStream, new Rect(), options);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (getType(filename) == VIDEO || getType(filename) == HTTPS) {
+                MediaMetadataRetriever mediaMetadataRetriever = null;
+
+                try {
+                    mediaMetadataRetriever = new MediaMetadataRetriever();
+                    mediaMetadataRetriever.setDataSource(context, uri);
+                    preview = mediaMetadataRetriever.getFrameAtTime(1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    if (mediaMetadataRetriever != null) {
+                        mediaMetadataRetriever.release();
+                    }
+                }
+
+
+            }
+            return preview;
+        }
+
     }
 
 }

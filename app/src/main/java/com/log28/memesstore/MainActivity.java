@@ -316,7 +316,7 @@ public class MainActivity extends AppCompatActivity {
                 //получение потока входных данных
                 inputStream = getContentResolver().openInputStream(uri);
                 //создание локального файла
-                filename=  fileHelper.createLocalFile(inputStream, filename);
+                fileHelper.copyFile(inputStream, fileHelper.createFile(filename));
 
             } catch (Exception e) {
 
@@ -365,7 +365,7 @@ public class MainActivity extends AppCompatActivity {
                     //получение потока входных данных
                     inputStream = getContentResolver().openInputStream(localUri);
                     //создание локального файла
-                  filename=  fileHelper.createLocalFile(inputStream, filename);
+                    fileHelper.copyFile(inputStream, fileHelper.createFile(filename));
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                     Toast.makeText(this, "Не удалось создать локальный файл", Toast.LENGTH_SHORT);
@@ -492,7 +492,8 @@ public class MainActivity extends AppCompatActivity {
                 //setMemesList(tabNum);
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             }
-     if (requestCode == REQUEST_DB){
+     if (requestCode == REQUEST_DB)
+         if (resultCode == RESULT_OK){
          //Имя файла (не путь, только имя)
          String filename = "";
          //поток входных данных
