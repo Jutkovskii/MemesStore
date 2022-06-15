@@ -132,8 +132,8 @@ public class FileHelper {
     }
 
     //проверка существования файла
-    public static boolean isExist(String filename) {
-        return new File(getFullPath(filename)).exists();
+    public boolean isExist(String filename) {
+        return this.fileHelper.isExist(filename);
     }
 
     //создание файла
@@ -305,6 +305,7 @@ public class FileHelper {
     //разархивирование архива, возврат пар {имя файла; тэги}
     public ArrayList<MemeGroup> unzipPack(InputStream inputStream) {
         ArrayList<MemeGroup> imported = new ArrayList<>();
+        ArrayList<String> BDs=new ArrayList<>();
         try {
 
             ZipInputStream zipStream = new ZipInputStream(inputStream);
@@ -314,9 +315,10 @@ public class FileHelper {
 
                 {
                     name = zEntry.getName();
+
                     FileOutputStream fout = (FileOutputStream) createFile(name);
-                    // FileOutputStream fout = new FileOutputStream(zEntry.getName());
-                    BufferedOutputStream bufout = new BufferedOutputStream(fout);
+                    //FileOutputStream fout = new FileOutputStream(zEntry.getName());
+                     BufferedOutputStream bufout = new BufferedOutputStream(fout);
                     byte[] buffer = new byte[1024];
                     int read = 0;
                     while ((read = zipStream.read(buffer)) != -1) {
@@ -327,22 +329,25 @@ public class FileHelper {
                     bufout.close();
                     fout.close();
                 }
-                if (getType(name) == FILE) {
-//name=context.getCacheDir().getAbsolutePath();
-                    String path = getFullPath(name);
-                    SQLiteDatabase importedDB = SQLiteDatabase.openOrCreateDatabase(path, null);
-                    Cursor cursor = importedDB.rawQuery("SELECT * FROM memesTable", null);
+                if (getType(name) == FILE)
+                BDs.add(name);
 
-                    if (cursor.moveToFirst()) {
-                        do {
-                            imported.add(new MemeGroup(cursor.getString(1), cursor.getString(2)));
-                        } while (cursor.moveToNext());
-
-                    }
-                }
             }
             zipStream.close();
+            for(String filename: BDs)
+            {
 
+                String path = getFullPath(filename);
+                SQLiteDatabase importedDB = SQLiteDatabase.openOrCreateDatabase(path, null);
+                Cursor cursor = importedDB.rawQuery("SELECT * FROM memesTable", null);
+
+                if (cursor.moveToFirst()) {
+                    do {
+                        imported.add(new MemeGroup(cursor.getString(1), cursor.getString(2)));
+                    } while (cursor.moveToNext());
+
+                }
+            }
         } catch (Exception e) {
 
             e.printStackTrace();
@@ -376,6 +381,11 @@ public class FileHelper {
                 e.printStackTrace();
             }
             return outputStream;
+        }
+
+        @Override
+        public boolean isExist(String filename) {
+            return new File(getFullPath(filename)).exists();
         }
 
         public void deleteFile(String path) {
@@ -425,7 +435,8 @@ public class FileHelper {
         public OutputStream createFile(String filename) {
             OutputStream outputStream = null;
             try {
-
+if(fileHelper.isExist(filename))
+    fileHelper.deleteFile(filename);
                 ContentValues contentValues = new ContentValues();
                 ContentResolver contentResolver = context.getContentResolver();
                 Uri locuri = null;
@@ -474,6 +485,38 @@ public class FileHelper {
             return outputStream;
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.Q)
+        @Override
+        public boolean isExist(String filename) {
+            String path=getFullPath(filename);
+            ContentResolver contentResolver = context.getContentResolver();
+            Uri locuri = null;
+            String[] selectionArgs = null;// new String[]{"+"+filename+"/"};
+            if (getType(path) == IMAGE|| getType(path) == GIF) {
+                    locuri = MediaStore.Images.Media.getContentUri("external");
+                    selectionArgs = new String[]{images};
+                }
+            if (getType(path) == HTTPS){
+                locuri = MediaStore.Images.Media.getContentUri("external");
+                path = path+ ".jpg";
+                selectionArgs = new String[]{previews};
+            }
+
+            if (getType(path) == VIDEO ) {
+                locuri = MediaStore.Video.Media.getContentUri("external");
+                selectionArgs = new String[]{videos};
+            }
+            if (getType(path) == FILE) {
+                locuri = MediaStore.Downloads.getContentUri("external");
+            }
+            String selection = MediaStore.MediaColumns.RELATIVE_PATH + "=?";
+              //must include "/" in front and end
+            Cursor cursor = contentResolver.query(locuri, null, selection, selectionArgs, null);
+            if (cursor.getCount() == 0) return false;
+            return  true;
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.Q)
         public void deleteFile(String path) {
             try {
                 ContentResolver contentResolver = context.getContentResolver();

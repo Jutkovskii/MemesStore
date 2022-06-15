@@ -14,7 +14,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MemesStore">
 
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.log28.memesstore"
@@ -24,7 +23,7 @@
             <!-- ressource file to create -->
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_path"></meta-data>
+                android:resource="@xml/file_path" />
         </provider>
 
         <activity android:name=".MemeViewerActivity" />

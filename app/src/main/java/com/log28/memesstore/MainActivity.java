@@ -14,6 +14,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -29,6 +30,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.tabs.TabLayout;
@@ -74,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Thread.setDefaultUncaughtExceptionHandler(new LocalExceptionHandler(MainActivity.this));
+        savedInstanceState=null;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.d("OLOLOG","Активность с=Создание " );
@@ -90,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         videoListFragment = new MemeListFragment(videodb);
 
         //запрет поворота экрана (УДАЛИТЬ ПОЗДНЕЕ!)
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         //объект с вкладками
         memesCategories = findViewById(R.id.categoriesLayout);
         //обработчик выбора вкладок
@@ -117,19 +121,29 @@ public class MainActivity extends AppCompatActivity {
 
 
         //запрос интента при старте
-        Intent intent = getIntent();
+      /*  Intent intent = getIntent();
         //если интент существует и соответствует критерию получаем объект из интента
         if (intent.getAction() != "android.intent.action.MAIN")
             // if(intent!=null&&intent.getAction()=="android.intent.action.SEND")
-            getMemeFromIntent(intent);
+            getMemeFromIntent(intent);*/
         //создание слайдера
         pagerSlider = findViewById(R.id.pagerSlider);
         pagerAdapter = new ScreenSlidePagerAdapter(this, new ArrayList<MemeListFragment>(Arrays.asList(imageListFragment, videoListFragment)));
         pagerSlider.setAdapter(pagerAdapter);
-
+        pagerSlider.setSaveEnabled(false);
     toolbar=findViewById(R.id.mainToolbar);
     setSupportActionBar(toolbar);
 
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = getIntent();
+        if(intent!=null&&intent.getAction()=="android.intent.action.SEND")
+            // if(intent!=null&&intent.getAction()=="android.intent.action.SEND")
+            getMemeFromIntent(intent);
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStateAdapter {
@@ -228,6 +242,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         try {
+
             Toast.makeText(this, item.getTitle(), Toast.LENGTH_SHORT).show();
             String qwe=item.getTitle().toString();
             if (qwe.matches("Удалить")) {
@@ -304,24 +319,34 @@ public class MainActivity extends AppCompatActivity {
         //Если интент получен из вызванной галереи, тип null
         if (intent.getType() == null) {
             //получение uri файла
-            Uri uri = intent.getData();
+
             //запрос курсора из БД контента всея ОС
-            Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
-            //Определение стаолбца, содержащего имя файла
-            int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-            returnCursor.moveToFirst();
-            //определение имени файла
-            filename = returnCursor.getString(nameIndex);
-            try {
-                //получение потока входных данных
-                inputStream = getContentResolver().openInputStream(uri);
-                //создание локального файла
-                fileHelper.copyFile(inputStream, fileHelper.createFile(filename));
+            ArrayList<Uri> uriArrayList = new ArrayList<>();
+            if (intent.getClipData() == null)
+                uriArrayList.add(intent.getData());
+            else
+                for (int i = 0; i < intent.getClipData().getItemCount(); i++)
+                    uriArrayList.add(intent.getClipData().getItemAt(i).getUri());
 
-            } catch (Exception e) {
+            for (Uri uri : uriArrayList) {
+                Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
+                //Определение стаолбца, содержащего имя файла
+                int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                returnCursor.moveToFirst();
+                //определение имени файла
+                filename = returnCursor.getString(nameIndex);
+                try {
+                    //получение потока входных данных
+                    inputStream = getContentResolver().openInputStream(uri);
+                    //создание локального файла
+                    fileHelper.copyFile(inputStream, fileHelper.createFile(filename));
 
-                Toast.makeText(this, "Не удалось обработать файл", Toast.LENGTH_LONG);
-                e.printStackTrace();
+                } catch (Exception e) {
+
+                    Toast.makeText(this, "Не удалось обработать файл", Toast.LENGTH_LONG);
+                    e.printStackTrace();
+                }
+                insertToDB(filename);
             }
         }
         //Если интент получен из другого приложения
@@ -374,6 +399,7 @@ public class MainActivity extends AppCompatActivity {
             }
             //если не сработал ни один метод
             else Toast.makeText(this, "Не удалось обработать файл", Toast.LENGTH_SHORT);
+
         }
 
         if (insertToDB(filename)) {
@@ -416,10 +442,12 @@ public class MainActivity extends AppCompatActivity {
 
     //вызов галерени для добавления мема
     public void addMeme(View v) {
+
         Log.d("OLOLOG","Активность Добавление мема " );
 //Вызываем стандартную галерею для выбора изображения с помощью Intent.ACTION_PICK:
         //Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
         Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        photoPickerIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         photoPickerIntent.addCategory(Intent.CATEGORY_OPENABLE);
         //Тип получаемых объектов - image:
         if (tabNum == 0)
@@ -501,6 +529,7 @@ public class MainActivity extends AppCompatActivity {
          //Если интент получен из вызванной галереи, тип null
          if (data.getType() == null) {
              //получение uri файла
+
              Uri uri = data.getData();
              //запрос курсора из БД контента всея ОС
              Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
@@ -519,6 +548,10 @@ public class MainActivity extends AppCompatActivity {
                          imagedb.insert(thisGroup.getName(),thisGroup.getTag());
                      if(FileHelper.getType(thisGroup.name)==FileHelper.VIDEO||FileHelper.getType(thisGroup.name)==FileHelper.GIF)
                          videodb.insert(thisGroup.getName(),thisGroup.getTag());
+                     if(FileHelper.getType(thisGroup.name)==FileHelper.HTTPS)
+                     {PreviewSaver previewSaver = new PreviewSaver(fileHelper);
+                     previewSaver.execute(new String[]{thisGroup.getName()});
+                         videodb.insert(thisGroup.getName(),thisGroup.getTag());}
 
                  }
 

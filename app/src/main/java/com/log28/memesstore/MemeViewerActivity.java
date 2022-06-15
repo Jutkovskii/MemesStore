@@ -49,6 +49,7 @@ public class MemeViewerActivity extends AppCompatActivity {
 Toolbar toolbar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        savedInstanceState=null;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_meme_viewer);
         toolbar=findViewById(R.id.currentMemetoolbar);
@@ -59,7 +60,7 @@ Toolbar toolbar;
         filename = intent.getStringExtra(FILENAME_EXTRA);
         memeTag=intent.getStringExtra(FILETAG_EXTRA);
         //ЗАГЛУШКА!!!!
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         //выбор фрагмента в зависимости от типа
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         switch (new FileHelper(this).getType(filename)){

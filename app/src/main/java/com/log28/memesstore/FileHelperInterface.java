@@ -13,7 +13,7 @@ import java.io.OutputStream;
 public interface FileHelperInterface {
 
      OutputStream createFile(String filename);
-    //содание директории
+    boolean isExist(String filename);
     void deleteFile(String path);
     Bitmap getPreview(String filename, BitmapFactory.Options options);
     Uri getVideoUri(String filename);

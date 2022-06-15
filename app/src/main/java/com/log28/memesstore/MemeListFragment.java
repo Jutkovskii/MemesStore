@@ -112,6 +112,7 @@ String filterText="";
     public void onStart() {
         super.onStart();
         Log.d("OLOLOG","Фрагмент Запустить "+ testdb.name  );
+
     }
 
     @Override

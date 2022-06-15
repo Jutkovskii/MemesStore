@@ -4,7 +4,9 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/Diman/Documents/GitHub/MemesStore/app/src/main/res/drawable/border.xml" value="0.14739583333333334" />
+        <entry key="..\:/Users/Diman/Documents/GitHub/MemesStore/app/src/main/res/layout/activity_error.xml" value="0.13125" />
         <entry key="..\:/Users/Diman/Documents/GitHub/MemesStore/app/src/main/res/layout/activity_main.xml" value="0.13125" />
+        <entry key="..\:/Users/Diman/Documents/GitHub/MemesStore/app/src/main/res/layout/error_dialog.xml" value="0.13125" />
         <entry key="..\:/Users/Diman/Documents/GitHub/MemesStore/app/src/main/res/layout/meme_card_view.xml" value="0.13125" />
         <entry key="..\:/Users/Diman/Documents/GitHub/MemesStore/app/src/main/res/xml/customborder.xml" value="0.13125" />
       </map>
