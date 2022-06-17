@@ -54,7 +54,7 @@ Toolbar toolbar;
         setContentView(R.layout.activity_meme_viewer);
         toolbar=findViewById(R.id.currentMemetoolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("ДЩДЩ");
+        getSupportActionBar().setTitle("МЕМОХРАНИЛИЩЕ");
         Intent intent = getIntent();
         //получение имени файла
         filename = intent.getStringExtra(FILENAME_EXTRA);

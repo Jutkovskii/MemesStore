@@ -18,6 +18,7 @@ import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -40,15 +41,22 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.prefs.Preferences;
 
 public class MainActivity extends AppCompatActivity {
 
 
     String searchMemeTag="";
-    //объект БД
-    MemeDatabaseHelper imagedb;
-    MemeDatabaseHelper videodb;
+    //Список с базами данных с мемами
+    ArrayList<MemeDatabaseHelper> databases;
+    SharedPreferences userData;
+    final String dbKey="dbKey";
+    ArrayList<String> dbNames=new ArrayList<>();
+    final String imagedb="imagedb";
+    final String videodb="videodb";
     //номера вкладок
     private final int IMAGE_POS=0;
     private final int VIDEO_POS=1;
@@ -59,8 +67,7 @@ public class MainActivity extends AppCompatActivity {
     //объект для работы с памятью
     FileHelper fileHelper;
     //фрагменты с отображением списков мемов
-    MemeListFragment imageListFragment;
-    MemeListFragment videoListFragment;
+    ArrayList<MemeListFragment> memeListFragments;
     //коды идентификации входящих Intent'ов
     private final int REQUEST_DB = 53;//импорт БД
     private final int REQUEST_GALLERY = 84;//добавление из галереи
@@ -87,16 +94,21 @@ public class MainActivity extends AppCompatActivity {
 
         }
         //запрос БД
-        getBD();
+        databases= new ArrayList<>();
+        getPreferences();
+        for(String s:dbNames)
+            databases.add(new MemeDatabaseHelper(this,s,1));
+        /*databases.add(new MemeDatabaseHelper(this,"imagedb",1));
+        databases.add(new MemeDatabaseHelper(this,"videodb",1));*/
         Log.d("OLOLOG","Активность Создание фрагментов " );
         //создание фрагментов с мемами
-        imageListFragment = new MemeListFragment(imagedb);
-        videoListFragment = new MemeListFragment(videodb);
+        memeListFragments=new ArrayList<>();
+        for(int i=0;i<databases.size();i++)
+            memeListFragments.add(new MemeListFragment(databases.get(i)));
 
-        //запрет поворота экрана (УДАЛИТЬ ПОЗДНЕЕ!)
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         //объект с вкладками
         memesCategories = findViewById(R.id.categoriesLayout);
+
         //обработчик выбора вкладок
         memesCategories.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -119,16 +131,9 @@ public class MainActivity extends AppCompatActivity {
         //создание объекта для работы с файловой системой
         fileHelper = new FileHelper(this);
 
-
-        //запрос интента при старте
-      /*  Intent intent = getIntent();
-        //если интент существует и соответствует критерию получаем объект из интента
-        if (intent.getAction() != "android.intent.action.MAIN")
-            // if(intent!=null&&intent.getAction()=="android.intent.action.SEND")
-            getMemeFromIntent(intent);*/
         //создание слайдера
         pagerSlider = findViewById(R.id.pagerSlider);
-        pagerAdapter = new ScreenSlidePagerAdapter(this, new ArrayList<MemeListFragment>(Arrays.asList(imageListFragment, videoListFragment)));
+        pagerAdapter = new ScreenSlidePagerAdapter(this, memeListFragments);
         pagerSlider.setAdapter(pagerAdapter);
         pagerSlider.setSaveEnabled(false);
     toolbar=findViewById(R.id.mainToolbar);
@@ -144,15 +149,20 @@ public class MainActivity extends AppCompatActivity {
         if(intent!=null&&intent.getAction()=="android.intent.action.SEND")
             // if(intent!=null&&intent.getAction()=="android.intent.action.SEND")
             getMemeFromIntent(intent);
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        setPreferences();
     }
 
     private class ScreenSlidePagerAdapter extends FragmentStateAdapter {
 
         //список мемов
         List<MemeListFragment> memeLists;
-        //текущая позиция
-        int pos;
-        public ScreenSlidePagerAdapter(FragmentActivity fa, List<MemeListFragment> memeLists) {
+          public ScreenSlidePagerAdapter(FragmentActivity fa, List<MemeListFragment> memeLists) {
             super(fa);
             this.memeLists = memeLists;
         }
@@ -161,31 +171,15 @@ public class MainActivity extends AppCompatActivity {
         public long getItemId(int position) {
             //обновление при смене вкладки
             memesCategories.selectTab(memesCategories.getTabAt(position));
-
-            switch (position){
-                case IMAGE_POS:
-                    imageListFragment.setFilter(searchMemeTag); break;
-                case VIDEO_POS:
-                    videoListFragment.setFilter(searchMemeTag); break;
-                default:
-                    imageListFragment.setFilter(searchMemeTag); break;
-            }
-
+            memeListFragments.get(position).setFilter(searchMemeTag);
             return super.getItemId(position);
         }
 
         @Override
         public Fragment createFragment(int position) {
             //обновление при создании
-            pos=position;
-            switch (position){
-                case IMAGE_POS:
-                    imageListFragment.setFilter(searchMemeTag);  return imageListFragment;
-                case VIDEO_POS:
-                    videoListFragment.setFilter(searchMemeTag); return videoListFragment;
-                default:
-                    imageListFragment.setFilter(searchMemeTag); return imageListFragment;
-            }
+            memeListFragments.get(position).setFilter(searchMemeTag);
+            return memeListFragments.get(position);
         }
 
         @Override
@@ -221,15 +215,7 @@ public class MainActivity extends AppCompatActivity {
                 //сохранение поисковой фразы
                 searchMemeTag=newText;
                 //определение вкладки для поиска
-                switch (tabNum){
-                    case IMAGE_POS:
-                        imageListFragment.memesListAdapter.getFilter().filter(newText);break;
-                    case VIDEO_POS:
-                        videoListFragment.memesListAdapter.getFilter().filter(newText); break;
-                    default:
-                        imageListFragment.memesListAdapter.getFilter().filter(newText);break;
-                }
-
+                memeListFragments.get(tabNum).memesListAdapter.getFilter().filter(newText);
                 return true;
             }
         });
@@ -248,13 +234,9 @@ public class MainActivity extends AppCompatActivity {
             if (qwe.matches("Удалить")) {
                 MemeListFragment currentFragment;
                 MemeDatabaseHelper currentDatabase;
-                if (tabNum == 0) {
-                    currentFragment = imageListFragment;
-                    currentDatabase = imagedb;
-                } else {
-                    currentFragment = videoListFragment;
-                    currentDatabase = videodb;
-                }
+
+                currentFragment=memeListFragments.get(tabNum);
+                currentDatabase=databases.get(tabNum);
                 //Collections.reverse(currentFragment.memesListAdapter.selected);
                 currentFragment.memesListAdapter.selected.sort((a, b) -> b.compareTo(a));
                 for (Integer pos :
@@ -262,11 +244,7 @@ public class MainActivity extends AppCompatActivity {
                     String toDelete = currentFragment.memesListAdapter.memeGroups.get(pos).getName();
                     new FileHelper(this).deleteFile(toDelete);
                     currentDatabase.delete(toDelete);
-                    //MainActivity.menu1.removeItem(currentFragment.memesListAdapter.deleteItem.getItemId());
-                    currentFragment.memesListAdapter.getDB();
-                    //currentFragment.memesListAdapter.filteredGroups.remove( pos);
-                    //currentFragment.memesListAdapter.notifyItemChanged(pos);
-
+                     currentFragment.memesListAdapter.getDB();
                     currentFragment.memesListAdapter.notifyItemRemoved(pos);
 
 
@@ -282,9 +260,8 @@ public class MainActivity extends AppCompatActivity {
             //сбор всех мемов в zip файл
             if (item.getTitle().toString().matches("Экспорт")) {
                 ArrayList<String> memepaths = new ArrayList<>();
-                for (MemeDatabaseHelper thisdb : new MemeDatabaseHelper[]{imagedb, videodb}) {
-
-                    memepaths.add(thisdb.getDbPath());
+                for (MemeDatabaseHelper thisdb :(MemeDatabaseHelper[]) databases.toArray()){
+                           memepaths.add(thisdb.getDbPath());
                     Cursor localcursor = thisdb.getCursor();
                     localcursor.moveToFirst();
                     for (int i = 0; i < localcursor.getCount(); i++) {
@@ -411,13 +388,25 @@ public class MainActivity extends AppCompatActivity {
             return -1;
     }
 
-    //получение баз данных
-    void getBD() {
-        Log.d("OLOLOG","Активность Создание баз данных " );
-        imagedb = new MemeDatabaseHelper(this, "imagedb", 1);
-        videodb = new MemeDatabaseHelper(this, "videodb", 1);
-    }
 
+    void getPreferences() {
+dbNames.add(imagedb);
+dbNames.add(videodb);
+userData=getPreferences(MODE_PRIVATE);
+Set<String>usersbd= userData.getStringSet(dbKey,null);
+if(usersbd!=null)
+    for (String userbd: usersbd)
+        dbNames.add(userbd);
+        userData.edit().clear().commit();
+
+
+
+    }
+    void setPreferences() {
+SharedPreferences.Editor editor = userData.edit();
+editor.putStringSet(dbKey,new HashSet<String>(dbNames));
+editor.apply();
+    }
     //добавление файла в базу данных
     boolean insertToDB(String filename) {
         Log.d("OLOLOG","Активность Добавление в базы данных " );
@@ -428,10 +417,12 @@ public class MainActivity extends AppCompatActivity {
                 case FileHelper.VIDEO:
                 case FileHelper.GIF:
                 case FileHelper.HTTPS:
-                    videodb.insert(filename);
+                    //videodb.insert(filename);
+                    databases.get(1).insert(filename);
                     break;
                 case FileHelper.IMAGE:
-                    imagedb.insert(filename);
+                    //imagedb.insert(filename);
+                    databases.get(0).insert(filename);
                     break;
             }
         } catch (Exception e) {
@@ -481,14 +472,15 @@ public class MainActivity extends AppCompatActivity {
                 //удаление файла
                 new FileHelper(this).deleteFile(data.getDataString());
                 //удаление записи из БД
+
                 if (fileHelper.getType(data.getDataString()) == fileHelper.IMAGE) {
                     tabNum = 0;
-                    imagedb.delete(data.getDataString());
+                    //imagedb.delete(data.getDataString());
                 } else {
                     tabNum = 1;
-                    videodb.delete(data.getDataString());
+                    //videodb.delete(data.getDataString());
                 }
-
+                databases.get(tabNum).delete(data.getDataString());
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             }
         //результат: подпись нужно изменить
@@ -499,11 +491,12 @@ public class MainActivity extends AppCompatActivity {
                String filename = data.getStringExtra(MemeViewerActivity.FILENAME_EXTRA);
                 if (fileHelper.getType(filename) == fileHelper.IMAGE) {
                     tabNum = 0;
-                    imagedb.update(filename,filetag);
+                    //imagedb.update(filename,filetag);
                 } else {
                     tabNum = 1;
-                    videodb.update(filename,filetag);
+                    //videodb.update(filename,filetag);
                 }
+                //databases.get(tabNum).update(data.getDataString());
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             }
 
@@ -544,15 +537,20 @@ public class MainActivity extends AppCompatActivity {
                  //String localFile=new FileHelper(this).createLocalFile(inputStream,filename);
                  ArrayList<MemeGroup> imported =  new FileHelper(this).unzipPack( inputStream);//,FileHelper.getFullPath(filename));
                  for(MemeGroup thisGroup: imported){
+                     int num=1;
                      if(FileHelper.getType(thisGroup.name)==FileHelper.IMAGE)
-                         imagedb.insert(thisGroup.getName(),thisGroup.getTag());
+                     {num=0;
+                         //imagedb.insert(thisGroup.getName(),thisGroup.getTag());
+                     }
                      if(FileHelper.getType(thisGroup.name)==FileHelper.VIDEO||FileHelper.getType(thisGroup.name)==FileHelper.GIF)
-                         videodb.insert(thisGroup.getName(),thisGroup.getTag());
+                         //videodb.insert(thisGroup.getName(),thisGroup.getTag());
+                         num=1;
                      if(FileHelper.getType(thisGroup.name)==FileHelper.HTTPS)
                      {PreviewSaver previewSaver = new PreviewSaver(fileHelper);
                      previewSaver.execute(new String[]{thisGroup.getName()});
-                         videodb.insert(thisGroup.getName(),thisGroup.getTag());}
-
+                         //videodb.insert(thisGroup.getName(),thisGroup.getTag());
+                          num=1;}
+                     databases.get(num).insert(thisGroup.getName(),thisGroup.getTag());
                  }
 
              } catch (Exception e) {
