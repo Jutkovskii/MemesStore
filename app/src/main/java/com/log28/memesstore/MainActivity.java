@@ -396,6 +396,7 @@ userData=getPreferences(MODE_PRIVATE);
 Set<String>usersbd= userData.getStringSet(dbKey,null);
 if(usersbd!=null)
     for (String userbd: usersbd)
+        if(!dbNames.contains(userbd))
         dbNames.add(userbd);
         userData.edit().clear().commit();
 

@@ -5,6 +5,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
 import android.view.Display;
@@ -95,6 +98,13 @@ public void getDB(){
         return vh;
     }
 
+    @Override
+    public void onViewRecycled(@NonNull ViewHolder holder) {
+        super.onViewRecycled(holder);
+        MyAsyncTask myAsyncTask=new MyAsyncTask(holder);
+       // myAsyncTask.execute(filteredGroups.get(position).getName());
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     public void onBindViewHolder(@NonNull MemesListAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
@@ -110,9 +120,14 @@ public void getDB(){
         if (selected.contains(position))
         holder.deleteCheck.setChecked(true);
         else
-            holder.deleteCheck.setChecked(false);
-        holder.memeImageView.setImageBitmap(new FileHelper(context).getPreview(filteredGroups.get(position).getName()));
+        holder.deleteCheck.setChecked(false);
+       // holder.memeImageView.setImageBitmap(new FileHelper(context).getPreview(filteredGroups.get(position).getName()));
+        holder.memeImageView.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.raw.logo));
+        MyAsyncTask myAsyncTask=new MyAsyncTask(holder);
+        myAsyncTask.execute(filteredGroups.get(position).getName());
         holder.memeTag.setText(filteredGroups.get(position).getTag());
+
+
         //установка обработчика кликов для вызова активности просмотра
 holder.memeCardView.setOnClickListener(new View.OnClickListener() {
     @Override
@@ -201,6 +216,33 @@ holder.memeCardView.setOnClickListener(new View.OnClickListener() {
 
 
     }
+
+
+
+
+
+
+class MyAsyncTask extends AsyncTask<String,Void, Bitmap>{
+    MemesListAdapter.ViewHolder holder;
+    MyAsyncTask(MemesListAdapter.ViewHolder holder)
+    {
+        this.holder=holder;
+    }
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    @Override
+    protected Bitmap doInBackground(String... strings) {
+        return new FileHelper(context).getPreview(strings[0]);
+    }
+
+    @Override
+    protected void onPostExecute(Bitmap bitmap) {
+        super.onPostExecute(bitmap);
+        holder.memeImageView.setImageBitmap(bitmap);
+    }
+}
+
+
+
 
     public void redrawList()
     {
