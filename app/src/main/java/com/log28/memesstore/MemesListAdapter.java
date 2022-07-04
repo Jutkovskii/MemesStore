@@ -30,6 +30,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 import static android.content.Context.WINDOW_SERVICE;
 import static com.log28.memesstore.MainActivity.mainMenu;
@@ -124,7 +125,7 @@ public void getDB(){
        // holder.memeImageView.setImageBitmap(new FileHelper(context).getPreview(filteredGroups.get(position).getName()));
         holder.memeImageView.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.raw.logo));
         MyAsyncTask myAsyncTask=new MyAsyncTask(holder);
-        myAsyncTask.execute(filteredGroups.get(position).getName());
+        myAsyncTask.executeOnExecutor( Executors.newSingleThreadExecutor(),filteredGroups.get(position).getName());
         holder.memeTag.setText(filteredGroups.get(position).getTag());
 
 

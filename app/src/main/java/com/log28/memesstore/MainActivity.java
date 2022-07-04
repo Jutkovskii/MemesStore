@@ -497,7 +497,7 @@ editor.apply();
                     tabNum = 1;
                     //videodb.update(filename,filetag);
                 }
-                //databases.get(tabNum).update(data.getDataString());
+                databases.get(tabNum).update(filename,filetag);
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             }
 
