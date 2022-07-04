@@ -93,6 +93,7 @@ String filterText="";
         }*/
         memesListAdapter = new MemesListAdapter(view.getContext(), testdb);
         memesListAdapter.setFilter(filterText);
+        if (memesList.getAdapter()==null)
         memesList.setAdapter(memesListAdapter);
         memesListAdapter.notifyDataSetChanged();
     }
