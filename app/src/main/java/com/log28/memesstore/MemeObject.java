@@ -55,6 +55,14 @@ return "";
        return "*/*";
     }
 
+    public Bitmap getBitmap(){
+        return memeBitmap;
+    }
+
+    public Bitmap getThumbnailBitmap(){
+        return thumbnailBitmap;
+    }
+
     public static int classifier(String memeName){
         memeName=memeName.toLowerCase();
         for(String name: imageformats){

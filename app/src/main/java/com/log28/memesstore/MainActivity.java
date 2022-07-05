@@ -260,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
             //сбор всех мемов в zip файл
             if (item.getTitle().toString().matches("Экспорт")) {
                 ArrayList<String> memepaths = new ArrayList<>();
-                for (MemeDatabaseHelper thisdb :(MemeDatabaseHelper[]) databases.toArray()){
+                for (MemeDatabaseHelper thisdb : databases){
                            memepaths.add(thisdb.getDbPath());
                     Cursor localcursor = thisdb.getCursor();
                     localcursor.moveToFirst();
@@ -380,9 +380,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (insertToDB(filename)) {
-            if (MemeObject.classifier(filename) == FileHelper.IMAGE) return FileHelper.IMAGE;
-            else if (MemeObject.classifier(filename) == FileHelper.GIF) return FileHelper.GIF;
-            else return fileHelper.VIDEO;
+            if (MemeObject.classifier(filename) == MemeObject.IMAGE) return MemeObject.IMAGE;
+            else if (MemeObject.classifier(filename) == MemeObject.GIF) return MemeObject.GIF;
+            else return MemeObject.VIDEO;
         }
         else
             return -1;
@@ -415,13 +415,13 @@ editor.apply();
         //getBD();
         try {
             switch (MemeObject.classifier(filename)) {
-                case FileHelper.VIDEO:
-                case FileHelper.GIF:
-                case FileHelper.HTTPS:
+                case MemeObject.VIDEO:
+                case MemeObject.GIF:
+                case MemeObject.HTTPS:
                     //videodb.insert(filename);
                     databases.get(1).insert(filename);
                     break;
-                case FileHelper.IMAGE:
+                case MemeObject.IMAGE:
                     //imagedb.insert(filename);
                     databases.get(0).insert(filename);
                     break;
@@ -474,7 +474,7 @@ editor.apply();
                 new FileHelper(this).deleteFile(data.getDataString());
                 //удаление записи из БД
 
-                if (MemeObject.classifier(data.getDataString()) == fileHelper.IMAGE) {
+                if (MemeObject.classifier(data.getDataString()) == MemeObject.IMAGE) {
                     tabNum = 0;
                     //imagedb.delete(data.getDataString());
                 } else {
@@ -490,7 +490,7 @@ editor.apply();
 
                String filetag= data.getStringExtra(MemeViewerActivity.FILETAG_EXTRA);
                String filename = data.getStringExtra(MemeViewerActivity.FILENAME_EXTRA);
-                if (MemeObject.classifier(filename) == fileHelper.IMAGE) {
+                if (MemeObject.classifier(filename) == MemeObject.IMAGE) {
                     tabNum = 0;
                     //imagedb.update(filename,filetag);
                 } else {
@@ -507,7 +507,7 @@ editor.apply();
                 Log.d("OLOLOG","Активность Получить мем из галереи " );
                 //получаем и сохраняем мем из uri
                 //выбор вкладки согласно типу файла
-                if (getMemeFromIntent(data) == fileHelper.IMAGE)
+                if (getMemeFromIntent(data) == MemeObject.IMAGE)
                     tabNum = 0;
                 else
                     tabNum = 1;
@@ -540,14 +540,14 @@ editor.apply();
                  ArrayList<MemeGroup> imported =  new FileHelper(this).unzipPack( inputStream);//,FileHelper.getFullPath(filename));
                  for(MemeGroup thisGroup: imported){
                      int num=1;
-                     if(MemeObject.classifier(thisGroup.name)==FileHelper.IMAGE)
+                     if(MemeObject.classifier(thisGroup.name)==MemeObject.IMAGE)
                      {num=0;
                          //imagedb.insert(thisGroup.getName(),thisGroup.getTag());
                      }
-                     if(MemeObject.classifier(thisGroup.name)==FileHelper.VIDEO||MemeObject.classifier(thisGroup.name)==FileHelper.GIF)
+                     if(MemeObject.classifier(thisGroup.name)==MemeObject.VIDEO||MemeObject.classifier(thisGroup.name)==MemeObject.GIF)
                          //videodb.insert(thisGroup.getName(),thisGroup.getTag());
                          num=1;
-                     if(MemeObject.classifier(thisGroup.name)==FileHelper.HTTPS)
+                     if(MemeObject.classifier(thisGroup.name)==MemeObject.HTTPS)
                      {PreviewSaver previewSaver = new PreviewSaver(fileHelper);
                      previewSaver.execute(new String[]{thisGroup.getName()});
                          //videodb.insert(thisGroup.getName(),thisGroup.getTag());

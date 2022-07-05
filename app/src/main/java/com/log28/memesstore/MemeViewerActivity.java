@@ -64,22 +64,22 @@ Toolbar toolbar;
         //выбор фрагмента в зависимости от типа
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         switch (MemeObject.classifier(filename)){
-            case FileHelper.IMAGE:
+            case MemeObject.IMAGE:
                 imageFragment = new ImageFragment();
                 imageFragment.setMemeImage(filename);
                 fragmentTransaction.add(R.id.memeViewLayout,imageFragment);
                 break;
-            case FileHelper.HTTPS:
+            case MemeObject.HTTPS:
                 videoFragment = new VideoFragment();
                 videoFragment.setMemeImage(filename);
                 fragmentTransaction.add(R.id.memeViewLayout, videoFragment);
                 break;
-            case FileHelper.VIDEO:
+            case MemeObject.VIDEO:
                 videoLocalFragment = new VideoLocalFragment();
                 videoLocalFragment.setMemeImage(filename);
                 fragmentTransaction.add(R.id.memeViewLayout, videoLocalFragment);
                 break;
-            case FileHelper.GIF:
+            case MemeObject.GIF:
                 gifFragment = new GifFragment();
                 gifFragment.setMemeImage(filename);
                 fragmentTransaction.add(R.id.memeViewLayout, gifFragment);
@@ -138,21 +138,21 @@ Toolbar toolbar;
             intent = new Intent(Intent.ACTION_SEND);
             memeUri= FileProvider.getUriForFile(MemeViewerActivity.this, "com.log28.memesstore", new File(new FileHelper(this).getFullPath(filename)));
                 switch (MemeObject.classifier(filename)){
-                    case FileHelper.IMAGE:
+                    case MemeObject.IMAGE:
                         intent.setType("image/*");
                         intent.putExtra(Intent.EXTRA_STREAM, memeUri);
                         intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
                         break;
-                    case FileHelper.VIDEO:
+                    case MemeObject.VIDEO:
                         intent.setType("video/*");
                         intent.putExtra(Intent.EXTRA_STREAM, memeUri);
                         intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
                          break;
-                    case FileHelper.HTTPS:
+                    case MemeObject.HTTPS:
                         intent.setType("text/plain");
                         intent.putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v="+ filename +" "+memeSign.getText());
                         break;
-                    case FileHelper.GIF:
+                    case MemeObject.GIF:
                         intent.setType("*/*");
                         intent.putExtra(Intent.EXTRA_STREAM, memeUri);
                         intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
