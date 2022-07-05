@@ -72,6 +72,8 @@ public class MemeListFragment extends Fragment {
         }
     }
 String filterText="";
+
+
     public void setFilter(String newText){
         filterText=newText;
     }
@@ -91,11 +93,7 @@ String filterText="";
             memesList.setAdapter(memesListAdapter);
             memesListAdapter.notifyDataSetChanged();
         }*/
-        memesListAdapter = new MemesListAdapter(view.getContext(), testdb);
-        memesListAdapter.setFilter(filterText);
-        if (memesList.getAdapter()==null)
-        memesList.setAdapter(memesListAdapter);
-        memesListAdapter.notifyDataSetChanged();
+
     }
 
 
@@ -113,7 +111,11 @@ String filterText="";
     public void onStart() {
         super.onStart();
         Log.d("OLOLOG","Фрагмент Запустить "+ testdb.name  );
-
+        memesListAdapter = new MemesListAdapter(view.getContext(), testdb);
+        memesListAdapter.setFilter(filterText);
+        //if (memesList.getAdapter()==null)
+        memesList.setAdapter(memesListAdapter);
+        memesListAdapter.notifyDataSetChanged();
     }
 
     @Override

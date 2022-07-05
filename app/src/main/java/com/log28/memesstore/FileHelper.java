@@ -53,6 +53,7 @@ public class FileHelper {
     public static String images = Environment.DIRECTORY_PICTURES + "/" + appFolder + "Images/";//папка с изображениями
     public static String videos = Environment.DIRECTORY_MOVIES + "/" + appFolder + "Videos/";//папка с видео
     public static String gifs = Environment.DIRECTORY_MOVIES + "/" + appFolder + "Gifs/";//папка с Gif
+    public static String thumbnails = Environment.DIRECTORY_PICTURES + "/" + appFolder + ".thumbnails/";//папка с превьюшками
 
     //категории файлов
     public static final int IMAGE = 0;
@@ -73,23 +74,7 @@ public class FileHelper {
             fileHelper = new innerFileHelperOld(context);
     }
 
-    //возвращает тип данных согласно имени файла
-    public static int getType(String filename) {
-        if (filename.toLowerCase().endsWith(".jpg") || filename.toLowerCase().endsWith(".png") || filename.toLowerCase().endsWith(".webp"))
-            return IMAGE;
-        if (filename.toLowerCase().endsWith(".mp4"))
-            return VIDEO;
-        if (filename.toLowerCase().endsWith(".gif"))
-            return GIF;
-        if (filename.contains("db"))
-            return FILE;
-        if (filename.contains("zip"))
-            return FILE;
-        if (!filename.contains("."))
-            return HTTPS;
 
-        return -1;
-    }
 
     //проверка на двойной слеш
     public static String checkPath(String path) {
@@ -106,7 +91,7 @@ public class FileHelper {
     //получение полного пути к файлу
     public static String getFullPath(String filename) {
         String path = "";
-        switch (getType(filename)) {
+        switch (MemeObject.classifier(filename)) {
             case IMAGE:
                 path = root + images + filename;
                 break;
@@ -127,7 +112,7 @@ public class FileHelper {
                 path = root + Environment.DIRECTORY_DOWNLOADS + "/" + filename;
                 break;
         }
-        path = checkPath(path);
+        //path = checkPath(path);
         return path;
     }
 
@@ -172,54 +157,7 @@ public class FileHelper {
     public Bitmap getPreview(String filename) {
 
         return fileHelper.getPreview(filename, getOptions(filename));
-      /* Bitmap preview=null;
 
-    switch(getType(filename)){
-        case IMAGE:
-            preview=BitmapFactory.decodeFile(getFullPath(filename),getOptions(filename));
-            if(preview==null)
-            {
-                FileInputStream fis;
-                try {
-                    fis= onRead(filename);
-                    if(fis==null)
-                        fis = new FileInputStream(getFullPath(filename));
-                    preview = BitmapFactory.decodeStream(fis);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    preview = BitmapFactory.decodeResource(context.getResources(),R.raw.notfound);
-                }
-
-            }
-
-            break;
-        case VIDEO:
-            preview= ThumbnailUtils.createVideoThumbnail(getFullPath(filename),MediaStore.Images.Thumbnails.MINI_KIND);
-            if(preview==null)
-                preview=createThumbnail(filename);
-            break;
-        case HTTPS:
-            preview=BitmapFactory.decodeFile(getFullPath(filename));
-            break;
-    }
-    if(preview==null)
-    {
-        FileInputStream fis;
-        try {
-           fis= onRead(filename);
-           if(fis==null)
-            fis = new FileInputStream(getFullPath(filename));
-            preview = BitmapFactory.decodeStream(fis);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            preview = BitmapFactory.decodeResource(context.getResources(),R.raw.notfound);
-        }
-
-    }
-
-       return preview;*/
     }
 
     //изменение размера слишком больших файлов для ускорения работы
@@ -227,7 +165,7 @@ public class FileHelper {
     public BitmapFactory.Options getOptions(String filename) {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
-        if (getType(filename) != VIDEO) {
+        if (MemeObject.classifier(filename) != VIDEO) {
             BitmapFactory.decodeFile(getFullPath(filename), options);
             int koef = (int) ((float) (options.outWidth) / (float) (context.getDisplay().getWidth()) * 2);
             if (koef % 2 != 0) koef++;
@@ -242,7 +180,7 @@ public class FileHelper {
     //рудимент. Использовался для борьбы со стикеризацией изображений в Телеграме
     @RequiresApi(api = Build.VERSION_CODES.R)
     public void resizeImageForTG(String filename) {
-        if (getType(filename) == IMAGE) {
+        if (MemeObject.classifier(filename) == IMAGE) {
             BitmapFactory.Options options = getOptions(filename);
             float width = options.outWidth;
             float height = options.outHeight;
@@ -329,7 +267,7 @@ public class FileHelper {
                     bufout.close();
                     fout.close();
                 }
-                if (getType(name) == FILE)
+                if (MemeObject.classifier(name) == FILE)
                 BDs.add(name);
 
             }
@@ -402,7 +340,7 @@ public class FileHelper {
         public Bitmap getPreview(String filename, BitmapFactory.Options options) {
             Bitmap preview = null;
 
-            switch (getType(filename)) {
+            switch (MemeObject.classifier(filename)) {
                 case IMAGE:
                     preview = BitmapFactory.decodeFile(getFullPath(filename), options);
                     break;
@@ -441,7 +379,7 @@ if(fileHelper.isExist(filename))
                 ContentResolver contentResolver = context.getContentResolver();
                 Uri locuri = null;
                 deleteFile(filename);
-                switch (getType(filename)) {
+                switch (MemeObject.classifier(filename)) {
                     case IMAGE:
                         contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, images);
                         contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
@@ -492,21 +430,21 @@ if(fileHelper.isExist(filename))
             ContentResolver contentResolver = context.getContentResolver();
             Uri locuri = null;
             String[] selectionArgs = null;// new String[]{"+"+filename+"/"};
-            if (getType(path) == IMAGE|| getType(path) == GIF) {
+            if (MemeObject.classifier(filename) == IMAGE|| MemeObject.classifier(filename) == GIF) {
                     locuri = MediaStore.Images.Media.getContentUri("external");
                     selectionArgs = new String[]{images};
                 }
-            if (getType(path) == HTTPS){
+            if (MemeObject.classifier(filename) == HTTPS){
                 locuri = MediaStore.Images.Media.getContentUri("external");
                 path = path+ ".jpg";
                 selectionArgs = new String[]{previews};
             }
 
-            if (getType(path) == VIDEO ) {
+            if (MemeObject.classifier(filename) == VIDEO ) {
                 locuri = MediaStore.Video.Media.getContentUri("external");
                 selectionArgs = new String[]{videos};
             }
-            if (getType(path) == FILE) {
+            if (MemeObject.classifier(filename)== FILE) {
                 locuri = MediaStore.Downloads.getContentUri("external");
             }
             String selection = MediaStore.MediaColumns.RELATIVE_PATH + "=?";
@@ -521,11 +459,11 @@ if(fileHelper.isExist(filename))
             try {
                 ContentResolver contentResolver = context.getContentResolver();
                 Uri locuri = null;
-                if (getType(path) == IMAGE || getType(path) == HTTPS)
+                if (MemeObject.classifier(path) == IMAGE || MemeObject.classifier(path) == HTTPS)
                     locuri = MediaStore.Images.Media.getContentUri("external");
-                if (getType(path) == VIDEO || getType(path) == GIF)
+                if (MemeObject.classifier(path)  == VIDEO || MemeObject.classifier(path) == GIF)
                     locuri = MediaStore.Video.Media.getContentUri("external");
-                if (getType(path) == FILE)
+                if (MemeObject.classifier(path) == FILE)
                     locuri = MediaStore.Downloads.getContentUri("external");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     contentResolver.delete(locuri, MediaStore.MediaColumns.DATA + "=?", new String[]{getFullPath(path)});
@@ -572,7 +510,7 @@ if(fileHelper.isExist(filename))
 
 
             String[] selectionArgs = null;
-            switch (getType(filename)) {
+            switch (MemeObject.classifier(filename)) {
                 case IMAGE:
                     selectionArgs = new String[]{images};
                     break;
@@ -604,7 +542,7 @@ if(fileHelper.isExist(filename))
             } while (cursor.moveToNext());
 
 
-            if (getType(filename) == IMAGE) {
+            if (MemeObject.classifier(filename) == IMAGE) {
                 InputStream inputStream = null;
                 try {
                     inputStream = context.getContentResolver().openInputStream(uri);
@@ -614,7 +552,7 @@ if(fileHelper.isExist(filename))
                 }
 
             }
-            if (getType(filename) == GIF) {
+            if (MemeObject.classifier(filename) == GIF) {
                 InputStream inputStream = null;
                 try {
                     inputStream = context.getAssets().open(filename);
@@ -625,7 +563,7 @@ if(fileHelper.isExist(filename))
                 }
             }
 
-            if (getType(filename) == VIDEO || getType(filename) == HTTPS) {
+            if (MemeObject.classifier(filename) == VIDEO || MemeObject.classifier(filename) == HTTPS) {
                 MediaMetadataRetriever mediaMetadataRetriever = null;
 
                 try {

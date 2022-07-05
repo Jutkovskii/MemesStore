@@ -63,7 +63,7 @@ Toolbar toolbar;
         //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         //выбор фрагмента в зависимости от типа
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        switch (new FileHelper(this).getType(filename)){
+        switch (MemeObject.classifier(filename)){
             case FileHelper.IMAGE:
                 imageFragment = new ImageFragment();
                 imageFragment.setMemeImage(filename);
@@ -137,7 +137,7 @@ Toolbar toolbar;
             Intent intent=null;
             intent = new Intent(Intent.ACTION_SEND);
             memeUri= FileProvider.getUriForFile(MemeViewerActivity.this, "com.log28.memesstore", new File(new FileHelper(this).getFullPath(filename)));
-                switch (new FileHelper(this).getType(filename)){
+                switch (MemeObject.classifier(filename)){
                     case FileHelper.IMAGE:
                         intent.setType("image/*");
                         intent.putExtra(Intent.EXTRA_STREAM, memeUri);
