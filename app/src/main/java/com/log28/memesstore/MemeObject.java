@@ -1,11 +1,20 @@
 package com.log28.memesstore;
 
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
 
 import java.io.InputStream;
 import java.util.List;
 
 public class MemeObject {
+
+    MemesListAdapter memesListAdapter;
+    Context context;
     String memeName;
     String memeFolder, thumbnailFolder;
     String memeType;
@@ -27,22 +36,30 @@ public class MemeObject {
     public static final int DB = 5;
     public static final int TEMP = -1;
 
-    MemeObject(String name) {
-        this.memeName=name;
+    MemeObject(MemesListAdapter memesListAdapter,String name) {
+        init(memesListAdapter,name,"");
     }
-    MemeObject(String name,String tag){
-        this.memeName=name;
-        this.memeTag=tag;
+    MemeObject(MemesListAdapter memesListAdapter,String name,String tag){
+        init(memesListAdapter,name,tag);
     }
-    MemeObject(MemeGroup group){
-        this.memeName=group.name;
-        this.memeTag=group.tag;
+    MemeObject(MemesListAdapter memesListAdapter,MemeGroup group){
+        init(memesListAdapter,group.name,group.tag);
     }
 
+    void init(MemesListAdapter memesListAdapter,String name,String tag){
+        this.memeName=name;
+        this.memeTag=tag;
+        this.memesListAdapter=memesListAdapter;
+        this.context=memesListAdapter.context;
+        memeBitmap= BitmapFactory.decodeResource(context.getResources(), R.raw.logo);
+        BitmapLoader bitmapLoader=new BitmapLoader();
+        bitmapLoader.execute(memeName);
+    }
     public String getPath(){
 return "";
     }
-
+    public String getName(){return memeName;}
+    public String getTag(){return memeTag;}
     public String getMemeType()
     {
        switch (classifier(memeName)){
@@ -55,7 +72,24 @@ return "";
        return "*/*";
     }
 
+    class BitmapLoader extends AsyncTask<String,Void, Bitmap> {
+
+        @RequiresApi(api = Build.VERSION_CODES.R)
+        @Override
+        protected Bitmap doInBackground(String... strings) {
+                return new FileHelper(context).getPreview(strings[0]);
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            super.onPostExecute(bitmap);
+            memeBitmap=bitmap;
+            memesListAdapter.notifyDataSetChanged();
+        }
+    }
+
     public Bitmap getBitmap(){
+
         return memeBitmap;
     }
 

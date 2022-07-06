@@ -42,8 +42,9 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
     Context context;
     MemeDatabaseHelper db;
     public boolean deletingMode=false;
-MenuItem deleteItem;
 
+
+    public List<MemeObject> memeObjects;
     public List<Integer> selected;
     public List<MemeGroup> memeGroups;
     List<MemeGroup> filteredGroups;
@@ -62,10 +63,11 @@ public void getDB(){
     selected=new ArrayList<>();
     memeGroups=new ArrayList<>();
     filteredGroups=new ArrayList<>();
-
+    memeObjects=new ArrayList<>();
 
     int listSize=cursor.getCount();
     for(int i=0;i<listSize;i++){
+
 
         String currentFile=cursor.getString(1);
         String currentTag=cursor.getString(2);
@@ -78,7 +80,8 @@ public void getDB(){
             //memesPaths.add(currentFile);
             //memesTags.add(currentTag);
             memeGroups.add(new MemeGroup(currentFile,currentTag));
-
+            //создание списка мемов
+            memeObjects.add(new MemeObject(this,currentFile,currentTag));
             cursor.moveToNext();
         }
         //если файла нет, то он удаляется из БД
@@ -99,12 +102,6 @@ public void getDB(){
         return vh;
     }
 
-    @Override
-    public void onViewRecycled(@NonNull ViewHolder holder) {
-        super.onViewRecycled(holder);
-        MyAsyncTask myAsyncTask=new MyAsyncTask(holder);
-       // myAsyncTask.execute(filteredGroups.get(position).getName());
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
@@ -123,10 +120,21 @@ public void getDB(){
         else
         holder.deleteCheck.setChecked(false);
        // holder.memeImageView.setImageBitmap(new FileHelper(context).getPreview(filteredGroups.get(position).getName()));
-        holder.memeImageView.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.raw.logo));
+       /* holder.memeImageView.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.raw.logo));
         MyAsyncTask myAsyncTask=new MyAsyncTask(holder);
         myAsyncTask.executeOnExecutor( Executors.newSingleThreadExecutor(),filteredGroups.get(position).getName());
         holder.memeTag.setText(filteredGroups.get(position).getTag());
+*/
+
+        //РАСКОММЕНТИТЬ
+        //String qwe =memeObjects.get(position).getName();
+        if(filteredGroups.get(position).name==memeObjects.get(position).getName()){
+            holder.memeImageView.setImageBitmap(memeObjects.get(position).getBitmap());
+            holder.memeTag.setText(memeObjects.get(position).getTag());
+           // redrawList();
+        }
+
+
 
 
         //установка обработчика кликов для вызова активности просмотра

@@ -54,7 +54,7 @@ public class FileHelper {
     public static String videos = Environment.DIRECTORY_MOVIES + "/" + appFolder + "Videos/";//папка с видео
     public static String gifs = Environment.DIRECTORY_MOVIES + "/" + appFolder + "Gifs/";//папка с Gif
     public static String thumbnails = Environment.DIRECTORY_PICTURES + "/" + appFolder + ".thumbnails/";//папка с превьюшками
-
+    public static String downloads= Environment.DIRECTORY_DOWNLOADS + "/";//корневая папка хранилища
     //категории файлов
     public FileHelperInterface fileHelper;
     //авто определение типа ОС и метода доступа к файлам
@@ -95,6 +95,9 @@ public class FileHelper {
                 path = root + previews + filename + ".jpg";
                 break;
             case MemeObject.ARCH:
+                path = root + Environment.DIRECTORY_DOWNLOADS + "/" + filename;
+                break;
+            case MemeObject.DB:
                 path = root + Environment.DIRECTORY_DOWNLOADS + "/" + filename;
                 break;
             case MemeObject.TEMP:
@@ -376,7 +379,7 @@ if(fileHelper.isExist(filename))
                 ContentValues contentValues = new ContentValues();
                 ContentResolver contentResolver = context.getContentResolver();
                 Uri locuri = null;
-                deleteFile(filename);
+                //deleteFile(filename);
                 switch (MemeObject.classifier(filename)) {
                     case MemeObject.IMAGE:
                         contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, images);
@@ -401,6 +404,10 @@ if(fileHelper.isExist(filename))
                     case MemeObject.ARCH:
                         String folderPath = Environment.DIRECTORY_DOWNLOADS;//+File.separator + "MemesStoreExport/";
                         contentValues.put(MediaStore.DownloadColumns.RELATIVE_PATH, folderPath);
+                        contentValues.put(MediaStore.DownloadColumns.DISPLAY_NAME, filename);
+                    case MemeObject.DB:
+                        String dbfolderPath = Environment.DIRECTORY_DOWNLOADS;//+File.separator + "MemesStoreExport/";
+                        contentValues.put(MediaStore.DownloadColumns.RELATIVE_PATH, dbfolderPath);
                         contentValues.put(MediaStore.DownloadColumns.DISPLAY_NAME, filename);
                         //contentValues.put(MediaStore.DownloadColumns.MIME_TYPE, "application/zip");
                        // if(contentResolver.query(MediaStore.Downloads.getContentUri("external"),null,MediaStore.DownloadColumns.RELATIVE_PATH + "=?",new String[]{Environment.DIRECTORY_DOWNLOADS + filename},null).getCount()!=0)
@@ -444,6 +451,11 @@ if(fileHelper.isExist(filename))
             }
             if (MemeObject.classifier(filename)== MemeObject.ARCH) {
                 locuri = MediaStore.Downloads.getContentUri("external");
+                selectionArgs = new String[]{downloads};
+            }
+            if (MemeObject.classifier(filename)== MemeObject.DB) {
+                locuri = MediaStore.Downloads.getContentUri("external");
+                selectionArgs = new String[]{downloads};
             }
             String selection = MediaStore.MediaColumns.RELATIVE_PATH + "=?";
               //must include "/" in front and end
@@ -461,7 +473,7 @@ if(fileHelper.isExist(filename))
                     locuri = MediaStore.Images.Media.getContentUri("external");
                 if (MemeObject.classifier(path)  == MemeObject.VIDEO || MemeObject.classifier(path) == MemeObject.GIF)
                     locuri = MediaStore.Video.Media.getContentUri("external");
-                if (MemeObject.classifier(path) == MemeObject.ARCH)
+                if (MemeObject.classifier(path) == MemeObject.ARCH||MemeObject.classifier(path) == MemeObject.DB)
                     locuri = MediaStore.Downloads.getContentUri("external");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     contentResolver.delete(locuri, MediaStore.MediaColumns.DATA + "=?", new String[]{getFullPath(path)});
