@@ -14,12 +14,10 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.Manifest;
-import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -31,7 +29,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.SearchView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.tabs.TabLayout;
@@ -39,12 +36,12 @@ import com.google.android.material.tabs.TabLayout;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.prefs.Preferences;
+import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -139,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
     toolbar=findViewById(R.id.mainToolbar);
     setSupportActionBar(toolbar);
 
-    }
+        }
 
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
@@ -241,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
                 currentFragment.memesListAdapter.selected.sort((a, b) -> b.compareTo(a));
                 for (Integer pos :
                         currentFragment.memesListAdapter.selected) {
-                    String toDelete = currentFragment.memesListAdapter.memeGroups.get(pos).getName();
+                    String toDelete = currentFragment.memesListAdapter.memeObjects.get(pos).getName();
                     new FileHelper(this).deleteFile(toDelete);
                     currentDatabase.delete(toDelete);
                      currentFragment.memesListAdapter.getDB();
@@ -299,6 +296,7 @@ public class MainActivity extends AppCompatActivity {
 
             //запрос курсора из БД контента всея ОС
             ArrayList<Uri> uriArrayList = new ArrayList<>();
+            //если выбран одиночный объект
             if (intent.getClipData() == null)
                 uriArrayList.add(intent.getData());
             else
@@ -335,13 +333,20 @@ public class MainActivity extends AppCompatActivity {
                 //Получение ссылки из интента
                 String localFilename = intent.getClipData().getItemAt(0).getText().toString();
                 //определение имени видеофайла по анализу ключевых символов в ссылке
-                if (localFilename.contains("&"))
+               /* if (localFilename.contains("&"))
                     localFilename = localFilename.substring(localFilename.indexOf("=") + 1, localFilename.lastIndexOf("&"));
                 else if (localFilename.contains("="))
                     localFilename = localFilename.substring(localFilename.lastIndexOf("=") + 1);
                 else localFilename = localFilename.substring(localFilename.lastIndexOf("/") + 1);
+*/
+
+                Pattern p = Pattern.compile("v=.+");
+                Matcher m = p.matcher(localFilename);
+                if(m.find()) {
+                    MatchResult mr = m.toMatchResult();
+                }
                 //фиксируем полученное имя
-                filename = localFilename;
+                filename = localFilename.substring(m.start()+2);
                 //загружаем превью
                 PreviewSaver previewSaver = new PreviewSaver(fileHelper);
                 previewSaver.execute(new String[]{filename});
@@ -380,8 +385,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (insertToDB(filename)) {
-            if (MemeObject.classifier(filename) == MemeObject.IMAGE) return MemeObject.IMAGE;
-            else if (MemeObject.classifier(filename) == MemeObject.GIF) return MemeObject.GIF;
+            if (MemeObject.classfyByName(filename) == MemeObject.IMAGE) return MemeObject.IMAGE;
+            else if (MemeObject.classfyByName(filename) == MemeObject.GIF) return MemeObject.GIF;
             else return MemeObject.VIDEO;
         }
         else
@@ -414,7 +419,7 @@ editor.apply();
         //получение баз данных, если они не были открыты (приложение стартовало по интенту)
         //getBD();
         try {
-            switch (MemeObject.classifier(filename)) {
+            switch (MemeObject.classfyByName(filename)) {
                 case MemeObject.VIDEO:
                 case MemeObject.GIF:
                 case MemeObject.HTTPS:
@@ -474,7 +479,7 @@ editor.apply();
                 new FileHelper(this).deleteFile(data.getDataString());
                 //удаление записи из БД
 
-                if (MemeObject.classifier(data.getDataString()) == MemeObject.IMAGE) {
+                if (MemeObject.classfyByName(data.getDataString()) == MemeObject.IMAGE) {
                     tabNum = 0;
                     //imagedb.delete(data.getDataString());
                 } else {
@@ -490,7 +495,7 @@ editor.apply();
 
                String filetag= data.getStringExtra(MemeViewerActivity.FILETAG_EXTRA);
                String filename = data.getStringExtra(MemeViewerActivity.FILENAME_EXTRA);
-                if (MemeObject.classifier(filename) == MemeObject.IMAGE) {
+                if (MemeObject.classfyByName(filename) == MemeObject.IMAGE) {
                     tabNum = 0;
                     //imagedb.update(filename,filetag);
                 } else {
@@ -540,14 +545,14 @@ editor.apply();
                  ArrayList<MemeGroup> imported =  new FileHelper(this).unzipPack( inputStream);//,FileHelper.getFullPath(filename));
                  for(MemeGroup thisGroup: imported){
                      int num=1;
-                     if(MemeObject.classifier(thisGroup.name)==MemeObject.IMAGE)
+                     if(MemeObject.classfyByName(thisGroup.name)==MemeObject.IMAGE)
                      {num=0;
                          //imagedb.insert(thisGroup.getName(),thisGroup.getTag());
                      }
-                     if(MemeObject.classifier(thisGroup.name)==MemeObject.VIDEO||MemeObject.classifier(thisGroup.name)==MemeObject.GIF)
+                     if(MemeObject.classfyByName(thisGroup.name)==MemeObject.VIDEO||MemeObject.classfyByName(thisGroup.name)==MemeObject.GIF)
                          //videodb.insert(thisGroup.getName(),thisGroup.getTag());
                          num=1;
-                     if(MemeObject.classifier(thisGroup.name)==MemeObject.HTTPS)
+                     if(MemeObject.classfyByName(thisGroup.name)==MemeObject.HTTPS)
                      {PreviewSaver previewSaver = new PreviewSaver(fileHelper);
                      previewSaver.execute(new String[]{thisGroup.getName()});
                          //videodb.insert(thisGroup.getName(),thisGroup.getTag());

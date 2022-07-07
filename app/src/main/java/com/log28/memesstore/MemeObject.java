@@ -1,15 +1,13 @@
 package com.log28.memesstore;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Build;
 
 import androidx.annotation.RequiresApi;
-
-import java.io.InputStream;
-import java.util.List;
 
 public class MemeObject {
 
@@ -35,6 +33,11 @@ public class MemeObject {
     public static final int ARCH = 4;
     public static final int DB = 5;
     public static final int TEMP = -1;
+
+    //подкатегории мемов
+    public static final int YOUTUBE=20;
+    public static final int VK=21;
+    public static final int DISCORD=22;
 
     MemeObject(MemesListAdapter memesListAdapter,String name) {
         init(memesListAdapter,name,"");
@@ -62,7 +65,7 @@ return "";
     public String getTag(){return memeTag;}
     public String getMemeType()
     {
-       switch (classifier(memeName)){
+       switch (classfyByName(memeName)){
            case IMAGE: return "image/*";
            case VIDEO: return "video/*";
            case GIF: return "image/gif";
@@ -97,7 +100,7 @@ return "";
         return thumbnailBitmap;
     }
 
-    public static int classifier(String memeName){
+    public static int classfyByName(String memeName){
         memeName=memeName.toLowerCase();
         for(String name: imageformats){
             if(memeName.contains(name))
@@ -125,4 +128,11 @@ return "";
         return TEMP;
     }
 
+    public static int classifyByType(Intent incomingIntent){
+        String receivedType = incomingIntent.getType();
+        if(receivedType.startsWith("text")){
+            String localFilename = incomingIntent.getClipData().getItemAt(0).getText().toString();
+        }
+        return TEMP;
+    }
 }

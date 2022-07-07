@@ -7,16 +7,11 @@ import androidx.core.content.FileProvider;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 
 
@@ -63,7 +58,7 @@ Toolbar toolbar;
         //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         //выбор фрагмента в зависимости от типа
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        switch (MemeObject.classifier(filename)){
+        switch (MemeObject.classfyByName(filename)){
             case MemeObject.IMAGE:
                 imageFragment = new ImageFragment();
                 imageFragment.setMemeImage(filename);
@@ -137,7 +132,7 @@ Toolbar toolbar;
             Intent intent=null;
             intent = new Intent(Intent.ACTION_SEND);
             memeUri= FileProvider.getUriForFile(MemeViewerActivity.this, "com.log28.memesstore", new File(new FileHelper(this).getFullPath(filename)));
-                switch (MemeObject.classifier(filename)){
+                switch (MemeObject.classfyByName(filename)){
                     case MemeObject.IMAGE:
                         intent.setType("image/*");
                         intent.putExtra(Intent.EXTRA_STREAM, memeUri);
