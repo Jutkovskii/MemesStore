@@ -18,7 +18,6 @@ public class MemeObject {
     String memeName;
     String memeFolder, thumbnailFolder;
     String memeType;
-    //123123
     String memeTag;
     Bitmap memeBitmap, thumbnailBitmap;
 
@@ -57,20 +56,20 @@ public class MemeObject {
         bitmapLoader.execute(memeName);
     }
     public String getPath(){
-return "";
+        return "";
     }
     public String getName(){return memeName;}
     public String getTag(){return memeTag;}
     public String getMemeType()
     {
-       switch (classifier(memeName)){
-           case IMAGE: return "image/*";
-           case VIDEO: return "video/*";
-           case GIF: return "image/gif";
-           case HTTPS: return "text/*";
+        switch (classifier(memeName)){
+            case IMAGE: return "image/*";
+            case VIDEO: return "video/*";
+            case GIF: return "image/gif";
+            case HTTPS: return "text/*";
 
-       }
-       return "*/*";
+        }
+        return "*/*";
     }
 
     class BitmapLoader extends AsyncTask<String,Void, Bitmap> {
@@ -78,7 +77,7 @@ return "";
         @RequiresApi(api = Build.VERSION_CODES.R)
         @Override
         protected Bitmap doInBackground(String... strings) {
-                return new FileHelper(context).getPreview(strings[0]);
+            return new FileHelper(context).getPreview(strings[0]);
         }
 
         @Override

@@ -101,7 +101,7 @@ public class FileHelper {
                 path = root + Environment.DIRECTORY_DOWNLOADS + "/" + filename;
                 break;
             case MemeObject.TEMP:
-               // path = ((context == null) ? root + Environment.DIRECTORY_DOWNLOADS : context.getExternalCacheDir().getAbsolutePath()) + "/" + filename;
+                // path = ((context == null) ? root + Environment.DIRECTORY_DOWNLOADS : context.getExternalCacheDir().getAbsolutePath()) + "/" + filename;
                 path = root + Environment.DIRECTORY_DOWNLOADS + "/" + filename;
                 break;
         }
@@ -121,7 +121,7 @@ public class FileHelper {
     //создание файла
     public OutputStream createFile(String filename) {
 
-       return this.fileHelper.createFile(filename);
+        return this.fileHelper.createFile(filename);
 
     }
 
@@ -156,7 +156,7 @@ public class FileHelper {
         return fileHelper.getPreview(filename, getOptions(filename));
 
     }
-//новая версия
+    //новая версия
     public Bitmap getPreview(MemeObject memeObject){
         return memeObject.getThumbnailBitmap();
 
@@ -216,7 +216,7 @@ public class FileHelper {
             for (String file : files) {
 
                 FileInputStream fileInputStream = new FileInputStream(file);
-                    if (MemeObject.classifier(file)==MemeObject.DB)
+                if (MemeObject.classifier(file)==MemeObject.DB)
                     file = file.substring(file.lastIndexOf("databases") + 10);
                 else
                     file = file.substring(file.lastIndexOf("/") + 1);
@@ -257,7 +257,7 @@ public class FileHelper {
 
                     FileOutputStream fout = (FileOutputStream) createFile(name);
                     //FileOutputStream fout = new FileOutputStream(zEntry.getName());
-                     BufferedOutputStream bufout = new BufferedOutputStream(fout);
+                    BufferedOutputStream bufout = new BufferedOutputStream(fout);
                     byte[] buffer = new byte[1024];
                     int read = 0;
                     while ((read = zipStream.read(buffer)) != -1) {
@@ -269,7 +269,7 @@ public class FileHelper {
                     fout.close();
                 }
                 if (MemeObject.classifier(name) == MemeObject.DB)
-                BDs.add(name);
+                    BDs.add(name);
 
             }
             zipStream.close();
@@ -374,8 +374,8 @@ public class FileHelper {
         public OutputStream createFile(String filename) {
             OutputStream outputStream = null;
             try {
-if(fileHelper.isExist(filename))
-    fileHelper.deleteFile(filename);
+                if(fileHelper.isExist(filename))
+                    fileHelper.deleteFile(filename);
                 ContentValues contentValues = new ContentValues();
                 ContentResolver contentResolver = context.getContentResolver();
                 Uri locuri = null;
@@ -410,7 +410,7 @@ if(fileHelper.isExist(filename))
                         contentValues.put(MediaStore.DownloadColumns.RELATIVE_PATH, dbfolderPath);
                         contentValues.put(MediaStore.DownloadColumns.DISPLAY_NAME, filename);
                         //contentValues.put(MediaStore.DownloadColumns.MIME_TYPE, "application/zip");
-                       // if(contentResolver.query(MediaStore.Downloads.getContentUri("external"),null,MediaStore.DownloadColumns.RELATIVE_PATH + "=?",new String[]{Environment.DIRECTORY_DOWNLOADS + filename},null).getCount()!=0)
+                        // if(contentResolver.query(MediaStore.Downloads.getContentUri("external"),null,MediaStore.DownloadColumns.RELATIVE_PATH + "=?",new String[]{Environment.DIRECTORY_DOWNLOADS + filename},null).getCount()!=0)
                         locuri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues);
 
 
@@ -420,7 +420,7 @@ if(fileHelper.isExist(filename))
 
 
                 outputStream = contentResolver.openOutputStream(locuri);
-                      contentResolver.update(locuri, contentValues, null, null);
+                contentResolver.update(locuri, contentValues, null, null);
             } catch (Exception e) {
                 e.printStackTrace();
 
@@ -436,9 +436,9 @@ if(fileHelper.isExist(filename))
             Uri locuri = null;
             String[] selectionArgs = null;// new String[]{"+"+filename+"/"};
             if (MemeObject.classifier(filename) == MemeObject.IMAGE|| MemeObject.classifier(filename) == MemeObject.GIF) {
-                    locuri = MediaStore.Images.Media.getContentUri("external");
-                    selectionArgs = new String[]{images};
-                }
+                locuri = MediaStore.Images.Media.getContentUri("external");
+                selectionArgs = new String[]{images};
+            }
             if (MemeObject.classifier(filename) == MemeObject.HTTPS){
                 locuri = MediaStore.Images.Media.getContentUri("external");
                 path = path+ ".jpg";
@@ -458,7 +458,7 @@ if(fileHelper.isExist(filename))
                 selectionArgs = new String[]{downloads};
             }
             String selection = MediaStore.MediaColumns.RELATIVE_PATH + "=?";
-              //must include "/" in front and end
+            //must include "/" in front and end
             Cursor cursor = contentResolver.query(locuri, null, selection, selectionArgs, null);
             if (cursor.getCount() == 0) return false;
             return  true;

@@ -46,7 +46,7 @@ public class MemeViewerActivity extends AppCompatActivity {
     GifFragment gifFragment;
     String memeTag="";
 
-Toolbar toolbar;
+    Toolbar toolbar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         savedInstanceState=null;
@@ -114,7 +114,7 @@ Toolbar toolbar;
             currentMemeTag.setEnabled(true);
         }
 
-            return false;//super.onOptionsItemSelected(item);
+        return false;//super.onOptionsItemSelected(item);
     }
 
 
@@ -137,32 +137,32 @@ Toolbar toolbar;
             Intent intent=null;
             intent = new Intent(Intent.ACTION_SEND);
             memeUri= FileProvider.getUriForFile(MemeViewerActivity.this, "com.log28.memesstore", new File(new FileHelper(this).getFullPath(filename)));
-                switch (MemeObject.classifier(filename)){
-                    case MemeObject.IMAGE:
-                        intent.setType("image/*");
-                        intent.putExtra(Intent.EXTRA_STREAM, memeUri);
-                        intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
-                        break;
-                    case MemeObject.VIDEO:
-                        intent.setType("video/*");
-                        intent.putExtra(Intent.EXTRA_STREAM, memeUri);
-                        intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
-                         break;
-                    case MemeObject.HTTPS:
-                        intent.setType("text/plain");
-                        intent.putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v="+ filename +" "+memeSign.getText());
-                        break;
-                    case MemeObject.GIF:
-                        intent.setType("*/*");
-                        intent.putExtra(Intent.EXTRA_STREAM, memeUri);
-                        intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
+            switch (MemeObject.classifier(filename)){
+                case MemeObject.IMAGE:
+                    intent.setType("image/*");
+                    intent.putExtra(Intent.EXTRA_STREAM, memeUri);
+                    intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
+                    break;
+                case MemeObject.VIDEO:
+                    intent.setType("video/*");
+                    intent.putExtra(Intent.EXTRA_STREAM, memeUri);
+                    intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
+                    break;
+                case MemeObject.HTTPS:
+                    intent.setType("text/plain");
+                    intent.putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v="+ filename +" "+memeSign.getText());
+                    break;
+                case MemeObject.GIF:
+                    intent.setType("*/*");
+                    intent.putExtra(Intent.EXTRA_STREAM, memeUri);
+                    intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
 
-                }
+            }
             startActivity(intent);
-}
-catch (Exception e){
-    e.printStackTrace();
-}
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
 
 
 
