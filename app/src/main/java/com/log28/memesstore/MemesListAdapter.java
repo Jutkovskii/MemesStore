@@ -43,8 +43,8 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
     MemeDatabaseHelper db;
     public boolean deletingMode=false;
 
-
-    public List<MemeObject> memeObjects;
+MemesListAdapter thisAdapter;
+    public List<MemeObject> memeObjects,filteredMemes;
     public List<Integer> selected;
     public List<MemeGroup> memeGroups;
     List<MemeGroup> filteredGroups;
@@ -53,6 +53,7 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
         this.db=db;
         this.context = context;
         getDB();
+        thisAdapter=this;
     }
     public void getDB(){
         Cursor cursor = db.getCursor();
@@ -64,7 +65,7 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
         memeGroups=new ArrayList<>();
         filteredGroups=new ArrayList<>();
         memeObjects=new ArrayList<>();
-
+        filteredMemes=new ArrayList<>();
         int listSize=cursor.getCount();
         for(int i=0;i<listSize;i++){
 
@@ -89,6 +90,7 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
                 this.db.delete(currentFile);
         }
         filteredGroups = memeGroups;
+        filteredMemes=memeObjects;
     }
 
 
@@ -128,9 +130,12 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
 
         //РАСКОММЕНТИТЬ
         //String qwe =memeObjects.get(position).getName();
-        if(filteredGroups.get(position).name==memeObjects.get(position).getName()){
-            holder.memeImageView.setImageBitmap(memeObjects.get(position).getBitmap());
-            holder.memeTag.setText(memeObjects.get(position).getTag());
+       // if(filteredGroups.get(position).name==memeObjects.get(position).getName())
+
+
+        {
+            holder.memeImageView.setImageBitmap(filteredMemes.get(position).getBitmap());
+            holder.memeTag.setText(filteredMemes.get(position).getTag());
             // redrawList();
         }
 
@@ -276,11 +281,14 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
                 String charString = charSequence.toString();
                 if (charString.isEmpty()) {
                     filteredGroups = memeGroups;
+                    filteredMemes=memeObjects;
                 } else {
                     filteredGroups = new ArrayList<>();
+                    filteredMemes= new ArrayList<>();
                     for(MemeGroup currentMeme: memeGroups)
                         if (currentMeme.getTag().toLowerCase().contains(charString.toLowerCase())) {
                             filteredGroups.add(currentMeme);
+                            filteredMemes.add(new MemeObject(thisAdapter,currentMeme));
                         }
                 }
                 //filteredTags = memesTags;

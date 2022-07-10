@@ -45,6 +45,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.prefs.Preferences;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -335,16 +337,28 @@ public class MainActivity extends AppCompatActivity {
                 //Получение ссылки из интента
                 String localFilename = intent.getClipData().getItemAt(0).getText().toString();
                 //определение имени видеофайла по анализу ключевых символов в ссылке
-                if (localFilename.contains("&"))
+               /* if (localFilename.contains("&"))
                     localFilename = localFilename.substring(localFilename.indexOf("=") + 1, localFilename.lastIndexOf("&"));
                 else if (localFilename.contains("="))
                     localFilename = localFilename.substring(localFilename.lastIndexOf("=") + 1);
                 else localFilename = localFilename.substring(localFilename.lastIndexOf("/") + 1);
                 //фиксируем полученное имя
-                filename = localFilename;
+                filename = localFilename;*/
+
+
+                Pattern p = Pattern.compile("([\\w_-]{11})");
+                Matcher m = p.matcher(localFilename);
+                if (m.find()) {
+                    //фиксируем полученное имя
+                    filename = localFilename.substring(m.start());
+                    //загружаем превью
+                    PreviewSaver previewSaver = new PreviewSaver(fileHelper);
+                    previewSaver.execute(new String[]{filename});
+                    insertToDB(filename);
+                }
                 //загружаем превью
-                PreviewSaver previewSaver = new PreviewSaver(fileHelper);
-                previewSaver.execute(new String[]{filename});
+              /*  PreviewSaver previewSaver = new PreviewSaver(fileHelper);
+                previewSaver.execute(new String[]{filename});*/
             }
             //если получено изображение или видео
             else if (receivedType.startsWith("image") || receivedType.startsWith("video")) {
