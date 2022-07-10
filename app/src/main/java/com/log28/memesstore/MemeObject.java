@@ -18,6 +18,7 @@ public class MemeObject {
     String memeName;
     String memeFolder, thumbnailFolder;
     String memeType;
+    //123123
     String memeTag;
     Bitmap memeBitmap, thumbnailBitmap;
 
