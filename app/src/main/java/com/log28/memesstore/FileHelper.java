@@ -310,9 +310,31 @@ fileHelper.createnew(inputStream,filename);
 
     //подклассы, нужный избирается в зависимости от версии ОС
     public class innerFileHelperOld implements FileHelperInterface {
+        Uri persistentUri;
         @Override
-        public void createnew(InputStream inputStream, String filename) {
+        public void createnew(InputStream inputStream, String filename){
+            try {
+                DocumentFile root = DocumentFile.fromTreeUri(context, persistentUri);
+                DocumentFile backupDirUri = root.createDirectory("backup");
+                DocumentFile f = backupDirUri.createFile(MemeObject.getMemeMimeType(1), filename);
 
+
+                Uri locuri = f.getUri();
+                ContentResolver contentResolver = context.getContentResolver();
+
+                OutputStream outputStream = contentResolver.openOutputStream(locuri);
+
+                int n;
+                byte[] buffer = new byte[1024 * 4];
+                while (-1 != (n = inputStream.read(buffer)))
+                    outputStream.write(buffer, 0, n);
+                inputStream.close();
+                outputStream.close();
+                /*copyFile(inputStream,outputStream);*/
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
         }
 
         public innerFileHelperOld(Context context) {
@@ -379,12 +401,13 @@ fileHelper.createnew(inputStream,filename);
 
         @Override
         public boolean hasPersisentFolder() {
-            return true;
+            if(persistentUri==null) return true;
+            return false;
         }
 
         @Override
         public void setPersistentFolder(Uri uri) {
-
+            persistentUri=uri;
         }
     }
 

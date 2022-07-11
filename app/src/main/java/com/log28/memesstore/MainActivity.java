@@ -19,6 +19,7 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.UriPermission;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -380,15 +381,17 @@ public class MainActivity extends AppCompatActivity {
 
     //НА БУДУЩЕЕ вызов импорта базы данных
     public void selectDBforImport() {
-        //if (this.getContentResolver().getPersistedUriPermissions()==null)
+       // if (this.getContentResolver().getPersistedUriPermissions()==null)
+        ArrayList<UriPermission>qwe= (ArrayList<UriPermission>) this.getContentResolver().getPersistedUriPermissions();
+        if(qwe!=null)
+            fileHelper.setPersistentFolder(qwe.get(0).getUri());
         {
             Intent intent1 = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
             intent1.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             intent1.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
             startActivityForResult(intent1, 111);
-
-
         }
+
 
       //  Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
        // chooseFile.setType("*/*");
@@ -457,9 +460,9 @@ public class MainActivity extends AppCompatActivity {
                         & (Intent.FLAG_GRANT_READ_URI_PERMISSION
                         | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 // Check for the freshest data.
-                getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                getContentResolver().releasePersistableUriPermission(uri, takeFlags);
                 fileHelper.setPersistentFolder(uri);
-
+grantUriPermission("com.log28.memesstore",uri,takeFlags);
             }
         }
 
