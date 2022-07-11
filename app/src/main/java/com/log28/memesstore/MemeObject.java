@@ -1,7 +1,6 @@
 package com.log28.memesstore;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -9,17 +8,18 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import java.io.InputStream;
+import java.util.List;
+
 public class MemeObject {
 
-    private MemesListAdapter memesListAdapter;
-    private Context context;
-    private String memeName;
-    private String memeFolder, thumbnailFolder;
-    private  String memeMimeType;
-    private String memeTag;
-    private Bitmap memeBitmap, thumbnailBitmap;
-    private int memeType;
-    private int memeTab;
+    MemesListAdapter memesListAdapter;
+    Context context;
+    String memeName;
+    String memeFolder, thumbnailFolder;
+    String memeType;
+    String memeTag;
+    Bitmap memeBitmap, thumbnailBitmap;
 
     static String imageformats[]= new String[]{".jpg",".jpeg",".png", ".bmp", ".webp", ".tiff"};
     static String gifformats[]= new String[]{".gif"};
@@ -35,62 +35,41 @@ public class MemeObject {
     public static final int ARCH = 4;
     public static final int DB = 5;
     public static final int TEMP = -1;
-    //категории вкладок
-    public static final int IMAGE_TAB = 0;
-    public static final int VIDEO_TAB = 1;
-
-    //подкатегории мемов
-    public static final int YOUTUBE=20;
-    public static final int VK=21;
-    public static final int DISCORD=22;
 
     MemeObject(MemesListAdapter memesListAdapter,String name) {
-        this.memesListAdapter=memesListAdapter;
-        init(memesListAdapter.context,name,"");
-    }
-    MemeObject(Context context,String name) {
-        init(context,name,"");
-    }
-    MemeObject(Context context,String name,String tag) {
-        init(context,name,tag);
+        init(memesListAdapter,name,"");
     }
     MemeObject(MemesListAdapter memesListAdapter,String name,String tag){
-        this.memesListAdapter=memesListAdapter;
-        init(memesListAdapter.context,name,tag);
+        init(memesListAdapter,name,tag);
+    }
+    MemeObject(MemesListAdapter memesListAdapter,MemeGroup group){
+        init(memesListAdapter,group.name,group.tag);
     }
 
-
-    void init(Context context,String name,String tag){
+    void init(MemesListAdapter memesListAdapter,String name,String tag){
         this.memeName=name;
         this.memeTag=tag;
-        this.context=context;
+        this.memesListAdapter=memesListAdapter;
+        this.context=memesListAdapter.context;
         memeBitmap= BitmapFactory.decodeResource(context.getResources(), R.raw.logo);
-        if(memesListAdapter!=null){
         BitmapLoader bitmapLoader=new BitmapLoader();
         bitmapLoader.execute(memeName);
-        }
-        memeMimeType = getMemeMimeType();
-        memeType=classfyByName(memeName);
-        memeFolder=FileHelper.getFullPath(memeName);
-        memeTab=classifyByTab(memeName);
     }
-
-
-    public String getPath(){return memeFolder;}
+    public String getPath(){
+        return "";
+    }
     public String getName(){return memeName;}
     public String getTag(){return memeTag;}
-    public int getMemeType(){return memeType;}
-    public int getMemeTab(){return memeTab;}
-    public String getMemeMimeType()
+    public String getMemeType()
     {
-       switch (classfyByName(memeName)){
-           case IMAGE: return "image/*";
-           case VIDEO: return "video/*";
-           case GIF: return "image/gif";
-           case HTTPS: return "text/*";
+        switch (classifier(memeName)){
+            case IMAGE: return "image/*";
+            case VIDEO: return "video/*";
+            case GIF: return "image/gif";
+            case HTTPS: return "text/*";
 
-       }
-       return "*/*";
+        }
+        return "*/*";
     }
 
     class BitmapLoader extends AsyncTask<String,Void, Bitmap> {
@@ -98,15 +77,7 @@ public class MemeObject {
         @RequiresApi(api = Build.VERSION_CODES.R)
         @Override
         protected Bitmap doInBackground(String... strings) {
-            Bitmap fileHelper=null;
-
-            try{
-                fileHelper=   new FileHelper(context).getPreview(strings[0]);
-            }catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-                return fileHelper;
+            return new FileHelper(context).getPreview(strings[0]);
         }
 
         @Override
@@ -126,7 +97,7 @@ public class MemeObject {
         return thumbnailBitmap;
     }
 
-    public static int classfyByName(String memeName){
+    public static int classifier(String memeName){
         memeName=memeName.toLowerCase();
         for(String name: imageformats){
             if(memeName.contains(name))
@@ -154,26 +125,4 @@ public class MemeObject {
         return TEMP;
     }
 
-    public static int classifyByType(Intent incomingIntent){
-        String receivedType = incomingIntent.getType();
-        if(receivedType.startsWith("text")){
-            return YOUTUBE;
-        }
-        if(receivedType.startsWith("image")){
-            return IMAGE;
-        }
-        if(receivedType.startsWith("video")){
-            return VIDEO;
-        }
-
-        return TEMP;
-    }
-
-    public static int classifyByTab(String memeName){
-       switch (classfyByName(memeName)){
-           case IMAGE: case GIF: return IMAGE_TAB;
-           case VIDEO:return VIDEO_TAB;
-           default:return TEMP;
-       }
-    }
 }
