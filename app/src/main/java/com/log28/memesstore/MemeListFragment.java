@@ -70,9 +70,19 @@ public class MemeListFragment extends Fragment {
             memesList.setLayoutManager(new GridLayoutManager(view.getContext(), 2));
 
         }
+        changeFragment();
+
     }
 String filterText="";
 
+
+    public void changeFragment(){
+        memesListAdapter = new MemesListAdapter(view.getContext(), testdb);
+        memesListAdapter.setFilter(filterText);
+        //if (memesList.getAdapter()==null)
+        memesList.setAdapter(memesListAdapter);
+        memesListAdapter.notifyDataSetChanged();
+    }
 
     public void setFilter(String newText){
         filterText=newText;
@@ -111,11 +121,7 @@ String filterText="";
     public void onStart() {
         super.onStart();
         Log.d("OLOLOG","Фрагмент Запустить "+ testdb.name  );
-        memesListAdapter = new MemesListAdapter(view.getContext(), testdb);
-        memesListAdapter.setFilter(filterText);
-        //if (memesList.getAdapter()==null)
-        memesList.setAdapter(memesListAdapter);
-        memesListAdapter.notifyDataSetChanged();
+
     }
 
     @Override

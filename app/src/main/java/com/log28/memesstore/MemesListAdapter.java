@@ -46,8 +46,8 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
 MemesListAdapter thisAdapter;
     public List<MemeObject> memeObjects,filteredMemes;
     public List<Integer> selected;
-    public List<MemeGroup> memeGroups;
-    List<MemeGroup> filteredGroups;
+    //public List<MemeGroup> memeGroups;
+    //List<MemeGroup> filteredGroups;
     public MemesListAdapter(Context context,  MemeDatabaseHelper db){
         Log.d("OLOLOG","Адаптер созадние "+db.name );
         this.db=db;
@@ -62,8 +62,8 @@ MemesListAdapter thisAdapter;
         // memesPaths = new ArrayList<>();
         // memesTags=new ArrayList<>();
         selected=new ArrayList<>();
-        memeGroups=new ArrayList<>();
-        filteredGroups=new ArrayList<>();
+        //memeGroups=new ArrayList<>();
+       // filteredGroups=new ArrayList<>();
         memeObjects=new ArrayList<>();
         filteredMemes=new ArrayList<>();
         int listSize=cursor.getCount();
@@ -80,7 +80,7 @@ MemesListAdapter thisAdapter;
             {
                 //memesPaths.add(currentFile);
                 //memesTags.add(currentTag);
-                memeGroups.add(new MemeGroup(currentFile,currentTag));
+               // memeGroups.add(new MemeGroup(currentFile,currentTag));
                 //создание списка мемов
                 memeObjects.add(new MemeObject(this,currentFile,currentTag));
                 cursor.moveToNext();
@@ -89,7 +89,7 @@ MemesListAdapter thisAdapter;
             else
                 this.db.delete(currentFile);
         }
-        filteredGroups = memeGroups;
+        //filteredGroups = memeGroups;
         filteredMemes=memeObjects;
     }
 
@@ -109,7 +109,7 @@ MemesListAdapter thisAdapter;
     @Override
     public void onBindViewHolder(@NonNull MemesListAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
 
-
+try{
         //устанавливаем битмап согласно имени файла
        /* holder.memeImageView.setImageBitmap(new FileHelper(context).getPreview(memesPaths.get(pos)));
         holder.memeTag.setText(memesTags.get(pos));*/
@@ -140,7 +140,10 @@ MemesListAdapter thisAdapter;
         }
 
 
-
+//защита от слишком быстрого ввода
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
 
         //установка обработчика кликов для вызова активности просмотра
         holder.memeCardView.setOnClickListener(new View.OnClickListener() {
@@ -170,8 +173,10 @@ MemesListAdapter thisAdapter;
                     Intent intent = new Intent(context, MemeViewerActivity.class);
         /*intent.putExtra(MemeViewerActivity.FILENAME_EXTRA,memesPaths.get(position));
         intent.putExtra(MemeViewerActivity.FILETAG_EXTRA,memesTags.get(position));*/
-                    intent.putExtra(MemeViewerActivity.FILENAME_EXTRA, memeGroups.get(position).getName());
-                    intent.putExtra(MemeViewerActivity.FILETAG_EXTRA, memeGroups.get(position).getTag());
+                    //intent.putExtra(MemeViewerActivity.FILENAME_EXTRA, memeGroups.get(position).getName());
+                    //intent.putExtra(MemeViewerActivity.FILETAG_EXTRA, memeGroups.get(position).getTag());
+                    intent.putExtra(MemeViewerActivity.FILENAME_EXTRA, filteredMemes.get(position).getName());
+                    intent.putExtra(MemeViewerActivity.FILETAG_EXTRA, filteredMemes.get(position).getTag());
                     ((Activity) context).startActivityForResult(intent, MemeViewerActivity.REQUEST_CODE);
                 }
 
@@ -265,7 +270,8 @@ MemesListAdapter thisAdapter;
     @Override
     public int getItemCount() {
         // return memesPaths.size();
-        return filteredGroups.size();
+        //return filteredGroups.size();
+        return filteredMemes.size();
     }
 
     public void setFilter(String newText){
@@ -278,33 +284,40 @@ MemesListAdapter thisAdapter;
         return new Filter() {
             @Override
             protected FilterResults performFiltering(CharSequence charSequence) {
-                String charString = charSequence.toString();
-                if (charString.isEmpty()) {
-                    filteredGroups = memeGroups;
-                    filteredMemes=memeObjects;
-                } else {
-                    filteredGroups = new ArrayList<>();
-                    filteredMemes= new ArrayList<>();
-                    for(MemeGroup currentMeme: memeGroups)
-                        if (currentMeme.getTag().toLowerCase().contains(charString.toLowerCase())) {
-                            filteredGroups.add(currentMeme);
-                            filteredMemes.add(new MemeObject(thisAdapter,currentMeme));
-                        }
-                }
-                //filteredTags = memesTags;
+
+                    String charString = charSequence.toString();
+                    if (charString.isEmpty()) {
+                        //filteredGroups = memeGroups;
+                        filteredMemes = memeObjects;
+                    } else {
+                        //filteredGroups = new ArrayList<>();
+                        filteredMemes = new ArrayList<>();
+                        //for (MemeGroup currentMeme : memeGroups)
+                            for (MemeObject currentMeme : memeObjects)
+                            if (currentMeme.getTag().toLowerCase().contains(charString.toLowerCase())) {
+                                //filteredGroups.add(currentMeme);
+                                filteredMemes.add(currentMeme);
+                            }
+                    }
+                    //filteredTags = memesTags;
 
 
-                FilterResults filterResults = new FilterResults();
-                filterResults.values = filteredGroups;
-                return filterResults;
+                    FilterResults filterResults = new FilterResults();
+                   // filterResults.values = filteredGroups;
+                filterResults.values = filteredMemes;
+                    return filterResults;
+
+
 
             }
 
             @Override
             protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
-                filteredGroups = (ArrayList<MemeGroup>) filterResults.values;
 
-                notifyDataSetChanged();
+                    //filteredGroups = (ArrayList<MemeGroup>) filterResults.values;
+                filteredMemes = (ArrayList<MemeObject>) filterResults.values;
+                    notifyDataSetChanged();
+
             }
         };
     }
