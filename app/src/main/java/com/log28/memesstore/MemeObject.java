@@ -93,6 +93,13 @@ public class MemeObject {
         return "*/*";
     }
 
+    public static String getMemeMimeType(int tab)
+    {
+        if(tab==IMAGE_TAB) return "image/*";
+        if(tab==VIDEO_TAB) return "video/*";
+        return "*/*";
+    }
+
     class BitmapLoader extends AsyncTask<String,Void, Bitmap> {
 
         @RequiresApi(api = Build.VERSION_CODES.R)

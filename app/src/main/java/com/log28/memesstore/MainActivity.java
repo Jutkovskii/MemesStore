@@ -14,6 +14,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -83,20 +84,18 @@ public class MainActivity extends AppCompatActivity {
         savedInstanceState=null;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d("OLOLOG","Активность с=Создание " );
         //проверка доступа к памяти
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
 
         }
-        //запрос БД
+        //создание и заполнение списка БД
         databases= new ArrayList<>();
+        //проверка пользовательских БД (на будущее)
         getPreferences();
         for(String s:dbNames)
             databases.add(new MemeDatabaseHelper(this,s,1));
-        /*databases.add(new MemeDatabaseHelper(this,"imagedb",1));
-        databases.add(new MemeDatabaseHelper(this,"videodb",1));*/
-        Log.d("OLOLOG","Активность Создание фрагментов " );
+
         //создание фрагментов с мемами
         memeListFragments=new ArrayList<>();
         for(int i=0;i<databases.size();i++)
@@ -143,7 +142,6 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         Intent intent = getIntent();
         if(intent!=null&&intent.getAction()=="android.intent.action.SEND")
-            // if(intent!=null&&intent.getAction()=="android.intent.action.SEND")
             getMemeFromIntent(intent);
 
     }
@@ -305,6 +303,7 @@ public class MainActivity extends AppCompatActivity {
         //Если интент получен из другого приложения
         else {
             switch (MemeObject.classifyByType(intent)){
+                //мем - видео с ютуба
                 case MemeObject.YOUTUBE:
                     //Получение ссылки из интента
                     String localFilename = intent.getClipData().getItemAt(0).getText().toString();
@@ -320,14 +319,16 @@ public class MainActivity extends AppCompatActivity {
                         insertToDB(filename);
                     }
                     break;
-
-                case MemeObject.IMAGE: case MemeObject.VIDEO:
+                //мем - картинка, gif или видео
+                case MemeObject.IMAGE: case MemeObject.GIF :case MemeObject.VIDEO:
                     // извлекаем uri одним из методов
                     Uri uri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
                     if (uri == null)
                         uri = intent.getData();
                     newMeme= new MemeObject(getApplicationContext(),saveFromUri(uri));
                     break;
+
+
                 default:Toast.makeText(this, "Не удалось обработать файл", Toast.LENGTH_SHORT);break;
             }
 
@@ -358,22 +359,8 @@ public class MainActivity extends AppCompatActivity {
     }
     //добавление файла в базу данных
     boolean insertToDB(String filename) {
-        Log.d("OLOLOG","Активность Добавление в базы данных " );
-        //получение баз данных, если они не были открыты (приложение стартовало по интенту)
-        //getBD();
         try {
-            switch (MemeObject.classfyByName(filename)) {
-                case MemeObject.VIDEO:
-                case MemeObject.GIF:
-                case MemeObject.HTTPS:
-                    //videodb.insert(filename);
-                    databases.get(1).insert(filename);
-                    break;
-                case MemeObject.IMAGE:
-                    //imagedb.insert(filename);
-                    databases.get(0).insert(filename);
-                    break;
-            }
+            databases.get(MemeObject.classifyByTab(filename)).insert(filename);
         } catch (Exception e) {
             return false;
         }
@@ -383,28 +370,30 @@ public class MainActivity extends AppCompatActivity {
     //вызов галерени для добавления мема
     public void addMeme(View v) {
 
-        Log.d("OLOLOG","Активность Добавление мема " );
-//Вызываем стандартную галерею для выбора изображения с помощью Intent.ACTION_PICK:
-        //Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
         Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
         photoPickerIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         photoPickerIntent.addCategory(Intent.CATEGORY_OPENABLE);
-        //Тип получаемых объектов - image:
-        if (tabNum == 0)
-            photoPickerIntent.setType("image/*");
-        else
-            photoPickerIntent.setType("video/*");
+        photoPickerIntent.setType(MemeObject.getMemeMimeType(tabNum));
         //Запускаем переход с ожиданием обратного результата в виде информации об изображении:
         startActivityForResult(photoPickerIntent, REQUEST_GALLERY);//посмотреть, как нынче надо
     }
 
     //НА БУДУЩЕЕ вызов импорта базы данных
     public void selectDBforImport() {
-        Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
-        chooseFile.setType("*/*");
-        chooseFile = Intent.createChooser(chooseFile, "Choose a file");
-        startActivityForResult(chooseFile, REQUEST_DB);
-        // imagedb.importDB();
+        //if (this.getContentResolver().getPersistedUriPermissions()==null)
+        {
+            Intent intent1 = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            intent1.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent1.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+            startActivityForResult(intent1, 111);
+
+
+        }
+
+      //  Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
+       // chooseFile.setType("*/*");
+      //  chooseFile = Intent.createChooser(chooseFile, "Choose a file");
+      // startActivityForResult(chooseFile, REQUEST_DB);
     }
 
     //получение результата от дочерней активности
@@ -420,15 +409,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("OLOLOG","Активность удалить мем " );
                 //удаление файла
                 new FileHelper(this).deleteFile(data.getDataString());
-                //удаление записи из БД
-
-                if (MemeObject.classfyByName(data.getDataString()) == MemeObject.IMAGE) {
-                    tabNum = 0;
-                    //imagedb.delete(data.getDataString());
-                } else {
-                    tabNum = 1;
-                    //videodb.delete(data.getDataString());
-                }
+                tabNum=MemeObject.classifyByTab(data.getDataString());
                 databases.get(tabNum).delete(data.getDataString());
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
                 memeListFragments.get(tabNum).changeFragment();
@@ -439,13 +420,7 @@ public class MainActivity extends AppCompatActivity {
 
             String filetag= data.getStringExtra(MemeViewerActivity.FILETAG_EXTRA);
             String filename = data.getStringExtra(MemeViewerActivity.FILENAME_EXTRA);
-            if (MemeObject.classfyByName(filename) == MemeObject.IMAGE) {
-                tabNum = 0;
-                //imagedb.update(filename,filetag);
-            } else {
-                tabNum = 1;
-                //videodb.update(filename,filetag);
-            }
+            tabNum=MemeObject.classifyByTab(data.getDataString());
             databases.get(tabNum).update(filename,filetag);
             memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             memeListFragments.get(tabNum).changeFragment();
@@ -454,7 +429,6 @@ public class MainActivity extends AppCompatActivity {
         //результат: файл нужно добавить
         if (requestCode == REQUEST_GALLERY)
             if (resultCode == RESULT_OK) {
-                Log.d("OLOLOG", "Активность Получить мем из галереи ");
                 //получаем и сохраняем мем из uri
                 //выбор вкладки согласно типу файла
                 tabNum =getMemeFromIntent(data) ;
@@ -464,10 +438,38 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQUEST_DB)
             if (resultCode == RESULT_OK) {
                 //Если интент получен из вызванной галереи, тип null
-                if (data.getType() == null)
+                //if (data.getType() == null)
                     //получение uri файла
                     saveFromUri(data.getData());
             }
+
+
+
+        if (requestCode ==111
+                && resultCode == Activity.RESULT_OK) {
+            // The result data contains a URI for the document or directory that
+            // the user selected.
+            Uri uri = null;
+            if (data != null) {
+                uri = data.getData();
+                // Perform operations on the document using its URI.
+                final int takeFlags = data.getFlags()
+                        & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+// Check for the freshest data.
+                getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                fileHelper.setPersistentFolder(uri);
+
+            }
+        }
+
+
+
+
+
+
+
+
     }
 
     String saveFromUri(Uri uri) {
@@ -487,9 +489,12 @@ public class MainActivity extends AppCompatActivity {
 
             //получение потока входных данных
             inputStream = getContentResolver().openInputStream(uri);
+
+            fileHelper.createnew(inputStream,filename);
             //создание локального файла
             if (MemeObject.classfyByName(filename) != MemeObject.ARCH) {
                 fileHelper.copyFile(inputStream, fileHelper.createFile(filename));
+
                 insertToDB(filename);
             } else {
                 ArrayList<MemeGroup> imported = new FileHelper(this).unzipPack(inputStream);//,FileHelper.getFullPath(filename));

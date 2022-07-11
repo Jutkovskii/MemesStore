@@ -23,37 +23,16 @@ public class MemeListFragment extends Fragment {
    public MemesListAdapter memesListAdapter;
     //объект для работы с памятью
 
-
     View view;
-
-
-    public MemeListFragment() {
-    }
-
-
 
     public MemeListFragment(MemeDatabaseHelper testdb) {
         this.testdb = testdb;
-
-        Log.d("OLOLOG","Фрагмент Конструктор для "+testdb.name );
-
-    }
-
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Log.d("OLOLOG","Фрагмент Созадние для "+ testdb.name );
-
-    }
+   }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.d("OLOLOG","Фрагмент Создать view для  "+ testdb.name  );
-        // Inflate the layout for this fragment
         this.view = inflater.inflate(R.layout.fragment_meme_list, container, false);
-
         return view;
     }
 
@@ -62,13 +41,9 @@ public class MemeListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         this.view = view;
-        Log.d("OLOLOG","Фрагмент Создан view  для "+ testdb.name  );
         if (testdb != null) {
-            Log.d("OLOLOG","База данных "+ testdb.name );
-            // fileHelper = new FileHelper(view.getContext());
             memesList = view.findViewById(R.id.memesList);
             memesList.setLayoutManager(new GridLayoutManager(view.getContext(), 2));
-
         }
         changeFragment();
 
@@ -87,48 +62,5 @@ String filterText="";
     public void setFilter(String newText){
         filterText=newText;
     }
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.d("OLOLOG","Фрагмент Восстановить "+ testdb.name  );
-
-     /*   if (testdb != null) {
-            Log.d("OLOLOG","База данных "+ testdb.name );
-           // fileHelper = new FileHelper(view.getContext());
-            memesList = view.findViewById(R.id.memesList);
-            memesList.setLayoutManager(new GridLayoutManager(view.getContext(), 2));
-
-            //testdb.getWritableDatabase();
-            memesListAdapter = new MemesListAdapter(view.getContext(), testdb);
-            memesList.setAdapter(memesListAdapter);
-            memesListAdapter.notifyDataSetChanged();
-        }*/
-
-    }
-
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        Log.d("OLOLOG","Фрагмент Остановить "+ testdb.name  );
-        /*if (testdb != null)
-            testdb.close();*/
-    }
-
-
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        Log.d("OLOLOG","Фрагмент Запустить "+ testdb.name  );
-
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        Log.d("OLOLOG","Фрагмент Уничтожить "+ testdb.name  );
-    }
-
 
 }

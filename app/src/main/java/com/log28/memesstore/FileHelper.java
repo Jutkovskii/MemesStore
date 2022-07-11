@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -18,6 +19,7 @@ import android.provider.MediaStore;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
+import androidx.documentfile.provider.DocumentFile;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -37,15 +39,26 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class FileHelper {
+
+    private static String previewsFolder = "Previews/";
+    private static String imagesFolder =  "Images/";//папка с изображениями
+    private static String videosFolder = "Videos/";//папка с видео
+    private static String gifsFolder = "Gifs/";//папка с Gif
+    private static String thumbnailsFolder= ".thumbnails/";//папка с превьюшками
+    private static String downloadsFolder ="/";//корневая папка хранилища
+
     public static Context context = null;
     public static String root;//корневая папка хранилища
     public static String appFolder = "MemesStore2/";//папка с данными приложения
-    public static String previews = Environment.DIRECTORY_PICTURES + "/" + appFolder + "Previews/";//папка с превью ютуба
-    public static String images = Environment.DIRECTORY_PICTURES + "/" + appFolder + "Images/";//папка с изображениями
-    public static String videos = Environment.DIRECTORY_MOVIES + "/" + appFolder + "Videos/";//папка с видео
-    public static String gifs = Environment.DIRECTORY_MOVIES + "/" + appFolder + "Gifs/";//папка с Gif
-    public static String thumbnails = Environment.DIRECTORY_PICTURES + "/" + appFolder + ".thumbnails/";//папка с превьюшками
-    public static String downloads= Environment.DIRECTORY_DOWNLOADS + "/";//корневая папка хранилища
+    public static String defaultPreviews = Environment.DIRECTORY_PICTURES + "/" + appFolder + previewsFolder;//папка с превью ютуба
+    public static String defaultImages = Environment.DIRECTORY_PICTURES + "/" + appFolder + imagesFolder;//папка с изображениями
+    public static String defaultVideos = Environment.DIRECTORY_MOVIES + "/" + appFolder +  videosFolder;//папка с видео
+    public static String defaultGifs = Environment.DIRECTORY_MOVIES + "/" + appFolder + gifsFolder;//папка с Gif
+    public static String thumbnails = Environment.DIRECTORY_PICTURES + "/" + appFolder + thumbnailsFolder;//папка с превьюшками
+    public static String defaultDownloads = Environment.DIRECTORY_DOWNLOADS + downloadsFolder ;//корневая папка хранилища
+
+
+
     //категории файлов
     public FileHelperInterface fileHelper;
     //авто определение типа ОС и метода доступа к файлам
@@ -74,16 +87,16 @@ public class FileHelper {
         String path = "";
         switch (MemeObject.classfyByName(filename)) {
             case MemeObject.IMAGE:
-                path = root + images + filename;
+                path = root + defaultImages + filename;
                 break;
             case MemeObject.VIDEO:
-                path = root + videos + filename;
+                path = root + defaultVideos + filename;
                 break;
             case MemeObject.GIF:
-                path = root + gifs + filename;
+                path = root + defaultGifs + filename;
                 break;
             case MemeObject.HTTPS:
-                path = root + previews + filename + ".jpg";
+                path = root + defaultPreviews + filename + ".jpg";
                 break;
             case MemeObject.ARCH:
                 path = root + Environment.DIRECTORY_DOWNLOADS + "/" + filename;
@@ -108,7 +121,9 @@ public class FileHelper {
     public boolean isExist(String filename) {
         return this.fileHelper.isExist(filename);
     }
-
+    public void createnew(InputStream inputStream, String filename) {
+fileHelper.createnew(inputStream,filename);
+    }
     //создание файла
     public OutputStream createFile(String filename) {
 
@@ -285,16 +300,27 @@ public class FileHelper {
         return imported;
     }
 
+    boolean hasPersisentFolder(){
+        return fileHelper.hasPersisentFolder();
+    }
+
+    void setPersistentFolder(Uri uri){
+        fileHelper.setPersistentFolder(uri);
+    }
+
     //подклассы, нужный избирается в зависимости от версии ОС
     public class innerFileHelperOld implements FileHelperInterface {
+        @Override
+        public void createnew(InputStream inputStream, String filename) {
 
+        }
 
         public innerFileHelperOld(Context context) {
             root = Environment.getExternalStorageDirectory().getAbsolutePath() + "/";
-            new File(root + "/" + previews).mkdirs();
-            new File(root + "/" + images).mkdirs();
-            new File(root + "/" + gifs).mkdirs();
-            new File(root + "/" + videos).mkdirs();
+            new File(root + "/" + defaultPreviews).mkdirs();
+            new File(root + "/" + defaultImages).mkdirs();
+            new File(root + "/" + defaultGifs).mkdirs();
+            new File(root + "/" + defaultVideos).mkdirs();
         }
 
         public OutputStream createFile(String filename) {
@@ -351,13 +377,23 @@ public class FileHelper {
             return preview;
         }
 
+        @Override
+        public boolean hasPersisentFolder() {
+            return true;
+        }
 
+        @Override
+        public void setPersistentFolder(Uri uri) {
+
+        }
     }
 
     public class innerFileHelperNew implements FileHelperInterface {
 
-        public innerFileHelperNew(Context context) {
 
+        Uri persistentUri;
+        @RequiresApi(api = Build.VERSION_CODES.Q)
+        public innerFileHelperNew(Context context) {
             root = Environment.getExternalStorageDirectory().getAbsolutePath() + "/";
         }
 
@@ -373,22 +409,22 @@ public class FileHelper {
                 //deleteFile(filename);
                 switch (MemeObject.classfyByName(filename)) {
                     case MemeObject.IMAGE:
-                        contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, images);
+                        contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, defaultImages);
                         contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
                         locuri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
                         break;
                     case MemeObject.VIDEO:
-                        contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, videos);
+                        contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, defaultVideos);
                         contentValues.put(MediaStore.Video.Media.DISPLAY_NAME, filename);
                         locuri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
                         break;
                     case MemeObject.GIF:
-                        contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, gifs);
+                        contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, defaultGifs);
                         contentValues.put(MediaStore.Video.Media.DISPLAY_NAME, filename);
                         locuri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
                         break;
                     case MemeObject.HTTPS:
-                        contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, previews);
+                        contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, defaultPreviews);
                         contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, filename + ".jpg");
                         locuri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
                         break;
@@ -419,6 +455,32 @@ public class FileHelper {
             return outputStream;
         }
 
+        @Override
+        public void createnew(InputStream inputStream, String filename){
+            try {
+                DocumentFile root = DocumentFile.fromTreeUri(context, persistentUri);
+                DocumentFile backupDirUri = root.createDirectory("backup");
+                DocumentFile f = backupDirUri.createFile(MemeObject.getMemeMimeType(1), filename);
+
+
+                Uri locuri = f.getUri();
+                ContentResolver contentResolver = context.getContentResolver();
+
+                OutputStream outputStream = contentResolver.openOutputStream(locuri);
+
+                int n;
+                byte[] buffer = new byte[1024 * 4];
+                while (-1 != (n = inputStream.read(buffer)))
+                    outputStream.write(buffer, 0, n);
+                inputStream.close();
+                outputStream.close();
+                /*copyFile(inputStream,outputStream);*/
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+    }
+
         @RequiresApi(api = Build.VERSION_CODES.Q)
         @Override
         public boolean isExist(String filename) {
@@ -428,25 +490,25 @@ public class FileHelper {
             String[] selectionArgs = null;// new String[]{"+"+filename+"/"};
             if (MemeObject.classfyByName(filename) == MemeObject.IMAGE|| MemeObject.classfyByName(filename) == MemeObject.GIF) {
                 locuri = MediaStore.Images.Media.getContentUri("external");
-                selectionArgs = new String[]{images};
+                selectionArgs = new String[]{defaultImages};
             }
             if (MemeObject.classfyByName(filename) == MemeObject.HTTPS){
                 locuri = MediaStore.Images.Media.getContentUri("external");
                 path = path+ ".jpg";
-                selectionArgs = new String[]{previews};
+                selectionArgs = new String[]{defaultPreviews};
             }
 
             if (MemeObject.classfyByName(filename) == MemeObject.VIDEO ) {
                 locuri = MediaStore.Video.Media.getContentUri("external");
-                selectionArgs = new String[]{videos};
+                selectionArgs = new String[]{defaultVideos};
             }
             if (MemeObject.classfyByName(filename)== MemeObject.ARCH) {
                 locuri = MediaStore.Downloads.getContentUri("external");
-                selectionArgs = new String[]{downloads};
+                selectionArgs = new String[]{defaultDownloads};
             }
             if (MemeObject.classfyByName(filename)== MemeObject.DB) {
                 locuri = MediaStore.Downloads.getContentUri("external");
-                selectionArgs = new String[]{downloads};
+                selectionArgs = new String[]{defaultDownloads};
             }
             String selection = MediaStore.MediaColumns.RELATIVE_PATH + "=?";
             //must include "/" in front and end
@@ -513,17 +575,17 @@ public class FileHelper {
             String[] selectionArgs = null;
             switch (MemeObject.classfyByName(filename)) {
                 case MemeObject.IMAGE:
-                    selectionArgs = new String[]{images};
+                    selectionArgs = new String[]{defaultImages};
                     break;
                 case MemeObject.VIDEO:
-                    selectionArgs = new String[]{videos};
+                    selectionArgs = new String[]{defaultVideos};
                     break;
                 case MemeObject.GIF:
-                    selectionArgs = new String[]{videos};
+                    selectionArgs = new String[]{defaultVideos};
                     break;
                 case MemeObject.HTTPS:
                     filename = filename + ".jpg";
-                    selectionArgs = new String[]{previews};
+                    selectionArgs = new String[]{defaultPreviews};
                     break;
             }
 
@@ -584,6 +646,17 @@ public class FileHelper {
             return preview;
         }
 
+
+        @Override
+        public boolean hasPersisentFolder() {
+            if(persistentUri==null) return true;
+            return false;
+        }
+
+        @Override
+        public void setPersistentFolder(Uri uri) {
+            persistentUri=uri;
+        }
     }
 
 }

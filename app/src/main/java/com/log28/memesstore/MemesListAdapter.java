@@ -36,9 +36,7 @@ import static android.content.Context.WINDOW_SERVICE;
 import static com.log28.memesstore.MainActivity.mainMenu;
 
 public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.ViewHolder> implements Filterable /* implements View.OnClickListener*/ {
-    /* List<String> memesPaths;
-     List<String> memesTags;
-     List<String> filteredTags;*/
+
     Context context;
     MemeDatabaseHelper db;
     public boolean deletingMode=false;
@@ -46,8 +44,7 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
 MemesListAdapter thisAdapter;
     public List<MemeObject> memeObjects,filteredMemes;
     public List<Integer> selected;
-    //public List<MemeGroup> memeGroups;
-    //List<MemeGroup> filteredGroups;
+
     public MemesListAdapter(Context context,  MemeDatabaseHelper db){
         Log.d("OLOLOG","Адаптер созадние "+db.name );
         this.db=db;
@@ -59,11 +56,7 @@ MemesListAdapter thisAdapter;
         Cursor cursor = db.getCursor();
         cursor.moveToFirst();
         //получаем из курсора список имён файлов
-        // memesPaths = new ArrayList<>();
-        // memesTags=new ArrayList<>();
         selected=new ArrayList<>();
-        //memeGroups=new ArrayList<>();
-       // filteredGroups=new ArrayList<>();
         memeObjects=new ArrayList<>();
         filteredMemes=new ArrayList<>();
         int listSize=cursor.getCount();
@@ -78,9 +71,7 @@ MemesListAdapter thisAdapter;
             //или сам файл существует на диске, то добавляется в список
             if(!currentFile.contains(".")||new FileHelper(context).isExist(currentFile))
             {
-                //memesPaths.add(currentFile);
-                //memesTags.add(currentTag);
-               // memeGroups.add(new MemeGroup(currentFile,currentTag));
+
                 //создание списка мемов
                 memeObjects.add(new MemeObject(this,currentFile,currentTag));
                 cursor.moveToNext();
@@ -89,7 +80,6 @@ MemesListAdapter thisAdapter;
             else
                 this.db.delete(currentFile);
         }
-        //filteredGroups = memeGroups;
         filteredMemes=memeObjects;
     }
 
@@ -111,8 +101,6 @@ MemesListAdapter thisAdapter;
 
 try{
         //устанавливаем битмап согласно имени файла
-       /* holder.memeImageView.setImageBitmap(new FileHelper(context).getPreview(memesPaths.get(pos)));
-        holder.memeTag.setText(memesTags.get(pos));*/
         if(deletingMode)
             holder.deleteCheck.setVisibility(CheckBox.VISIBLE);
         else
@@ -121,23 +109,9 @@ try{
             holder.deleteCheck.setChecked(true);
         else
             holder.deleteCheck.setChecked(false);
-        // holder.memeImageView.setImageBitmap(new FileHelper(context).getPreview(filteredGroups.get(position).getName()));
-       /* holder.memeImageView.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.raw.logo));
-        MyAsyncTask myAsyncTask=new MyAsyncTask(holder);
-        myAsyncTask.executeOnExecutor( Executors.newSingleThreadExecutor(),filteredGroups.get(position).getName());
-        holder.memeTag.setText(filteredGroups.get(position).getTag());
-*/
 
-        //РАСКОММЕНТИТЬ
-        //String qwe =memeObjects.get(position).getName();
-       // if(filteredGroups.get(position).name==memeObjects.get(position).getName())
-
-
-        {
             holder.memeImageView.setImageBitmap(filteredMemes.get(position).getBitmap());
             holder.memeTag.setText(filteredMemes.get(position).getTag());
-            // redrawList();
-        }
 
 
 //защита от слишком быстрого ввода
@@ -160,8 +134,7 @@ try{
                     if(selected.isEmpty()) {
                         deletingMode = false;
                         MainActivity.deletingMode=false;
-                        //MainActivity.menu1.removeItem(deleteItem.getItemId());
-                        //menu1=MainActivity.mainMenu;
+
                         mainMenu.getItem(3).setVisible(false);
                         mainMenu.getItem(2).setVisible(true);
                         mainMenu.getItem(1).setVisible(true);
@@ -171,10 +144,6 @@ try{
                 else
                 {
                     Intent intent = new Intent(context, MemeViewerActivity.class);
-        /*intent.putExtra(MemeViewerActivity.FILENAME_EXTRA,memesPaths.get(position));
-        intent.putExtra(MemeViewerActivity.FILETAG_EXTRA,memesTags.get(position));*/
-                    //intent.putExtra(MemeViewerActivity.FILENAME_EXTRA, memeGroups.get(position).getName());
-                    //intent.putExtra(MemeViewerActivity.FILETAG_EXTRA, memeGroups.get(position).getTag());
                     intent.putExtra(MemeViewerActivity.FILENAME_EXTRA, filteredMemes.get(position).getName());
                     intent.putExtra(MemeViewerActivity.FILETAG_EXTRA, filteredMemes.get(position).getTag());
                     ((Activity) context).startActivityForResult(intent, MemeViewerActivity.REQUEST_CODE);
@@ -195,9 +164,6 @@ try{
                     deletingMode=true;
                     redrawList();
                     MainActivity.deletingMode=true;
-                  /*  deleteItem= MainActivity.menu1.add("Удалить");
-                    deleteItem.setShowAsAction(1);*/
-                    //MainActivity.menu1=MainActivity.deleteMenu;
                     try {
                         MenuItem qwe = mainMenu.getItem(3);
                         qwe.setVisible(true);
@@ -208,27 +174,6 @@ try{
                         e.printStackTrace();
                     }
                 }
-                // объект Builder для создания диалогового окна
-                  /*  AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
-                    // добавляем различные компоненты в диалоговое окно
-
-                    builder.setMessage("Удалить мем?");
-                    // устанавливаем кнопку, которая отвечает за позитивный ответ
-                    builder.setPositiveButton("Да",
-                            // устанавливаем слушатель
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog,
-                                                    int which) {
-                                    // по нажатию создаем всплывающее окно с типом нажатой конпки
-                                    memesListAdapter.memesPaths.remove(filename);
-                                    memesListAdapter.db.delete(filename);
-                                    memesListAdapter.notifyDataSetChanged();
-                                }
-                            });
-                    // объект Builder создал диалоговое окно и оно готово появиться на экране
-                    // вызываем этот метод, чтобы показать AlertDialog на экране пользователя
-                    builder.show();
-*/
                 return true;
             }
         });
@@ -236,41 +181,12 @@ try{
 
     }
 
-
-
-
-
-
-    class MyAsyncTask extends AsyncTask<String,Void, Bitmap>{
-        MemesListAdapter.ViewHolder holder;
-        MyAsyncTask(MemesListAdapter.ViewHolder holder)
-        {
-            this.holder=holder;
-        }
-        @RequiresApi(api = Build.VERSION_CODES.R)
-        @Override
-        protected Bitmap doInBackground(String... strings) {
-            return new FileHelper(context).getPreview(strings[0]);
-        }
-
-        @Override
-        protected void onPostExecute(Bitmap bitmap) {
-            super.onPostExecute(bitmap);
-            holder.memeImageView.setImageBitmap(bitmap);
-        }
-    }
-
-
-
-
     public void redrawList()
     {
         this.notifyDataSetChanged();
     }
     @Override
     public int getItemCount() {
-        // return memesPaths.size();
-        //return filteredGroups.size();
         return filteredMemes.size();
     }
 
@@ -286,24 +202,15 @@ try{
             protected FilterResults performFiltering(CharSequence charSequence) {
 
                     String charString = charSequence.toString();
-                    if (charString.isEmpty()) {
-                        //filteredGroups = memeGroups;
-                        filteredMemes = memeObjects;
-                    } else {
-                        //filteredGroups = new ArrayList<>();
+                    if (charString.isEmpty())
+                         filteredMemes = memeObjects;
+                     else {
                         filteredMemes = new ArrayList<>();
-                        //for (MemeGroup currentMeme : memeGroups)
                             for (MemeObject currentMeme : memeObjects)
-                            if (currentMeme.getTag().toLowerCase().contains(charString.toLowerCase())) {
-                                //filteredGroups.add(currentMeme);
+                            if (currentMeme.getTag().toLowerCase().contains(charString.toLowerCase()))
                                 filteredMemes.add(currentMeme);
-                            }
                     }
-                    //filteredTags = memesTags;
-
-
                     FilterResults filterResults = new FilterResults();
-                   // filterResults.values = filteredGroups;
                 filterResults.values = filteredMemes;
                     return filterResults;
 

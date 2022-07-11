@@ -17,4 +17,7 @@ public interface FileHelperInterface {
     void deleteFile(String path);
     Bitmap getPreview(String filename, BitmapFactory.Options options);
     Uri getVideoUri(String filename);
+    boolean hasPersisentFolder();
+    void setPersistentFolder(Uri uri);
+    void createnew(InputStream inputStream, String filename);
 }
