@@ -1,7 +1,6 @@
 package com.log28.memesstore;
 
 import android.content.Context;
-import android.graphics.Movie;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -12,12 +11,11 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
 
-import static com.log28.memesstore.FileHelper.getFullPath;
+import static com.log28.memesstore.FileHelper2.getFullPath;
 
 public class GifFragment extends Fragment {
 
@@ -46,7 +44,7 @@ public class GifFragment extends Fragment {
         super.onViewCreated(view, null);// savedInstanceState);
         InputStream stream = null;
         try {
-            String path =FileHelper.getFullPath(filename);
+            String path = FileHelper2.getFullPath(filename);
 
             //stream = context.getAssets().open(path);
             stream = new FileInputStream(path);

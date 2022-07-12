@@ -1,22 +1,15 @@
 package com.log28.memesstore;
 
-import android.content.ContentUris;
 import android.content.Context;
-import android.database.Cursor;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import android.os.Environment;
-import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 import android.widget.VideoView;
 
 
@@ -84,7 +77,7 @@ public class VideoLocalFragment extends Fragment {
                 videoPlayer.start();
             }*/
 
-        videoPlayer.setVideoURI(new FileHelper(context).getVideoUri(filepath));
+        videoPlayer.setVideoURI(new FileHelper2(context).getVideoUri(filepath));
         videoPlayer.start();
     }
 

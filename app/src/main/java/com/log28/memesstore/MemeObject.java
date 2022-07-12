@@ -28,6 +28,13 @@ public class MemeObject {
     static String archformats[]= new String[]{".zip"};
     static String dbformats[]= new String[]{"db"};
 
+    //папки для хранения мемов
+    private static String previewsFolder = "Previews/";
+    private static String imagesFolder =  "Images/";//папка с изображениями
+    private static String videosFolder = "Videos/";//папка с видео
+    private static String gifsFolder = "Gifs/";//папка с Gif
+    private static String thumbnailsFolder= ".thumbnails/";//папка с превьюшками
+    private static String tempFolder ="/";//корневая папка хранилища
     //категории файлов
     public static final int IMAGE = 0;
     public static final int VIDEO = 1;
@@ -69,28 +76,29 @@ public class MemeObject {
             BitmapLoader bitmapLoader=new BitmapLoader();
             bitmapLoader.execute(memeName);
         }
-        memeMimeType = getMemeMimeType();
         memeType=classfyByName(memeName);
-        memeFolder=FileHelper.getFullPath(memeName);
         memeTab=classifyByTab(memeName);
+        getMemeMimeType();
+        setFolder();
+
     }
-    public String getPath(){
+    public String getFolder(){
         return "";
     }
     public String getName(){return memeName;}
     public String getTag(){return memeTag;}
     public int getMemeType(){return memeType;}
     public int getMemeTab(){return memeTab;}
-    public String getMemeMimeType()
+    private void getMemeMimeType()
     {
         switch (classfyByName(memeName)){
-            case IMAGE: return "image/*";
-            case VIDEO: return "video/*";
-            case GIF: return "image/gif";
-            case HTTPS: return "text/*";
-
+            case IMAGE: memeMimeType = "image/*";break;
+            case VIDEO:memeMimeType =  "video/*";break;
+            case GIF: memeMimeType = "image/gif";break;
+            case HTTPS: memeMimeType = "text/*";break;
+            default:  memeMimeType =  "*/*";break;
         }
-        return "*/*";
+
     }
 
     public static String getMemeMimeType(int tab)
@@ -100,12 +108,22 @@ public class MemeObject {
         return "*/*";
     }
 
+    private void setFolder(){
+        switch (classfyByName(memeName)){
+            case IMAGE: memeFolder=imagesFolder; break;
+            case VIDEO: memeFolder=videosFolder; break;
+            case GIF: memeFolder=gifsFolder; break;
+            case HTTPS: memeFolder=previewsFolder; break;
+            default:memeFolder=tempFolder; break;
+        }
+    }
+
     class BitmapLoader extends AsyncTask<String,Void, Bitmap> {
 
         @RequiresApi(api = Build.VERSION_CODES.R)
         @Override
         protected Bitmap doInBackground(String... strings) {
-            return new FileHelper(context).getPreview(strings[0]);
+            return new FileHelper2(context).getPreview(strings[0]);
         }
 
         @Override

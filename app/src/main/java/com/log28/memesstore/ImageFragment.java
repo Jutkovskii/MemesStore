@@ -1,8 +1,6 @@
 package com.log28.memesstore;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -52,7 +50,7 @@ this.filename =filename;
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view,null);// savedInstanceState);
         memeImageView = view.findViewById(R.id.memeImageView);
-        memeImageView.setImageBitmap(new FileHelper(context).getPreview(filename));
+        memeImageView.setImageBitmap(new FileHelper2(context).getPreview(filename));
     }
 
 }

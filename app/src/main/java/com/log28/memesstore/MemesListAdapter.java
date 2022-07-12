@@ -5,9 +5,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
 import android.view.Display;
@@ -30,7 +27,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
 
 import static android.content.Context.WINDOW_SERVICE;
 import static com.log28.memesstore.MainActivity.mainMenu;
@@ -69,7 +65,7 @@ MemesListAdapter thisAdapter;
 
             //еcли  имя файла не имеет расширения (ссылка на веб-ресурс)
             //или сам файл существует на диске, то добавляется в список
-            if(!currentFile.contains(".")||new FileHelper(context).isExist(currentFile))
+            if(!currentFile.contains(".")||new FileHelper2(context).isExist(currentFile))
             {
 
                 //создание списка мемов

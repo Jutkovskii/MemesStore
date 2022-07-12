@@ -35,7 +35,6 @@ import android.widget.Toast;
 
 import com.google.android.material.tabs.TabLayout;
 
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -63,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     //слой для вкладок
     TabLayout memesCategories;
     //объект для работы с памятью
-    FileHelper fileHelper;
+    FileHelper2 fileHelper2;
     //фрагменты с отображением списков мемов
     ArrayList<MemeListFragment> memeListFragments;
     //коды идентификации входящих Intent'ов
@@ -125,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         //создание объекта для работы с файловой системой
-        fileHelper = new FileHelper(this);
+        fileHelper2 = new FileHelper2(this);
 
         //создание слайдера
         pagerSlider = findViewById(R.id.pagerSlider);
@@ -237,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
                 for (Integer pos :
                         currentFragment.memesListAdapter.selected) {
                     String toDelete = currentFragment.memesListAdapter.memeObjects.get(pos).getName();
-                    new FileHelper(this).deleteFile(toDelete);
+                    new FileHelper2(this).deleteFile(toDelete);
                     currentDatabase.delete(toDelete);
                     currentFragment.memesListAdapter.getDB();
                     currentFragment.memesListAdapter.notifyItemRemoved(pos);
@@ -260,14 +259,18 @@ public class MainActivity extends AppCompatActivity {
                     Cursor localcursor = thisdb.getCursor();
                     localcursor.moveToFirst();
                     for (int i = 0; i < localcursor.getCount(); i++) {
-                        memepaths.add(FileHelper.getFullPath(localcursor.getString(1)));
+                        memepaths.add(FileHelper2.getFullPath(localcursor.getString(1)));
                         localcursor.moveToNext();
 
                     }
 
 
                 }
-                new FileHelper(this).zipPack(memepaths);
+
+                /*ArrayList<String> memepaths2 = new ArrayList<>();
+                for(String memepath2:memepaths)
+                    memepaths2.add(FileHelper2.getFullPath(memepath2));
+                new FileHelper2(this).zipPack(memepaths);*/
             }
             //извлечение мемов из zip-файла
             if (item.getTitle().toString().matches("Импорт")) {
@@ -315,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
                         //фиксируем полученное имя
                         String filename = localFilename.substring(m.start());
                         //загружаем превью
-                        PreviewSaver previewSaver = new PreviewSaver(fileHelper);
+                        PreviewSaver previewSaver = new PreviewSaver(fileHelper2);
                         previewSaver.execute(new String[]{filename});
                         insertToDB(filename);
                     }
@@ -383,8 +386,9 @@ public class MainActivity extends AppCompatActivity {
     public void selectDBforImport() {
        // if (this.getContentResolver().getPersistedUriPermissions()==null)
         ArrayList<UriPermission>qwe= (ArrayList<UriPermission>) this.getContentResolver().getPersistedUriPermissions();
-        if(qwe!=null)
-            fileHelper.setPersistentFolder(qwe.get(0).getUri());
+        if(qwe.size()!=0)
+            fileHelper2.setPersistentFolder(qwe.get(0).getUri());
+else
         {
             Intent intent1 = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
             intent1.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -411,7 +415,7 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == MemeViewerActivity.DELETED_MEME_CODE) {
                 Log.d("OLOLOG","Активность удалить мем " );
                 //удаление файла
-                new FileHelper(this).deleteFile(data.getDataString());
+                new FileHelper2(this).deleteFile(data.getDataString());
                 tabNum=MemeObject.classifyByTab(data.getDataString());
                 databases.get(tabNum).delete(data.getDataString());
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
@@ -460,21 +464,18 @@ public class MainActivity extends AppCompatActivity {
                         & (Intent.FLAG_GRANT_READ_URI_PERMISSION
                         | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 // Check for the freshest data.
-                getContentResolver().releasePersistableUriPermission(uri, takeFlags);
-                fileHelper.setPersistentFolder(uri);
-grantUriPermission("com.log28.memesstore",uri,takeFlags);
+                getContentResolver().takePersistableUriPermission(uri, takeFlags);
+
+grantUriPermission(this.getPackageName(),uri,takeFlags);
+                //fileHelper2.setPersistentFolder(uri);
+                List<String> uriSegments=uri.getPathSegments();
+                appFolder=uriSegments.get(1).split(":")[1];
+
             }
         }
 
-
-
-
-
-
-
-
     }
-
+   public static String appFolder;
     String saveFromUri(Uri uri) {
 
         String filename = "";
@@ -493,14 +494,14 @@ grantUriPermission("com.log28.memesstore",uri,takeFlags);
             //получение потока входных данных
             inputStream = getContentResolver().openInputStream(uri);
 
-            fileHelper.createnew(inputStream,filename);
+            fileHelper2.createnew(inputStream,filename);
             //создание локального файла
             if (MemeObject.classfyByName(filename) != MemeObject.ARCH) {
-                fileHelper.copyFile(inputStream, fileHelper.createFile(filename));
+                fileHelper2.copyFile(inputStream, fileHelper2.createFile(filename));
 
                 insertToDB(filename);
             } else {
-                ArrayList<MemeGroup> imported = new FileHelper(this).unzipPack(inputStream);//,FileHelper.getFullPath(filename));
+                ArrayList<MemeGroup> imported = new FileHelper2(this).unzipPack(inputStream);//,FileHelper.getFullPath(filename));
                 for (MemeGroup thisGroup : imported) {
                     int num = 1;
                     if (MemeObject.classfyByName(thisGroup.name) == MemeObject.IMAGE) {
@@ -510,7 +511,7 @@ grantUriPermission("com.log28.memesstore",uri,takeFlags);
                     if (MemeObject.classfyByName(thisGroup.name) == MemeObject.VIDEO || MemeObject.classfyByName(thisGroup.name) == MemeObject.GIF)
                         num = 1;
                     if (MemeObject.classfyByName(thisGroup.name) == MemeObject.HTTPS) {
-                        PreviewSaver previewSaver = new PreviewSaver(fileHelper);
+                        PreviewSaver previewSaver = new PreviewSaver(fileHelper2);
                         previewSaver.execute(new String[]{thisGroup.getName()});
                         num = 1;
                     }

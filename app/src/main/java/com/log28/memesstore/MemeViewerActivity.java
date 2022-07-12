@@ -133,7 +133,7 @@ public class MemeViewerActivity extends AppCompatActivity {
             Uri memeUri =null;
             Intent intent=null;
             intent = new Intent(Intent.ACTION_SEND);
-            memeUri= FileProvider.getUriForFile(MemeViewerActivity.this, "com.log28.memesstore", new File(new FileHelper(this).getFullPath(filename)));
+            memeUri= FileProvider.getUriForFile(MemeViewerActivity.this, "com.log28.memesstore", new File(new FileHelper2(this).getFullPath(filename)));
             switch (MemeObject.classfyByName(filename)){
                 case MemeObject.IMAGE:
                     intent.setType("image/*");
