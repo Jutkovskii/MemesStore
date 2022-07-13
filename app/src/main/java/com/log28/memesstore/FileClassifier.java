@@ -9,16 +9,65 @@ public class FileClassifier {
     static String archformats[]= new String[]{".zip"};
     static String dbformats[]= new String[]{"db"};
 
+    //MIME-типы файлов
+    public static final String MIME_IMAGE = "image/*";
+    public static final String MIME_VIDEO = "video/*";
+    public static final String MIME_HTTPS = "text/*";
+    public static final String MIME_GIF = "image/gif";
+    public static final String MIME_ARCH = "application/zip";
+    public static final String MIME_DEFAULT = "*/*";
+
     //категории файлов
-    public static final String IMAGE = "image/*";
-    public static final String VIDEO = "video/*";
-    public static final String HTTPS = "text/*";
-    public static final String GIF = "image/gif";
-    public static final String ARCH = "application/zip";
-    public static final String DEFAULT = "*/*";
+    public static final int IMAGE = 0;
+    public static final int VIDEO = 1;
+    public static final int HTTPS = 2;
+    public static final int GIF = 3;
+    public static final int ARCH = 4;
+    public static final int DB = 5;
+    public static final int TEMP = -1;
+
+    private static String previewsFolder = "Previews/";
+    private static String imagesFolder =  "Images/";//папка с изображениями
+    private static String videosFolder = "Videos/";//папка с видео
+    private static String gifsFolder = "Gifs/";//папка с Gif
+    private static String thumbnailsFolder= ".thumbnails/";//папка с превьюшками
+    private static String tempFolder ="/";//корневая папка хранилища
 
 
     public static String getMimeType(String memeName){
+        memeName=memeName.toLowerCase();
+        for(String name: imageformats){
+            if(memeName.contains(name))
+                return MIME_IMAGE;
+        }
+        for(String name: gifformats){
+            if(memeName.contains(name))
+                return MIME_GIF;
+        }
+        for(String name: videoformats){
+            if(memeName.contains(name))
+                return MIME_VIDEO;
+        }
+
+        for(String name: archformats){
+            if(memeName.contains(name))
+                return MIME_ARCH;
+        }
+
+        if(!memeName.contains("."))
+            return MIME_HTTPS;
+        return MIME_DEFAULT;
+    }
+    public static String getMimeFolder(String memeName){
+        switch (classfyByName(memeName)){
+            case IMAGE: return imagesFolder;
+            case VIDEO: return videosFolder;
+            case GIF: return gifsFolder;
+            case HTTPS: return previewsFolder;
+            default:return tempFolder;
+        }
+    }
+    public static int classfyByName(String memeName){
         memeName=memeName.toLowerCase();
         for(String name: imageformats){
             if(memeName.contains(name))
@@ -37,11 +86,13 @@ public class FileClassifier {
             if(memeName.contains(name))
                 return ARCH;
         }
-
+        for(String name: dbformats){
+            if(memeName.contains(name))
+                return DB;
+        }
         if(!memeName.contains("."))
             return HTTPS;
-        return DEFAULT;
+        return TEMP;
     }
-
 
 }

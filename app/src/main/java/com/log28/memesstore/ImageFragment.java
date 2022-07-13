@@ -1,6 +1,7 @@
 package com.log28.memesstore;
 
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -13,6 +14,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import java.io.FileNotFoundException;
 
 
 public class ImageFragment extends Fragment {
@@ -50,7 +53,12 @@ this.filename =filename;
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view,null);// savedInstanceState);
         memeImageView = view.findViewById(R.id.memeImageView);
-        memeImageView.setImageBitmap(new FileHelper2(context).getPreview(filename));
+       // memeImageView.setImageBitmap(new FileHelper2(context).getPreview(filename));
+        try {
+            memeImageView.setImageBitmap(BitmapFactory.decodeStream(context.getContentResolver().openInputStream(FileHelper.getFileHelper().readFromFile(filename))));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
 }

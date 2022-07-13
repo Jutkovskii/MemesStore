@@ -26,11 +26,28 @@ public class FileHelper {
     Uri persistentUri;
     String appFolder;
     String packageName;
-    ArrayList<String> folders;
+    List<String> folders;
     String filename;
     DocumentFile root;
 
-    FileHelper(Context context, Uri persistentUri){
+    private  static  Context context1;
+    private  static   Uri persistentUri1;
+    private static FileHelper fileHelper;
+
+    public static FileHelper getFileHelper(Context context, Uri persistentUri){
+        context1=context;
+        persistentUri1=persistentUri;
+        if(fileHelper==null)
+            fileHelper= new FileHelper(context1,persistentUri1);
+         return fileHelper;
+    }
+
+    public static FileHelper  getFileHelper()
+    {
+        return fileHelper;
+    }
+
+   private FileHelper(Context context, Uri persistentUri){
         this.context=context;
         this.persistentUri=persistentUri;
         List<String> uriSegments=persistentUri.getPathSegments();
@@ -38,10 +55,16 @@ appFolder=uriSegments.get(1).split(":")[1];
 packageName=context.getPackageName();
     }
 
+    public String getAppFolder() {
+        return appFolder+"/";
+    }
+
     public OutputStream createFile(String path){
+
         OutputStream outputStream=null;
         try{
             detectFolders(path);
+            if(folders!=null)
             for(String folder:folders){
                 DocumentFile dir, check=root.findFile(folder);
                 if(check==null)
@@ -79,21 +102,22 @@ packageName=context.getPackageName();
         return true;
     }
 
+    public Uri readFromFile(String path){
+        Uri fileUri=null;
+        try{
+            if(isExist(path))
+                fileUri= root.findFile(filename).getUri();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+
+        }
+        return fileUri;
+    }
     public boolean deleteFile(String path){
         try{
-            detectFolders(path);
-            for(String folder:folders){
-                DocumentFile dir, check=root.findFile(folder);
-                if(check==null)
-                    return false;
-                else
-                    dir=check;
-                root=dir;
-            }
-            DocumentFile file  = root.findFile(filename);
-            if(file!=null)
-                file.delete();
-
+            if(isExist(path))
+            root.findFile(filename).delete();
         }
         catch (Exception e){
             e.printStackTrace();
@@ -102,6 +126,30 @@ packageName=context.getPackageName();
         return true;
     }
 
+    public boolean isExist(String path){
+        try{
+            detectFolders(path);
+            for(String folder:folders){
+                DocumentFile dir, check=root.findFile(folder);
+                if(check==null)
+                    continue;
+                else
+                    dir=check;
+                root=dir;
+            }
+            DocumentFile file  = root.findFile(filename);
+            if(file!=null)
+                return true;
+            else
+                return false;
+
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+
+    }
 
     public String zipPack(String zipName,List<String> paths) {
         String zipPath=zipName;
@@ -175,10 +223,14 @@ packageName=context.getPackageName();
     }
 
     private void detectFolders(String path){
-        ArrayList<String> folders= (ArrayList<String>) Arrays.asList(path.split("/"));
+        if(path.contains("/")){
+        ArrayList<String> folders= new ArrayList<>( Arrays.asList(path.split("/")));
         int length=folders.size();
         this.filename=folders.get(length-1);
-        this.folders=(ArrayList)folders.subList(0,length-1);
+        this.folders= folders.subList(0,length-1);
+        }
+        else
+        this.filename=path;
         this.root = DocumentFile.fromTreeUri(context, persistentUri);
     }
 

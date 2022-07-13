@@ -63,11 +63,13 @@ public class MainActivity extends AppCompatActivity {
     TabLayout memesCategories;
     //объект для работы с памятью
     FileHelper2 fileHelper2;
+    FileHelper fileHelper;
     //фрагменты с отображением списков мемов
     ArrayList<MemeListFragment> memeListFragments;
     //коды идентификации входящих Intent'ов
     private final int REQUEST_DB = 53;//импорт БД
     private final int REQUEST_GALLERY = 84;//добавление из галереи
+    private final int REQUEST_PERSISTENT = 145;//добавление из галереи
     //флаг режима мультивыбора для удалени
     public static boolean deletingMode=false;
     //меню в ActionBar
@@ -133,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
         pagerSlider.setSaveEnabled(false);
         toolbar=findViewById(R.id.mainToolbar);
         setSupportActionBar(toolbar);
-
+        checkPersistentUri();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.R)
@@ -384,23 +386,10 @@ public class MainActivity extends AppCompatActivity {
 
     //НА БУДУЩЕЕ вызов импорта базы данных
     public void selectDBforImport() {
-       // if (this.getContentResolver().getPersistedUriPermissions()==null)
-        ArrayList<UriPermission>qwe= (ArrayList<UriPermission>) this.getContentResolver().getPersistedUriPermissions();
-        if(qwe.size()!=0)
-            fileHelper2.setPersistentFolder(qwe.get(0).getUri());
-else
-        {
-            Intent intent1 = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-            intent1.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            intent1.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-            startActivityForResult(intent1, 111);
-        }
-
-
-      //  Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
-       // chooseFile.setType("*/*");
-      //  chooseFile = Intent.createChooser(chooseFile, "Choose a file");
-      // startActivityForResult(chooseFile, REQUEST_DB);
+        Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
+        chooseFile.setType("*/*");
+        chooseFile = Intent.createChooser(chooseFile, "Choose a file");
+       startActivityForResult(chooseFile, REQUEST_DB);
     }
 
     //получение результата от дочерней активности
@@ -452,7 +441,7 @@ else
 
 
 
-        if (requestCode ==111
+        if (requestCode ==REQUEST_PERSISTENT
                 && resultCode == Activity.RESULT_OK) {
             // The result data contains a URI for the document or directory that
             // the user selected.
@@ -467,15 +456,13 @@ else
                 getContentResolver().takePersistableUriPermission(uri, takeFlags);
 
 grantUriPermission(this.getPackageName(),uri,takeFlags);
-                //fileHelper2.setPersistentFolder(uri);
-                List<String> uriSegments=uri.getPathSegments();
-                appFolder=uriSegments.get(1).split(":")[1];
+                fileHelper = FileHelper.getFileHelper(this,uri);
+
 
             }
         }
 
     }
-   public static String appFolder;
     String saveFromUri(Uri uri) {
 
         String filename = "";
@@ -494,12 +481,12 @@ grantUriPermission(this.getPackageName(),uri,takeFlags);
             //получение потока входных данных
             inputStream = getContentResolver().openInputStream(uri);
 
-            fileHelper2.createnew(inputStream,filename);
+            //fileHelper2.createnew(inputStream,filename);
             //создание локального файла
             if (MemeObject.classfyByName(filename) != MemeObject.ARCH) {
-                fileHelper2.copyFile(inputStream, fileHelper2.createFile(filename));
-
-                insertToDB(filename);
+               // fileHelper2.copyFile(inputStream, fileHelper2.createFile(filename));
+                fileHelper.writeToFile(inputStream,fileHelper.createFile(FileClassifier.getMimeFolder(filename)+filename));
+                insertToDB(FileClassifier.getMimeFolder(filename)+filename);
             } else {
                 ArrayList<MemeGroup> imported = new FileHelper2(this).unzipPack(inputStream);//,FileHelper.getFullPath(filename));
                 for (MemeGroup thisGroup : imported) {
@@ -511,7 +498,7 @@ grantUriPermission(this.getPackageName(),uri,takeFlags);
                     if (MemeObject.classfyByName(thisGroup.name) == MemeObject.VIDEO || MemeObject.classfyByName(thisGroup.name) == MemeObject.GIF)
                         num = 1;
                     if (MemeObject.classfyByName(thisGroup.name) == MemeObject.HTTPS) {
-                        PreviewSaver previewSaver = new PreviewSaver(fileHelper2);
+                        PreviewSaver previewSaver = new PreviewSaver(fileHelper2,fileHelper);
                         previewSaver.execute(new String[]{thisGroup.getName()});
                         num = 1;
                     }
@@ -526,5 +513,21 @@ grantUriPermission(this.getPackageName(),uri,takeFlags);
             e.printStackTrace();
         }
         return filename;
+    }
+
+    public void checkPersistentUri(){
+        ArrayList<UriPermission>qwe= (ArrayList<UriPermission>) this.getContentResolver().getPersistedUriPermissions();
+        if(qwe.size()!=0){
+            fileHelper = FileHelper.getFileHelper(this,qwe.get(0).getUri());
+        }
+          else
+        {
+            Intent intent1 = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            intent1.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent1.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+            startActivityForResult(intent1, REQUEST_PERSISTENT);
+        }
+
+
     }
 }

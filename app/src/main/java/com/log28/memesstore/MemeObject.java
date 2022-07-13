@@ -4,8 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -72,14 +74,17 @@ public class MemeObject {
         this.memeTag=tag;
         this.context=context;
         memeBitmap= BitmapFactory.decodeResource(context.getResources(), R.raw.logo);
-        if(memesListAdapter!=null){
+       /* if(memesListAdapter!=null){
+            Log.d("OLOLOG","name "+name);
             BitmapLoader bitmapLoader=new BitmapLoader();
-            bitmapLoader.execute(memeName);
-        }
+            bitmapLoader.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR,memeName);
+        }*/
         memeType=classfyByName(memeName);
         memeTab=classifyByTab(memeName);
-        getMemeMimeType();
-        setFolder();
+        memeMimeType=FileClassifier.getMimeType(memeName);
+        memeFolder=FileClassifier.getMimeFolder(memeName);
+       // getMemeMimeType();
+       // setFolder();
 
     }
     public String getFolder(){
@@ -120,22 +125,44 @@ public class MemeObject {
 
     class BitmapLoader extends AsyncTask<String,Void, Bitmap> {
 
+        MemesListAdapter.ViewHolder holder;
+        BitmapLoader(MemesListAdapter.ViewHolder holder)
+        {
+            this.holder=holder;}
         @RequiresApi(api = Build.VERSION_CODES.R)
         @Override
         protected Bitmap doInBackground(String... strings) {
-            return new FileHelper2(context).getPreview(strings[0]);
+           // return new FileHelper2(context).getPreview(strings[0]);
+
+            Bitmap bitmap =null;
+           try {
+              /* BitmapFactory.Options options = new BitmapFactory.Options();
+               options.inJustDecodeBounds = true;
+               int koef = (int) ((float) (options.outWidth) / (float) (context.getDisplay().getWidth()) * 2);
+               if (koef % 2 != 0) koef++;
+               options.inSampleSize = koef;
+               options.inJustDecodeBounds = false;*/
+               bitmap =  BitmapFactory.decodeStream(context.getContentResolver().openInputStream(FileHelper.getFileHelper().readFromFile(strings[0])));//, new Rect(), options);
+               Log.d("OLOLOG","file "+strings[0]);
+           }
+           catch (Exception e){
+               e.printStackTrace();
+           }
+           return bitmap;
         }
 
         @Override
         protected void onPostExecute(Bitmap bitmap) {
             super.onPostExecute(bitmap);
-            memeBitmap=bitmap;
+            //memeBitmap=bitmap;
+            holder.memeImageView.setImageBitmap(bitmap);
             memesListAdapter.notifyDataSetChanged();
         }
     }
 
-    public Bitmap getBitmap(){
-
+    public Bitmap getBitmap(MemesListAdapter.ViewHolder holder){
+        BitmapLoader bitmapLoader=new BitmapLoader(holder);
+        bitmapLoader.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR,memeName);
         return memeBitmap;
     }
 

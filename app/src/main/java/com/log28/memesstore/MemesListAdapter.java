@@ -65,7 +65,7 @@ MemesListAdapter thisAdapter;
 
             //еcли  имя файла не имеет расширения (ссылка на веб-ресурс)
             //или сам файл существует на диске, то добавляется в список
-            if(!currentFile.contains(".")||new FileHelper2(context).isExist(currentFile))
+            if(!currentFile.contains(".")||FileHelper.getFileHelper().isExist(currentFile))
             {
 
                 //создание списка мемов
@@ -106,7 +106,8 @@ try{
         else
             holder.deleteCheck.setChecked(false);
 
-            holder.memeImageView.setImageBitmap(filteredMemes.get(position).getBitmap());
+            //holder.memeImageView.setImageBitmap(filteredMemes.get(position).getBitmap(holder));
+    filteredMemes.get(position).getBitmap(holder);
             holder.memeTag.setText(filteredMemes.get(position).getTag());
 
 
