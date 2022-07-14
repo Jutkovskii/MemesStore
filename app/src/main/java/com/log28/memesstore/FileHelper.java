@@ -30,24 +30,7 @@ public class FileHelper {
     String filename;
     DocumentFile root;
 
-    private  static  Context context1;
-    private  static   Uri persistentUri1;
-    private static FileHelper fileHelper;
-
-    public static FileHelper getFileHelper(Context context, Uri persistentUri){
-        context1=context;
-        persistentUri1=persistentUri;
-        if(fileHelper==null)
-            fileHelper= new FileHelper(context1,persistentUri1);
-         return fileHelper;
-    }
-
-    public static FileHelper  getFileHelper()
-    {
-        return fileHelper;
-    }
-
-   private FileHelper(Context context, Uri persistentUri){
+   public FileHelper(Context context, Uri persistentUri){
         this.context=context;
         this.persistentUri=persistentUri;
         List<String> uriSegments=persistentUri.getPathSegments();

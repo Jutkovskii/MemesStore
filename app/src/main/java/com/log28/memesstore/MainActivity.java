@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
     TabLayout memesCategories;
     //объект для работы с памятью
     FileHelper2 fileHelper2;
-    FileHelper fileHelper;
+    FileHelper memeFileHelper;
     //фрагменты с отображением списков мемов
     ArrayList<MemeListFragment> memeListFragments;
     //коды идентификации входящих Intent'ов
@@ -456,7 +456,7 @@ public class MainActivity extends AppCompatActivity {
                 getContentResolver().takePersistableUriPermission(uri, takeFlags);
 
 grantUriPermission(this.getPackageName(),uri,takeFlags);
-                fileHelper = FileHelper.getFileHelper(this,uri);
+                memeFileHelper = MemeFileHelper.createFileHelper(this,uri);
 
 
             }
@@ -485,7 +485,7 @@ grantUriPermission(this.getPackageName(),uri,takeFlags);
             //создание локального файла
             if (MemeObject.classfyByName(filename) != MemeObject.ARCH) {
                // fileHelper2.copyFile(inputStream, fileHelper2.createFile(filename));
-                fileHelper.writeToFile(inputStream,fileHelper.createFile(FileClassifier.getMimeFolder(filename)+filename));
+                memeFileHelper.writeToFile(inputStream, memeFileHelper.createFile(FileClassifier.getMimeFolder(filename)+filename));
                 insertToDB(FileClassifier.getMimeFolder(filename)+filename);
             } else {
                 ArrayList<MemeGroup> imported = new FileHelper2(this).unzipPack(inputStream);//,FileHelper.getFullPath(filename));
@@ -498,7 +498,7 @@ grantUriPermission(this.getPackageName(),uri,takeFlags);
                     if (MemeObject.classfyByName(thisGroup.name) == MemeObject.VIDEO || MemeObject.classfyByName(thisGroup.name) == MemeObject.GIF)
                         num = 1;
                     if (MemeObject.classfyByName(thisGroup.name) == MemeObject.HTTPS) {
-                        PreviewSaver previewSaver = new PreviewSaver(fileHelper2,fileHelper);
+                        PreviewSaver previewSaver = new PreviewSaver(fileHelper2, memeFileHelper);
                         previewSaver.execute(new String[]{thisGroup.getName()});
                         num = 1;
                     }
@@ -518,7 +518,7 @@ grantUriPermission(this.getPackageName(),uri,takeFlags);
     public void checkPersistentUri(){
         ArrayList<UriPermission>qwe= (ArrayList<UriPermission>) this.getContentResolver().getPersistedUriPermissions();
         if(qwe.size()!=0){
-            fileHelper = FileHelper.getFileHelper(this,qwe.get(0).getUri());
+            memeFileHelper = MemeFileHelper.createFileHelper(this,qwe.get(0).getUri());
         }
           else
         {

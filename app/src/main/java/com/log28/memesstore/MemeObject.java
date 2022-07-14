@@ -54,7 +54,7 @@ public class MemeObject {
     public static final int VK=21;
     public static final int DISCORD=22;
     MemeObject(MemesListAdapter memesListAdapter,String name) {
-        this.memesListAdapter=memesListAdapter;
+
         init(memesListAdapter.context,name,"");
     }
     MemeObject(Context context,String name) {
@@ -64,7 +64,7 @@ public class MemeObject {
         init(context,name,tag);
     }
     MemeObject(MemesListAdapter memesListAdapter,String name,String tag){
-        this.memesListAdapter=memesListAdapter;
+this.memesListAdapter=memesListAdapter;
         init(memesListAdapter.context,name,tag);
     }
 
@@ -128,41 +128,28 @@ public class MemeObject {
         MemesListAdapter.ViewHolder holder;
         BitmapLoader(MemesListAdapter.ViewHolder holder)
         {
-            this.holder=holder;}
+            this.holder=holder;
+            this.holder.memeImageView.setImageBitmap( memeBitmap);
+        }
         @RequiresApi(api = Build.VERSION_CODES.R)
         @Override
         protected Bitmap doInBackground(String... strings) {
-           // return new FileHelper2(context).getPreview(strings[0]);
+            return MemeFileHelper.createFileHelper().getPreview(strings[0]);
 
-            Bitmap bitmap =null;
-           try {
-              /* BitmapFactory.Options options = new BitmapFactory.Options();
-               options.inJustDecodeBounds = true;
-               int koef = (int) ((float) (options.outWidth) / (float) (context.getDisplay().getWidth()) * 2);
-               if (koef % 2 != 0) koef++;
-               options.inSampleSize = koef;
-               options.inJustDecodeBounds = false;*/
-               bitmap =  BitmapFactory.decodeStream(context.getContentResolver().openInputStream(FileHelper.getFileHelper().readFromFile(strings[0])));//, new Rect(), options);
-               Log.d("OLOLOG","file "+strings[0]);
-           }
-           catch (Exception e){
-               e.printStackTrace();
-           }
-           return bitmap;
         }
 
         @Override
         protected void onPostExecute(Bitmap bitmap) {
             super.onPostExecute(bitmap);
-            //memeBitmap=bitmap;
+            memeBitmap=bitmap;
             holder.memeImageView.setImageBitmap(bitmap);
-            memesListAdapter.notifyDataSetChanged();
+            //memesListAdapter.notifyDataSetChanged();
         }
     }
 
     public Bitmap getBitmap(MemesListAdapter.ViewHolder holder){
         BitmapLoader bitmapLoader=new BitmapLoader(holder);
-        bitmapLoader.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR,memeName);
+        bitmapLoader.execute(memeName);
         return memeBitmap;
     }
 

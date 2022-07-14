@@ -37,16 +37,17 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
     MemeDatabaseHelper db;
     public boolean deletingMode=false;
 
-MemesListAdapter thisAdapter;
+
+    //static MemesListAdapter memesListAdapter;
     public List<MemeObject> memeObjects,filteredMemes;
     public List<Integer> selected;
 
     public MemesListAdapter(Context context,  MemeDatabaseHelper db){
-        Log.d("OLOLOG","Адаптер созадние "+db.name );
+
         this.db=db;
         this.context = context;
         getDB();
-        thisAdapter=this;
+
     }
     public void getDB(){
         Cursor cursor = db.getCursor();
@@ -65,7 +66,7 @@ MemesListAdapter thisAdapter;
 
             //еcли  имя файла не имеет расширения (ссылка на веб-ресурс)
             //или сам файл существует на диске, то добавляется в список
-            if(!currentFile.contains(".")||FileHelper.getFileHelper().isExist(currentFile))
+            if(!currentFile.contains(".")||MemeFileHelper.createFileHelper().isExist(currentFile))
             {
 
                 //создание списка мемов
@@ -86,7 +87,8 @@ MemesListAdapter thisAdapter;
         View itemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.meme_card_view, parent, false);
         ViewHolder vh = new ViewHolder(itemView);
-        vh.memesListAdapter=this;
+       // vh.memesListAdapter=this;
+        Log.d("OLOLOG","создание холдера " );
         return vh;
     }
 
@@ -96,6 +98,7 @@ MemesListAdapter thisAdapter;
     public void onBindViewHolder(@NonNull MemesListAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
 
 try{
+    Log.d("OLOLOG","биндинг холдера " );
         //устанавливаем битмап согласно имени файла
         if(deletingMode)
             holder.deleteCheck.setVisibility(CheckBox.VISIBLE);
@@ -106,7 +109,7 @@ try{
         else
             holder.deleteCheck.setChecked(false);
 
-            //holder.memeImageView.setImageBitmap(filteredMemes.get(position).getBitmap(holder));
+    //holder.memeImageView.setImageBitmap(filteredMemes.get(position).getBitmap());
     filteredMemes.get(position).getBitmap(holder);
             holder.memeTag.setText(filteredMemes.get(position).getTag());
 
@@ -231,7 +234,7 @@ try{
         public CardView memeCardView;
         public TextView memeTag;
         public CheckBox deleteCheck;
-        MemesListAdapter memesListAdapter;
+        //MemesListAdapter memesListAdapter;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             memeCardView = itemView.findViewById(R.id.memeCardView);
