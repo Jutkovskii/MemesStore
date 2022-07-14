@@ -98,7 +98,7 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
     public void onBindViewHolder(@NonNull MemesListAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
 
 try{
-    Log.d("OLOLOG","биндинг холдера " );
+    Log.d("OLOLOG","имя " + filteredMemes.get(position).getName()+"позиция "+String.valueOf(position));
         //устанавливаем битмап согласно имени файла
         if(deletingMode)
             holder.deleteCheck.setVisibility(CheckBox.VISIBLE);
@@ -110,7 +110,7 @@ try{
             holder.deleteCheck.setChecked(false);
 
     //holder.memeImageView.setImageBitmap(filteredMemes.get(position).getBitmap());
-    filteredMemes.get(position).getBitmap(holder);
+            filteredMemes.get(position).getBitmap(holder);
             holder.memeTag.setText(filteredMemes.get(position).getTag());
 
 

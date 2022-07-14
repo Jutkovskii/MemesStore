@@ -164,10 +164,10 @@ fileHelper.createnew(inputStream,filename);
 
     }
     //новая версия
-    public Bitmap getPreview(MemeObject memeObject){
+    /*public Bitmap getPreview(MemeObject memeObject){
         return memeObject.getThumbnailBitmap();
 
-    }
+    }*/
     //изменение размера слишком больших файлов для ускорения работы(ЗАМЕНИТЬ!)
     @RequiresApi(api = Build.VERSION_CODES.R)
     public BitmapFactory.Options getOptions(String filename) {
