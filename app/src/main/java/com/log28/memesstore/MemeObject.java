@@ -74,11 +74,11 @@ this.memesListAdapter=memesListAdapter;
         this.memeTag=tag;
         this.context=context;
         memeBitmap= BitmapFactory.decodeResource(context.getResources(), R.raw.logo);
-       /* if(memesListAdapter!=null){
+       if(memesListAdapter!=null){
             Log.d("OLOLOG","name "+name);
             BitmapLoader bitmapLoader=new BitmapLoader();
-            bitmapLoader.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR,memeName);
-        }*/
+            bitmapLoader.execute(memeName);
+        }
         memeType=classfyByName(memeName);
         memeTab=classifyByTab(memeName);
         memeMimeType=FileClassifier.getMimeType(memeName);
@@ -125,16 +125,10 @@ this.memesListAdapter=memesListAdapter;
 
     class BitmapLoader extends AsyncTask<String,Void, Bitmap> {
 
-        MemesListAdapter.ViewHolder holder;
-        BitmapLoader(MemesListAdapter.ViewHolder holder)
-        {
-            this.holder=holder;
-            this.holder.memeImageView.setImageBitmap( memeBitmap);
-        }
         @RequiresApi(api = Build.VERSION_CODES.R)
         @Override
         protected Bitmap doInBackground(String... strings) {
-            return MemeFileHelper.createFileHelper().getPreview(strings[0]);
+            return MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(strings[0]);
 
         }
 
@@ -142,14 +136,14 @@ this.memesListAdapter=memesListAdapter;
         protected void onPostExecute(Bitmap bitmap) {
             super.onPostExecute(bitmap);
             memeBitmap=bitmap;
-            holder.memeImageView.setImageBitmap(bitmap);
+            //holder.memeImageView.setImageBitmap(bitmap);
             //memesListAdapter.notifyDataSetChanged();
         }
     }
 
-    public Bitmap getBitmap(MemesListAdapter.ViewHolder holder){
-        BitmapLoader bitmapLoader=new BitmapLoader(holder);
-        bitmapLoader.execute(memeName);
+    public Bitmap getBitmap(){
+      /*  BitmapLoader bitmapLoader=new BitmapLoader(holder);
+        bitmapLoader.execute(memeName);*/
         return memeBitmap;
     }
 

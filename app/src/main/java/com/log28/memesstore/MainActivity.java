@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
-
+public  static  Uri uriFolder;
     String searchMemeTag="";
     //Список с базами данных с мемами
     ArrayList<MemeDatabaseHelper> databases;
@@ -448,6 +448,7 @@ public class MainActivity extends AppCompatActivity {
             Uri uri = null;
             if (data != null) {
                 uri = data.getData();
+                uriFolder=uri;
                 // Perform operations on the document using its URI.
                 final int takeFlags = data.getFlags()
                         & (Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -516,8 +517,10 @@ grantUriPermission(this.getPackageName(),uri,takeFlags);
     }
 
     public void checkPersistentUri(){
+
         ArrayList<UriPermission>qwe= (ArrayList<UriPermission>) this.getContentResolver().getPersistedUriPermissions();
         if(qwe.size()!=0){
+            uriFolder=qwe.get(0).getUri();
             memeFileHelper = MemeFileHelper.createFileHelper(this,qwe.get(0).getUri());
         }
           else

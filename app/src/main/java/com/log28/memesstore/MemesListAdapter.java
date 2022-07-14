@@ -66,7 +66,7 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
 
             //еcли  имя файла не имеет расширения (ссылка на веб-ресурс)
             //или сам файл существует на диске, то добавляется в список
-            if(!currentFile.contains(".")||MemeFileHelper.createFileHelper().isExist(currentFile))
+            if(!currentFile.contains(".")||MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).isExist(currentFile))
             {
 
                 //создание списка мемов
@@ -109,8 +109,8 @@ try{
         else
             holder.deleteCheck.setChecked(false);
 
-    //holder.memeImageView.setImageBitmap(filteredMemes.get(position).getBitmap());
-    filteredMemes.get(position).getBitmap(holder);
+    holder.memeImageView.setImageBitmap(filteredMemes.get(position).getBitmap());
+    //filteredMemes.get(position).getBitmap(holder);
             holder.memeTag.setText(filteredMemes.get(position).getTag());
 
 
