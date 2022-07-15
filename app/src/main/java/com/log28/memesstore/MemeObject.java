@@ -19,7 +19,7 @@ public class MemeObject {
     private String memeFolder, thumbnailFolder;
     private  String memeMimeType;
     private String memeTag;
-    //private Bitmap memeBitmap, thumbnailBitmap;
+    private Bitmap memeBitmap, thumbnailBitmap;
     private int memeType;
     private int memeTab;
 
@@ -73,12 +73,12 @@ this.memesListAdapter=memesListAdapter;
         this.memeName=name;
         this.memeTag=tag;
         this.context=context;
-       /* memeBitmap= BitmapFactory.decodeResource(context.getResources(), R.raw.logo);
-        if(memesListAdapter!=null){
+        memeBitmap= BitmapFactory.decodeResource(context.getResources(), R.raw.logo);
+       if(memesListAdapter!=null){
             Log.d("OLOLOG","name "+name);
             BitmapLoader bitmapLoader=new BitmapLoader();
-            bitmapLoader.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR,memeName);
-        }*/
+            bitmapLoader.execute(memeName);
+        }
         memeType=classfyByName(memeName);
         memeTab=classifyByTab(memeName);
         memeMimeType=FileClassifier.getMimeType(memeName);
@@ -125,39 +125,31 @@ this.memesListAdapter=memesListAdapter;
 
     class BitmapLoader extends AsyncTask<String,Void, Bitmap> {
 
-        MemesListAdapter.ViewHolder holder;
-        BitmapLoader(MemesListAdapter.ViewHolder holder)
-        {
-            this.holder=holder;
-            this.holder.memeImageView.setImageBitmap( BitmapFactory.decodeResource(context.getResources(), R.raw.logo));
-        }
         @RequiresApi(api = Build.VERSION_CODES.R)
         @Override
         protected Bitmap doInBackground(String... strings) {
-            Log.d("OLOLOG","фон имя " + getName());
-            return MemeFileHelper.createFileHelper().getPreview(strings[0]);
+            return MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(strings[0]);
 
         }
 
         @Override
         protected void onPostExecute(Bitmap bitmap) {
             super.onPostExecute(bitmap);
-           // memeBitmap=bitmap;
-            holder.memeImageView.setImageBitmap(bitmap);
-            Log.d("OLOLOG","после имя " + getName());
+            memeBitmap=bitmap;
+            //holder.memeImageView.setImageBitmap(bitmap);
             //memesListAdapter.notifyDataSetChanged();
         }
     }
 
-    public void getBitmap(MemesListAdapter.ViewHolder holder){
-        BitmapLoader bitmapLoader=new BitmapLoader(holder);
-        bitmapLoader.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR,memeName);
-        //return memeBitmap;
+    public Bitmap getBitmap(){
+      /*  BitmapLoader bitmapLoader=new BitmapLoader(holder);
+        bitmapLoader.execute(memeName);*/
+        return memeBitmap;
     }
 
-    /*public Bitmap getThumbnailBitmap(){
+    public Bitmap getThumbnailBitmap(){
         return thumbnailBitmap;
-    }*/
+    }
 
     public static int classfyByName(String memeName){
         memeName=memeName.toLowerCase();

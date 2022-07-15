@@ -55,7 +55,7 @@ this.filename =filename;
         memeImageView = view.findViewById(R.id.memeImageView);
        // memeImageView.setImageBitmap(new FileHelper2(context).getPreview(filename));
         try {
-            memeImageView.setImageBitmap(BitmapFactory.decodeStream(context.getContentResolver().openInputStream(MemeFileHelper.createFileHelper().readFromFile(filename))));
+            memeImageView.setImageBitmap(BitmapFactory.decodeStream(context.getContentResolver().openInputStream(MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).readFromFile(filename))));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

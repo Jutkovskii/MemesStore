@@ -12,10 +12,13 @@ import androidx.annotation.RequiresApi;
 import java.io.InputStream;
 
 public class MemeFileHelper extends FileHelper {
+    public MemeFileHelper(Context context, Uri persistentUri) {
+        super(context, persistentUri);
+    }
 
     //private static FileHelper fileHelper;
 
-    private static MemeFileHelper memeFileHelper;
+    /*private static MemeFileHelper memeFileHelper;
     private MemeFileHelper(Context context, Uri persistentUri){
         super(context,persistentUri);
         //new FileHelper(context,persistentUri);
@@ -23,14 +26,15 @@ public class MemeFileHelper extends FileHelper {
     public static MemeFileHelper createFileHelper()
     {
         return memeFileHelper;
-    }
+    }*/
     public static MemeFileHelper createFileHelper(Context context, Uri persistentUri){
-        if(memeFileHelper==null)
+        /*if(memeFileHelper==null)
         {
             memeFileHelper = new MemeFileHelper(context,persistentUri);
-        }
-        return memeFileHelper;
+        }*/
+        return new MemeFileHelper(context,persistentUri);
     }
+
 
     @RequiresApi(api = Build.VERSION_CODES.R)
     public Bitmap getPreview(String filePath){
