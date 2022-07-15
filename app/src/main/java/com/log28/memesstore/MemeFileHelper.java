@@ -16,25 +16,9 @@ public class MemeFileHelper extends FileHelper {
         super(context, persistentUri);
     }
 
-    //private static FileHelper fileHelper;
-
-    /*private static MemeFileHelper memeFileHelper;
-    private MemeFileHelper(Context context, Uri persistentUri){
-        super(context,persistentUri);
-        //new FileHelper(context,persistentUri);
-    }
-    public static MemeFileHelper createFileHelper()
-    {
-        return memeFileHelper;
-    }*/
     public static MemeFileHelper createFileHelper(Context context, Uri persistentUri){
-        /*if(memeFileHelper==null)
-        {
-            memeFileHelper = new MemeFileHelper(context,persistentUri);
-        }*/
         return new MemeFileHelper(context,persistentUri);
     }
-
 
     @RequiresApi(api = Build.VERSION_CODES.R)
     public Bitmap getPreview(String filePath){

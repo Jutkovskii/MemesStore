@@ -23,8 +23,10 @@ public class ImageFragment extends Fragment {
 ImageView memeImageView;
 String relativeFilepath;
     Context context;
-    public ImageFragment() {
-        // Required empty public constructor
+    int layoutID;
+    public ImageFragment(int layoutID,String relativeFilepath) {
+        this.layoutID=layoutID;
+        this.relativeFilepath=relativeFilepath;
     }
 
     @Override
@@ -37,16 +39,11 @@ String relativeFilepath;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_image, container, false);
-        //context=container.getContext();
+        View view = inflater.inflate(layoutID, container, false);
         context=view.getContext();
         return view;
     }
 
-    public void setMemeRelativeFilepath(String relativeFilepath){
-this.relativeFilepath =relativeFilepath;
-
-    }
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -54,8 +51,7 @@ this.relativeFilepath =relativeFilepath;
         memeImageView = view.findViewById(R.id.memeImageView);
         try {
             memeImageView.setImageBitmap( MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(relativeFilepath));
-           // memeImageView.setImageBitmap(BitmapFactory.decodeStream(context.getContentResolver().openInputStream(MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).readFromFile(relativeFilepath))));
-        } catch (Exception e) {
+      } catch (Exception e) {
             e.printStackTrace();
         }
     }

@@ -19,9 +19,11 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTube
 public class VideoFragment extends Fragment {
 
     YouTubePlayerView youTubePlayerView;
-    String filename;
-    public VideoFragment() {
-
+    String relativeFilepath;
+    int layoutID;
+    public VideoFragment(int layoutID,String relativeFilepath) {
+        this.layoutID=layoutID;
+        this.relativeFilepath=relativeFilepath;
     }
 
 
@@ -35,7 +37,7 @@ public class VideoFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        return inflater.inflate(R.layout.fragment_video, container, false);
+        return inflater.inflate(layoutID, container, false);
     }
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -46,7 +48,7 @@ youTubePlayerView = view.findViewById(R.id.memeVideoView);
             @Override
             public void onReady(YouTubePlayer youTubePlayer) {
 
-                youTubePlayer.cueVideo(filename,0);
+                youTubePlayer.cueVideo(relativeFilepath,0);
             }
 
             @Override
@@ -96,8 +98,5 @@ youTubePlayerView = view.findViewById(R.id.memeVideoView);
         });
 
     }
-    public void setMemeImage(String filename){
 
-        this.filename = filename;
-    }
 }

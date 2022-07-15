@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Intent;
@@ -34,11 +35,7 @@ public class MemeViewerActivity extends AppCompatActivity {
     EditText memeSign;
 
     EditText currentMemeTag;
-    //фрагменты, выбираемые в зависимости от типа файла
-    ImageFragment imageFragment;
-    VideoLocalFragment videoLocalFragment;
-    VideoFragment videoFragment;
-    GifFragment gifFragment;
+
     String memeTag="";
 
     Toolbar toolbar;
@@ -51,36 +48,12 @@ public class MemeViewerActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("МЕМОХРАНИЛИЩЕ");
         Intent intent = getIntent();
-        //получение имени файла
+          //получение имени файла
         filename = intent.getStringExtra(FILENAME_EXTRA);
         memeTag=intent.getStringExtra(FILETAG_EXTRA);
-        //ЗАГЛУШКА!!!!
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         //выбор фрагмента в зависимости от типа
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        switch (FileClassifier.classfyByName(filename)){
-            case FileClassifier.IMAGE:
-                imageFragment = new ImageFragment();
-                imageFragment.setMemeRelativeFilepath(filename);
-                fragmentTransaction.add(R.id.memeViewLayout,imageFragment);
-                break;
-            case FileClassifier.HTTPS:
-                videoFragment = new VideoFragment();
-                videoFragment.setMemeImage(filename);
-                fragmentTransaction.add(R.id.memeViewLayout, videoFragment);
-                break;
-            case FileClassifier.VIDEO:
-                videoLocalFragment = new VideoLocalFragment();
-                videoLocalFragment.setMemeImage(filename);
-                fragmentTransaction.add(R.id.memeViewLayout, videoLocalFragment);
-                break;
-            case FileClassifier.GIF:
-                gifFragment = new GifFragment();
-                gifFragment.setMemeImage(filename);
-                fragmentTransaction.add(R.id.memeViewLayout, gifFragment);
-                break;
-        }
-
+        fragmentTransaction.add(R.id.memeViewLayout, getFragment(filename));
         fragmentTransaction.commit();
         memeSign=findViewById(R.id.memeSign);
         currentMemeTag=findViewById(R.id.currentMemeTag);
@@ -164,4 +137,16 @@ public class MemeViewerActivity extends AppCompatActivity {
 
 
     }
+
+    static int layoutIDs[]={R.layout.fragment_image,R.layout.fragment_gif,R.layout.fragment_video,R.layout.fragment_video_local};
+    public static Fragment getFragment(String relativeFilepath){
+switch (FileClassifier.classfyByName(relativeFilepath)){
+    case FileClassifier.IMAGE:return new ImageFragment(layoutIDs[0],relativeFilepath);
+    case FileClassifier.GIF:return new ImageFragment(layoutIDs[1],relativeFilepath);
+    case FileClassifier.HTTPS:return new ImageFragment(layoutIDs[2],relativeFilepath);
+    case FileClassifier.VIDEO:return new ImageFragment(layoutIDs[3],relativeFilepath);
+        }
+        return null;
+    }
+
 }

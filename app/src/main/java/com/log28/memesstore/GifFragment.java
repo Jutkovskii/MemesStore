@@ -19,13 +19,17 @@ import java.io.InputStream;
 public class GifFragment extends Fragment {
 
 
-    String filename;
+    String relativeFilepath;
     Context context;
-
+    int layoutID;
+    public GifFragment(int layoutID,String relativeFilepath) {
+        this.layoutID=layoutID;
+        this.relativeFilepath=relativeFilepath;
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_gif, container, false);
+        View view = inflater.inflate(layoutID, container, false);
         context=view.getContext();
         return view;
     }
@@ -34,9 +38,7 @@ public class GifFragment extends Fragment {
         super.onViewCreated(view, null);
         InputStream stream = null;
         try {
-            String path = FileHelper2.getFullPath(filename);
-
-            //stream = context.getAssets().open(path);
+            String path =relativeFilepath;
             stream = new FileInputStream(path);
 
         } catch (Exception e) {
@@ -47,13 +49,9 @@ public class GifFragment extends Fragment {
         ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) layout.getLayoutParams();
         params.constrainedWidth=true;
 
-        //gifView.setLayoutParams(params);
         layout.addView(gifView);
 
     }
 
-    public void setMemeImage(String filename){
-        this.filename  = filename;
 
-    }
 }
