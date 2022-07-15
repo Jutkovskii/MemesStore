@@ -15,7 +15,6 @@ import android.view.ViewGroup;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
-import static com.log28.memesstore.FileHelper2.getFullPath;
 
 public class GifFragment extends Fragment {
 
@@ -24,24 +23,15 @@ public class GifFragment extends Fragment {
     Context context;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-
         View view = inflater.inflate(R.layout.fragment_gif, container, false);
         context=view.getContext();
-
         return view;
     }
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, null);// savedInstanceState);
+        super.onViewCreated(view, null);
         InputStream stream = null;
         try {
             String path = FileHelper2.getFullPath(filename);

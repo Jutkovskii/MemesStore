@@ -86,26 +86,26 @@ public class FileHelper2 {
     //получение полного пути к файлу (ЗАМЕНИТЬ!)
     public static String getFullPath(String filename) {
         String path = "";
-        switch (MemeObject.classfyByName(filename)) {
-            case MemeObject.IMAGE:
+        switch (FileClassifier.classfyByName(filename)) {
+            case FileClassifier.IMAGE:
                 path = root + defaultImages + filename;
                 break;
-            case MemeObject.VIDEO:
+            case FileClassifier.VIDEO:
                 path = root + defaultVideos + filename;
                 break;
-            case MemeObject.GIF:
+            case FileClassifier.GIF:
                 path = root + defaultGifs + filename;
                 break;
-            case MemeObject.HTTPS:
+            case FileClassifier.HTTPS:
                 path = root + defaultPreviews + filename + ".jpg";
                 break;
-            case MemeObject.ARCH:
+            case FileClassifier.ARCH:
                 path = root + Environment.DIRECTORY_DOWNLOADS + "/" + filename;
                 break;
-            case MemeObject.DB:
+            case FileClassifier.DB:
                 path = root + Environment.DIRECTORY_DOWNLOADS + "/" + filename;
                 break;
-            case MemeObject.TEMP:
+            case FileClassifier.TEMP:
                 // path = ((context == null) ? root + Environment.DIRECTORY_DOWNLOADS : context.getExternalCacheDir().getAbsolutePath()) + "/" + filename;
                 path = root + Environment.DIRECTORY_DOWNLOADS + "/" + filename;
                 break;
@@ -115,15 +115,15 @@ public class FileHelper2 {
         return path;
     }
     //новая версия (а может и вовсе избавиться?)
-    public static String getFullPath(MemeObject memeObject) {
-        return memeObject.getFolder();
+    public static String getFullPath(FileClassifier memeObject) {
+        return "";//memeObject.getFolder();
     }
     //проверка существования файла
     public boolean isExist(String filename) {
         return this.fileHelper.isExist(filename);
     }
     public void createnew(InputStream inputStream, String filename) {
-fileHelper.createnew(inputStream,filename);
+        fileHelper.createnew(inputStream,filename);
     }
     //создание файла
     public OutputStream createFile(String filename) {
@@ -164,7 +164,7 @@ fileHelper.createnew(inputStream,filename);
 
     }
     //новая версия
-    /*public Bitmap getPreview(MemeObject memeObject){
+    /*public Bitmap getPreview(FileClassifier memeObject){
         return memeObject.getThumbnailBitmap();
 
     }*/
@@ -173,7 +173,7 @@ fileHelper.createnew(inputStream,filename);
     public BitmapFactory.Options getOptions(String filename) {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
-        if (MemeObject.classfyByName(filename) != MemeObject.VIDEO) {
+        if (FileClassifier.classfyByName(filename) != FileClassifier.VIDEO) {
             BitmapFactory.decodeFile(getFullPath(filename), options);
             int koef = (int) ((float) (options.outWidth) / (float) (context.getDisplay().getWidth()) * 2);
             if (koef % 2 != 0) koef++;
@@ -188,7 +188,7 @@ fileHelper.createnew(inputStream,filename);
     //рудимент. Использовался для борьбы со стикеризацией изображений в Телеграме(ЗАМЕНИТЬ!)
     @RequiresApi(api = Build.VERSION_CODES.R)
     public void resizeImageForTG(String filename) {
-        if (MemeObject.classfyByName(filename) == MemeObject.IMAGE) {
+        if (FileClassifier.classfyByName(filename) == FileClassifier.IMAGE) {
             BitmapFactory.Options options = getOptions(filename);
             float width = options.outWidth;
             float height = options.outHeight;
@@ -236,7 +236,7 @@ String packageName=context.getPackageName();
                     file=file.substring(m2.end());
                 }
                 else*/
-                if (MemeObject.classfyByName(file)==MemeObject.DB)
+                if (FileClassifier.classfyByName(file)==FileClassifier.DB)
                     file = file.substring(file.lastIndexOf("databases") + 10);
                 else
                     file = file.substring(file.lastIndexOf("/") + 1);
@@ -290,7 +290,7 @@ String packageName=context.getPackageName();
                     bufout.close();
                     fout.close();
                 }
-                if (MemeObject.classfyByName(name) == MemeObject.DB)
+                if (FileClassifier.classfyByName(name) == FileClassifier.DB)
                     BDs.add(name);
 
             }
@@ -333,15 +333,15 @@ String packageName=context.getPackageName();
                 String path=persistentUri.getEncodedPath();
 
                 DocumentFile root = DocumentFile.fromTreeUri(context, persistentUri);
-               DocumentFile temp= root.findFile("backu__qwep");
+                DocumentFile temp= root.findFile("backu__qwep");
                 DocumentFile backupDirUri;
-               if(temp==null)
-                 backupDirUri = root.createDirectory("backu//qwep");
-               else
-                  backupDirUri=temp;
-                DocumentFile f = backupDirUri.createFile(MemeObject.getMemeMimeType(1), filename);
+                if(temp==null)
+                    backupDirUri = root.createDirectory("backu//qwep");
+                else
+                    backupDirUri=temp;
+                DocumentFile f = backupDirUri.createFile(FileClassifier.getMemeMimeType(1), filename);
                 DocumentFile backupDirUri2 = backupDirUri.createDirectory("qwe");
-                f = backupDirUri.createFile(MemeObject.getMemeMimeType(1), filename);
+                f = backupDirUri.createFile(FileClassifier.getMemeMimeType(1), filename);
 
 
                 Uri locuri = f.getUri();
@@ -405,17 +405,17 @@ String packageName=context.getPackageName();
         public Bitmap getPreview(String filename, BitmapFactory.Options options) {
             Bitmap preview = null;
 
-            switch (MemeObject.classfyByName(filename)) {
-                case MemeObject.IMAGE:
+            switch (FileClassifier.classfyByName(filename)) {
+                case FileClassifier.IMAGE:
                     preview = BitmapFactory.decodeFile(getFullPath(filename), options);
                     break;
-                case MemeObject.VIDEO:
+                case FileClassifier.VIDEO:
                     preview = ThumbnailUtils.createVideoThumbnail(getFullPath(filename), MediaStore.Images.Thumbnails.MINI_KIND);
                     break;
-                case MemeObject.GIF:
+                case FileClassifier.GIF:
                     preview = BitmapFactory.decodeFile(getFullPath(filename), options);
                     break;
-                case MemeObject.HTTPS:
+                case FileClassifier.HTTPS:
                     preview = BitmapFactory.decodeFile(getFullPath(filename));
                     break;
             }
@@ -455,32 +455,32 @@ String packageName=context.getPackageName();
                 ContentResolver contentResolver = context.getContentResolver();
                 Uri locuri = null;
                 //deleteFile(filename);
-                switch (MemeObject.classfyByName(filename)) {
-                    case MemeObject.IMAGE:
+                switch (FileClassifier.classfyByName(filename)) {
+                    case FileClassifier.IMAGE:
                         contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, defaultImages);
                         contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
                         locuri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
                         break;
-                    case MemeObject.VIDEO:
+                    case FileClassifier.VIDEO:
                         contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, defaultVideos);
                         contentValues.put(MediaStore.Video.Media.DISPLAY_NAME, filename);
                         locuri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
                         break;
-                    case MemeObject.GIF:
+                    case FileClassifier.GIF:
                         contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, defaultGifs);
                         contentValues.put(MediaStore.Video.Media.DISPLAY_NAME, filename);
                         locuri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
                         break;
-                    case MemeObject.HTTPS:
+                    case FileClassifier.HTTPS:
                         contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, defaultPreviews);
                         contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, filename + ".jpg");
                         locuri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
                         break;
-                    case MemeObject.ARCH:
+                    case FileClassifier.ARCH:
                         String folderPath = Environment.DIRECTORY_DOWNLOADS;//+File.separator + "MemesStoreExport/";
                         contentValues.put(MediaStore.DownloadColumns.RELATIVE_PATH, folderPath);
                         contentValues.put(MediaStore.DownloadColumns.DISPLAY_NAME, filename);
-                    case MemeObject.DB:
+                    case FileClassifier.DB:
                         String dbfolderPath = Environment.DIRECTORY_DOWNLOADS;//+File.separator + "MemesStoreExport/";
                         contentValues.put(MediaStore.DownloadColumns.RELATIVE_PATH, dbfolderPath);
                         contentValues.put(MediaStore.DownloadColumns.DISPLAY_NAME, filename);
@@ -509,9 +509,9 @@ String packageName=context.getPackageName();
                 String path=persistentUri.getEncodedPath();
                 DocumentFile root = DocumentFile.fromTreeUri(context, persistentUri);
                 DocumentFile backupDirUri = root.createDirectory("backu/qwep");
-                DocumentFile f = backupDirUri.createFile(MemeObject.getMemeMimeType(1), filename);
-                 backupDirUri = root.createDirectory("qwe");
-                 f = backupDirUri.createFile(MemeObject.getMemeMimeType(1), filename);
+                DocumentFile f = backupDirUri.createFile(FileClassifier.getMemeMimeType(1), filename);
+                backupDirUri = root.createDirectory("qwe");
+                f = backupDirUri.createFile(FileClassifier.getMemeMimeType(1), filename);
 
 
 
@@ -531,7 +531,7 @@ String packageName=context.getPackageName();
             catch (Exception e){
                 e.printStackTrace();
             }
-    }
+        }
 
         @RequiresApi(api = Build.VERSION_CODES.Q)
         @Override
@@ -540,25 +540,25 @@ String packageName=context.getPackageName();
             ContentResolver contentResolver = context.getContentResolver();
             Uri locuri = null;
             String[] selectionArgs = null;// new String[]{"+"+filename+"/"};
-            if (MemeObject.classfyByName(filename) == MemeObject.IMAGE|| MemeObject.classfyByName(filename) == MemeObject.GIF) {
+            if (FileClassifier.classfyByName(filename) == FileClassifier.IMAGE|| FileClassifier.classfyByName(filename) == FileClassifier.GIF) {
                 locuri = MediaStore.Images.Media.getContentUri("external");
                 selectionArgs = new String[]{defaultImages};
             }
-            if (MemeObject.classfyByName(filename) == MemeObject.HTTPS){
+            if (FileClassifier.classfyByName(filename) == FileClassifier.HTTPS){
                 locuri = MediaStore.Images.Media.getContentUri("external");
                 path = path+ ".jpg";
                 selectionArgs = new String[]{defaultPreviews};
             }
 
-            if (MemeObject.classfyByName(filename) == MemeObject.VIDEO ) {
+            if (FileClassifier.classfyByName(filename) == FileClassifier.VIDEO ) {
                 locuri = MediaStore.Video.Media.getContentUri("external");
                 selectionArgs = new String[]{defaultVideos};
             }
-            if (MemeObject.classfyByName(filename)== MemeObject.ARCH) {
+            if (FileClassifier.classfyByName(filename)== FileClassifier.ARCH) {
                 locuri = MediaStore.Downloads.getContentUri("external");
                 selectionArgs = new String[]{defaultDownloads};
             }
-            if (MemeObject.classfyByName(filename)== MemeObject.DB) {
+            if (FileClassifier.classfyByName(filename)== FileClassifier.DB) {
                 locuri = MediaStore.Downloads.getContentUri("external");
                 selectionArgs = new String[]{defaultDownloads};
             }
@@ -574,11 +574,11 @@ String packageName=context.getPackageName();
             try {
                 ContentResolver contentResolver = context.getContentResolver();
                 Uri locuri = null;
-                if (MemeObject.classfyByName(path) == MemeObject.IMAGE || MemeObject.classfyByName(path) == MemeObject.HTTPS)
+                if (FileClassifier.classfyByName(path) == FileClassifier.IMAGE || FileClassifier.classfyByName(path) == FileClassifier.HTTPS)
                     locuri = MediaStore.Images.Media.getContentUri("external");
-                if (MemeObject.classfyByName(path)  == MemeObject.VIDEO || MemeObject.classfyByName(path) == MemeObject.GIF)
+                if (FileClassifier.classfyByName(path)  == FileClassifier.VIDEO || FileClassifier.classfyByName(path) == FileClassifier.GIF)
                     locuri = MediaStore.Video.Media.getContentUri("external");
-                if (MemeObject.classfyByName(path) == MemeObject.ARCH||MemeObject.classfyByName(path) == MemeObject.DB)
+                if (FileClassifier.classfyByName(path) == FileClassifier.ARCH||FileClassifier.classfyByName(path) == FileClassifier.DB)
                     locuri = MediaStore.Downloads.getContentUri("external");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     contentResolver.delete(locuri, MediaStore.MediaColumns.DATA + "=?", new String[]{getFullPath(path)});
@@ -625,17 +625,17 @@ String packageName=context.getPackageName();
 
 
             String[] selectionArgs = null;
-            switch (MemeObject.classfyByName(filename)) {
-                case MemeObject.IMAGE:
+            switch (FileClassifier.classfyByName(filename)) {
+                case FileClassifier.IMAGE:
                     selectionArgs = new String[]{defaultImages};
                     break;
-                case MemeObject.VIDEO:
+                case FileClassifier.VIDEO:
                     selectionArgs = new String[]{defaultVideos};
                     break;
-                case MemeObject.GIF:
+                case FileClassifier.GIF:
                     selectionArgs = new String[]{defaultVideos};
                     break;
-                case MemeObject.HTTPS:
+                case FileClassifier.HTTPS:
                     filename = filename + ".jpg";
                     selectionArgs = new String[]{defaultPreviews};
                     break;
@@ -657,7 +657,7 @@ String packageName=context.getPackageName();
             } while (cursor.moveToNext());
 
 
-            if (MemeObject.classfyByName(filename) == MemeObject.IMAGE) {
+            if (FileClassifier.classfyByName(filename) == FileClassifier.IMAGE) {
                 InputStream inputStream = null;
                 try {
                     inputStream = context.getContentResolver().openInputStream(uri);
@@ -667,7 +667,7 @@ String packageName=context.getPackageName();
                 }
 
             }
-            if (MemeObject.classfyByName(filename) == MemeObject.GIF) {
+            if (FileClassifier.classfyByName(filename) == FileClassifier.GIF) {
                 InputStream inputStream = null;
                 try {
                     inputStream = context.getAssets().open(filename);
@@ -678,7 +678,7 @@ String packageName=context.getPackageName();
                 }
             }
 
-            if (MemeObject.classfyByName(filename) == MemeObject.VIDEO || MemeObject.classfyByName(filename) == MemeObject.HTTPS) {
+            if (FileClassifier.classfyByName(filename) == FileClassifier.VIDEO || FileClassifier.classfyByName(filename) == FileClassifier.HTTPS) {
                 MediaMetadataRetriever mediaMetadataRetriever = null;
 
                 try {

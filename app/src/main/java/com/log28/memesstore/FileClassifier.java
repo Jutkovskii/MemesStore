@@ -1,5 +1,7 @@
 package com.log28.memesstore;
 
+import android.content.Intent;
+
 public class FileClassifier {
 
 
@@ -32,7 +34,13 @@ public class FileClassifier {
     private static String gifsFolder = "Gifs/";//папка с Gif
     private static String thumbnailsFolder= ".thumbnails/";//папка с превьюшками
     private static String tempFolder ="/";//корневая папка хранилища
-
+    //категории вкладок
+    public static final int IMAGE_TAB = 0;
+    public static final int VIDEO_TAB = 1;
+    //подкатегории мемов
+    public static final int YOUTUBE=20;
+    public static final int VK=21;
+    public static final int DISCORD=22;
 
     public static String getMimeType(String memeName){
         memeName=memeName.toLowerCase();
@@ -67,6 +75,14 @@ public class FileClassifier {
             default:return tempFolder;
         }
     }
+
+    public static String getMemeMimeType(int tab)
+    {
+        if(tab==IMAGE_TAB) return "image/*";
+        if(tab==VIDEO_TAB) return "video/*";
+        return "*/*";
+    }
+
     public static int classfyByName(String memeName){
         memeName=memeName.toLowerCase();
         for(String name: imageformats){
@@ -94,5 +110,26 @@ public class FileClassifier {
             return HTTPS;
         return TEMP;
     }
+    public static int classifyByType(Intent incomingIntent){
+        String receivedType = incomingIntent.getType();
+        if(receivedType.startsWith("text")){
+            return YOUTUBE;
+        }
+        if(receivedType.startsWith("image")){
+            return IMAGE;
+        }
+        if(receivedType.startsWith("video")){
+            return VIDEO;
+        }
 
+        return TEMP;
+    }
+
+    public static int classifyByTab(String memeName){
+        switch (classfyByName(memeName)){
+            case IMAGE: case GIF: return IMAGE_TAB;
+            case VIDEO:return VIDEO_TAB;
+            default:return TEMP;
+        }
+    }
 }

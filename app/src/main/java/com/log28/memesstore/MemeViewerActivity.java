@@ -58,23 +58,23 @@ public class MemeViewerActivity extends AppCompatActivity {
         //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         //выбор фрагмента в зависимости от типа
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        switch (MemeObject.classfyByName(filename)){
-            case MemeObject.IMAGE:
+        switch (FileClassifier.classfyByName(filename)){
+            case FileClassifier.IMAGE:
                 imageFragment = new ImageFragment();
-                imageFragment.setMemeImage(filename);
+                imageFragment.setMemeRelativeFilepath(filename);
                 fragmentTransaction.add(R.id.memeViewLayout,imageFragment);
                 break;
-            case MemeObject.HTTPS:
+            case FileClassifier.HTTPS:
                 videoFragment = new VideoFragment();
                 videoFragment.setMemeImage(filename);
                 fragmentTransaction.add(R.id.memeViewLayout, videoFragment);
                 break;
-            case MemeObject.VIDEO:
+            case FileClassifier.VIDEO:
                 videoLocalFragment = new VideoLocalFragment();
                 videoLocalFragment.setMemeImage(filename);
                 fragmentTransaction.add(R.id.memeViewLayout, videoLocalFragment);
                 break;
-            case MemeObject.GIF:
+            case FileClassifier.GIF:
                 gifFragment = new GifFragment();
                 gifFragment.setMemeImage(filename);
                 fragmentTransaction.add(R.id.memeViewLayout, gifFragment);
@@ -134,22 +134,22 @@ public class MemeViewerActivity extends AppCompatActivity {
             Intent intent=null;
             intent = new Intent(Intent.ACTION_SEND);
             memeUri= FileProvider.getUriForFile(MemeViewerActivity.this, "com.log28.memesstore", new File(new FileHelper2(this).getFullPath(filename)));
-            switch (MemeObject.classfyByName(filename)){
-                case MemeObject.IMAGE:
+            switch (FileClassifier.classfyByName(filename)){
+                case FileClassifier.IMAGE:
                     intent.setType("image/*");
                     intent.putExtra(Intent.EXTRA_STREAM, memeUri);
                     intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
                     break;
-                case MemeObject.VIDEO:
+                case FileClassifier.VIDEO:
                     intent.setType("video/*");
                     intent.putExtra(Intent.EXTRA_STREAM, memeUri);
                     intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
                     break;
-                case MemeObject.HTTPS:
+                case FileClassifier.HTTPS:
                     intent.setType("text/plain");
                     intent.putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v="+ filename +" "+memeSign.getText());
                     break;
-                case MemeObject.GIF:
+                case FileClassifier.GIF:
                     intent.setType("*/*");
                     intent.putExtra(Intent.EXTRA_STREAM, memeUri);
                     intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());

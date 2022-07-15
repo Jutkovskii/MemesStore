@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
-public  static  Uri uriFolder;
+    public  static  Uri uriFolder;
     String searchMemeTag="";
     //Список с базами данных с мемами
     ArrayList<MemeDatabaseHelper> databases;
@@ -308,9 +308,9 @@ public  static  Uri uriFolder;
         }
         //Если интент получен из другого приложения
         else {
-            switch (MemeObject.classifyByType(intent)){
+            switch (FileClassifier.classifyByType(intent)){
                 //мем - видео с ютуба
-                case MemeObject.YOUTUBE:
+                case FileClassifier.YOUTUBE:
                     //Получение ссылки из интента
                     String localFilename = intent.getClipData().getItemAt(0).getText().toString();
                     //определение имени видеофайла по анализу ключевых символов в ссылке
@@ -326,7 +326,7 @@ public  static  Uri uriFolder;
                     }
                     break;
                 //мем - картинка, gif или видео
-                case MemeObject.IMAGE: case MemeObject.GIF :case MemeObject.VIDEO:
+                case FileClassifier.IMAGE: case FileClassifier.GIF :case FileClassifier.VIDEO:
                     // извлекаем uri одним из методов
                     Uri uri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
                     if (uri == null)
@@ -339,7 +339,7 @@ public  static  Uri uriFolder;
             }
 
         }
-       memeListFragments.get(tabNum).changeFragment();
+        memeListFragments.get(tabNum).changeFragment();
         return newMeme.getMemeTab();
 
     }
@@ -364,9 +364,9 @@ public  static  Uri uriFolder;
         editor.apply();
     }
     //добавление файла в базу данных
-    boolean insertToDB(String filename) {
+    boolean insertToDB(String relativeFilepath) {
         try {
-            databases.get(MemeObject.classifyByTab(filename)).insert(filename);
+            databases.get(FileClassifier.classifyByTab(relativeFilepath)).insert(relativeFilepath);
         } catch (Exception e) {
             return false;
         }
@@ -379,7 +379,7 @@ public  static  Uri uriFolder;
         Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
         photoPickerIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         photoPickerIntent.addCategory(Intent.CATEGORY_OPENABLE);
-        photoPickerIntent.setType(MemeObject.getMemeMimeType(tabNum));
+        photoPickerIntent.setType(FileClassifier.getMemeMimeType(tabNum));
         //Запускаем переход с ожиданием обратного результата в виде информации об изображении:
         startActivityForResult(photoPickerIntent, REQUEST_GALLERY);//посмотреть, как нынче надо
     }
@@ -389,7 +389,7 @@ public  static  Uri uriFolder;
         Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
         chooseFile.setType("*/*");
         chooseFile = Intent.createChooser(chooseFile, "Choose a file");
-       startActivityForResult(chooseFile, REQUEST_DB);
+        startActivityForResult(chooseFile, REQUEST_DB);
     }
 
     //получение результата от дочерней активности
@@ -405,7 +405,7 @@ public  static  Uri uriFolder;
                 Log.d("OLOLOG","Активность удалить мем " );
                 //удаление файла
                 new FileHelper2(this).deleteFile(data.getDataString());
-                tabNum=MemeObject.classifyByTab(data.getDataString());
+                tabNum=FileClassifier.classifyByTab(data.getDataString());
                 databases.get(tabNum).delete(data.getDataString());
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
                 memeListFragments.get(tabNum).changeFragment();
@@ -416,7 +416,7 @@ public  static  Uri uriFolder;
 
             String filetag= data.getStringExtra(MemeViewerActivity.FILETAG_EXTRA);
             String filename = data.getStringExtra(MemeViewerActivity.FILENAME_EXTRA);
-            tabNum=MemeObject.classifyByTab(data.getDataString());
+            tabNum=FileClassifier.classifyByTab(data.getDataString());
             databases.get(tabNum).update(filename,filetag);
             memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             memeListFragments.get(tabNum).changeFragment();
@@ -435,8 +435,8 @@ public  static  Uri uriFolder;
             if (resultCode == RESULT_OK) {
                 //Если интент получен из вызванной галереи, тип null
                 //if (data.getType() == null)
-                    //получение uri файла
-                    saveFromUri(data.getData());
+                //получение uri файла
+                saveFromUri(data.getData());
             }
 
 
@@ -456,7 +456,7 @@ public  static  Uri uriFolder;
 // Check for the freshest data.
                 getContentResolver().takePersistableUriPermission(uri, takeFlags);
 
-grantUriPermission(this.getPackageName(),uri,takeFlags);
+                grantUriPermission(this.getPackageName(),uri,takeFlags);
                 memeFileHelper = MemeFileHelper.createFileHelper(this,uri);
 
 
@@ -471,7 +471,7 @@ grantUriPermission(this.getPackageName(),uri,takeFlags);
         try {
             Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
             if (returnCursor != null) {
-                //Определение стаолбца, содержащего имя файла
+                //Определение столбца, содержащего имя файла
                 int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                 returnCursor.moveToFirst();
                 //определение имени файла
@@ -484,21 +484,21 @@ grantUriPermission(this.getPackageName(),uri,takeFlags);
 
             //fileHelper2.createnew(inputStream,filename);
             //создание локального файла
-            if (MemeObject.classfyByName(filename) != MemeObject.ARCH) {
-               // fileHelper2.copyFile(inputStream, fileHelper2.createFile(filename));
-                memeFileHelper.writeToFile(inputStream, memeFileHelper.createFile(FileClassifier.getMimeFolder(filename)+filename));
-                insertToDB(FileClassifier.getMimeFolder(filename)+filename);
+            if (FileClassifier.classfyByName(filename) != FileClassifier.ARCH) {
+                String relativeFilepath =FileClassifier.getMimeFolder(filename)+filename;
+                memeFileHelper.writeToFile(inputStream, memeFileHelper.createFile(relativeFilepath));
+                insertToDB(relativeFilepath);
             } else {
                 ArrayList<MemeGroup> imported = new FileHelper2(this).unzipPack(inputStream);//,FileHelper.getFullPath(filename));
                 for (MemeGroup thisGroup : imported) {
                     int num = 1;
-                    if (MemeObject.classfyByName(thisGroup.name) == MemeObject.IMAGE) {
+                    if (FileClassifier.classfyByName(thisGroup.name) == FileClassifier.IMAGE) {
                         num = 0;
 
                     }
-                    if (MemeObject.classfyByName(thisGroup.name) == MemeObject.VIDEO || MemeObject.classfyByName(thisGroup.name) == MemeObject.GIF)
+                    if (FileClassifier.classfyByName(thisGroup.name) == FileClassifier.VIDEO || FileClassifier.classfyByName(thisGroup.name) == FileClassifier.GIF)
                         num = 1;
-                    if (MemeObject.classfyByName(thisGroup.name) == MemeObject.HTTPS) {
+                    if (FileClassifier.classfyByName(thisGroup.name) == FileClassifier.HTTPS) {
                         PreviewSaver previewSaver = new PreviewSaver(fileHelper2, memeFileHelper);
                         previewSaver.execute(new String[]{thisGroup.getName()});
                         num = 1;
@@ -523,7 +523,7 @@ grantUriPermission(this.getPackageName(),uri,takeFlags);
             uriFolder=qwe.get(0).getUri();
             memeFileHelper = MemeFileHelper.createFileHelper(this,qwe.get(0).getUri());
         }
-          else
+        else
         {
             Intent intent1 = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
             intent1.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);

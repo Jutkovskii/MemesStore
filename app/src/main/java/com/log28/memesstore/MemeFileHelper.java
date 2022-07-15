@@ -53,7 +53,7 @@ public class MemeFileHelper extends FileHelper {
     public BitmapFactory.Options getOptions(String filename) {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
-        if (MemeObject.classfyByName(filename) != MemeObject.VIDEO) {
+        if (FileClassifier.classfyByName(filename) != FileClassifier.VIDEO) {
             BitmapFactory.decodeFile(filename, options);
             int koef = (int) ((float) (options.outWidth) / (float) (context.getDisplay().getWidth()) * 2);
             if (koef % 2 != 0) koef++;

@@ -21,7 +21,7 @@ import java.io.FileNotFoundException;
 public class ImageFragment extends Fragment {
 
 ImageView memeImageView;
-String filename;
+String relativeFilepath;
     Context context;
     public ImageFragment() {
         // Required empty public constructor
@@ -37,15 +37,14 @@ String filename;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_image, container, false);
-context=container.getContext();
-
+        //context=container.getContext();
+        context=view.getContext();
         return view;
     }
 
-    public void setMemeImage(String filename){
-this.filename =filename;
+    public void setMemeRelativeFilepath(String relativeFilepath){
+this.relativeFilepath =relativeFilepath;
 
     }
     @RequiresApi(api = Build.VERSION_CODES.R)
@@ -53,10 +52,10 @@ this.filename =filename;
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view,null);// savedInstanceState);
         memeImageView = view.findViewById(R.id.memeImageView);
-       // memeImageView.setImageBitmap(new FileHelper2(context).getPreview(filename));
         try {
-            memeImageView.setImageBitmap(BitmapFactory.decodeStream(context.getContentResolver().openInputStream(MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).readFromFile(filename))));
-        } catch (FileNotFoundException e) {
+            memeImageView.setImageBitmap( MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(relativeFilepath));
+           // memeImageView.setImageBitmap(BitmapFactory.decodeStream(context.getContentResolver().openInputStream(MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).readFromFile(relativeFilepath))));
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
