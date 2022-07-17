@@ -1,6 +1,7 @@
 package com.log28.memesstore;
 
 import android.content.Context;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -19,9 +20,10 @@ public class VideoLocalFragment extends Fragment {
     String relativeFilepath;
     Context context;
     int layoutID;
-    public VideoLocalFragment(int layoutID,String relativeFilepath) {
+    Uri memeUri;
+    public VideoLocalFragment(int layoutID,Uri memeUri) {
         this.layoutID=layoutID;
-        this.relativeFilepath=relativeFilepath;
+        this.memeUri=memeUri;
     }
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -42,7 +44,7 @@ public class VideoLocalFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, null);// savedInstanceState);
         videoPlayer = view.findViewById(R.id.memeLocalVideoView);
-        videoPlayer.setVideoURI(new FileHelper2(context).getVideoUri(filepath));
+        videoPlayer.setVideoURI(memeUri);
         videoPlayer.start();
     }
 

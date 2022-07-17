@@ -85,7 +85,17 @@ packageName=context.getPackageName();
         return true;
     }
 
-    public Uri readFromFile(String path){
+    public InputStream readFromFile(String path){
+
+        try {
+            return context.getContentResolver().openInputStream(getUriFromFile(path));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public Uri getUriFromFile(String path){
         Uri fileUri=null;
         try{
             if(isExist(path))
@@ -97,6 +107,7 @@ packageName=context.getPackageName();
         }
         return fileUri;
     }
+
     public boolean deleteFile(String path){
         try{
             if(isExist(path))

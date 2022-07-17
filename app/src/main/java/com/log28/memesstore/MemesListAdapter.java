@@ -143,10 +143,15 @@ try{
                 }
                 else
                 {
-                    Intent intent = new Intent(context, MemeViewerActivity.class);
+                   /* Intent intent = new Intent(context, MemeViewerActivity.class);
                     intent.putExtra(MemeViewerActivity.FILENAME_EXTRA, filteredMemes.get(position).getMemeRelativePath());
                     intent.putExtra(MemeViewerActivity.FILETAG_EXTRA, filteredMemes.get(position).getTag());
                     ((Activity) context).startActivityForResult(intent, MemeViewerActivity.REQUEST_CODE);
+*/
+                    Intent intent = new Intent(context, MemeViewerActivity.class);
+                    intent.putExtra(MemeObject.memeObjectParcelTag, filteredMemes.get(position));
+                    ((Activity) context).startActivityForResult(intent, MemeViewerActivity.REQUEST_CODE);
+
                 }
 
             }

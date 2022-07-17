@@ -12,6 +12,7 @@ import androidx.annotation.RequiresApi;
 import java.io.InputStream;
 
 public class MemeFileHelper extends FileHelper {
+
     public MemeFileHelper(Context context, Uri persistentUri) {
         super(context, persistentUri);
     }
@@ -24,7 +25,7 @@ public class MemeFileHelper extends FileHelper {
     public Bitmap getPreview(String filePath){
         Bitmap preview=null;
        try{
-           InputStream inputStream=context.getContentResolver().openInputStream(readFromFile(filePath));
+           InputStream inputStream=context.getContentResolver().openInputStream(getUriFromFile(filePath));
            preview = BitmapFactory.decodeStream(inputStream,new Rect(),this.getOptions(filePath));
        }
        catch (Exception e){

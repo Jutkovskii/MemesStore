@@ -3,7 +3,6 @@ package com.log28.memesstore;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -14,9 +13,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
-
-
-import java.io.File;
 
 public class MemeViewerActivity extends AppCompatActivity {
     //параметр для извлечения данны хиз интента
@@ -38,7 +34,9 @@ public class MemeViewerActivity extends AppCompatActivity {
 
     String memeTag="";
 
+    String mimeType;
     Toolbar toolbar;
+    Uri memeUri;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         savedInstanceState=null;
@@ -49,11 +47,16 @@ public class MemeViewerActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("МЕМОХРАНИЛИЩЕ");
         Intent intent = getIntent();
           //получение имени файла
-        filename = intent.getStringExtra(FILENAME_EXTRA);
-        memeTag=intent.getStringExtra(FILETAG_EXTRA);
+        /*filename = intent.getStringExtra(FILENAME_EXTRA);
+        memeTag=intent.getStringExtra(FILETAG_EXTRA);*/
+        MemeObject memeObject=intent.getParcelableExtra(MemeObject.memeObjectParcelTag);
+        filename=memeObject.getMemeRelativePath();
+        memeTag=memeObject.getTag();
+        mimeType=memeObject.getMemeMimeType();
+        memeUri=memeObject.getMemeUri();
         //выбор фрагмента в зависимости от типа
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.add(R.id.memeViewLayout, getFragment(filename));
+        fragmentTransaction.add(R.id.memeViewLayout, getFragment(filename,memeUri));
         fragmentTransaction.commit();
         memeSign=findViewById(R.id.memeSign);
         currentMemeTag=findViewById(R.id.currentMemeTag);
@@ -103,31 +106,11 @@ public class MemeViewerActivity extends AppCompatActivity {
     public void onSendMeme(View view){
         //создание интента отправки в дочерние активности на основании типа файла
         try {
-            Uri memeUri =null;
-            Intent intent=null;
-            intent = new Intent(Intent.ACTION_SEND);
-            memeUri= FileProvider.getUriForFile(MemeViewerActivity.this, "com.log28.memesstore", new File(new FileHelper2(this).getFullPath(filename)));
-            switch (FileClassifier.classfyByName(filename)){
-                case FileClassifier.IMAGE:
-                    intent.setType("image/*");
-                    intent.putExtra(Intent.EXTRA_STREAM, memeUri);
-                    intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
-                    break;
-                case FileClassifier.VIDEO:
-                    intent.setType("video/*");
-                    intent.putExtra(Intent.EXTRA_STREAM, memeUri);
-                    intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
-                    break;
-                case FileClassifier.HTTPS:
-                    intent.setType("text/plain");
-                    intent.putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v="+ filename +" "+memeSign.getText());
-                    break;
-                case FileClassifier.GIF:
-                    intent.setType("*/*");
-                    intent.putExtra(Intent.EXTRA_STREAM, memeUri);
-                    intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
 
-            }
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType(mimeType);
+            intent.putExtra(Intent.EXTRA_STREAM, memeUri);
+            intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
             startActivity(intent);
         }
         catch (Exception e){
@@ -139,12 +122,12 @@ public class MemeViewerActivity extends AppCompatActivity {
     }
 
     static int layoutIDs[]={R.layout.fragment_image,R.layout.fragment_gif,R.layout.fragment_video,R.layout.fragment_video_local};
-    public static Fragment getFragment(String relativeFilepath){
+    public static Fragment getFragment(String relativeFilepath, Uri memeUri){
 switch (FileClassifier.classfyByName(relativeFilepath)){
     case FileClassifier.IMAGE:return new ImageFragment(layoutIDs[0],relativeFilepath);
     case FileClassifier.GIF:return new ImageFragment(layoutIDs[1],relativeFilepath);
     case FileClassifier.HTTPS:return new ImageFragment(layoutIDs[2],relativeFilepath);
-    case FileClassifier.VIDEO:return new ImageFragment(layoutIDs[3],relativeFilepath);
+    case FileClassifier.VIDEO:return new VideoLocalFragment(layoutIDs[3],memeUri);
         }
         return null;
     }

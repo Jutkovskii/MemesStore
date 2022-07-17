@@ -237,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
                 currentFragment.memesListAdapter.selected.sort((a, b) -> b.compareTo(a));
                 for (Integer pos :
                         currentFragment.memesListAdapter.selected) {
-                    String toDelete = currentFragment.memesListAdapter.memeObjects.get(pos).getName();
+                    String toDelete = currentFragment.memesListAdapter.memeObjects.get(pos).getMemeRelativePath();
                     new FileHelper2(this).deleteFile(toDelete);
                     currentDatabase.delete(toDelete);
                     currentFragment.memesListAdapter.getDB();
