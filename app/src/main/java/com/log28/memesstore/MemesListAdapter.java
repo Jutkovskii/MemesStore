@@ -112,7 +112,7 @@ try{
         else
             holder.deleteCheck.setChecked(false);
 
-    //holder.memeImageView.setImageBitmap(filteredMemes.get(position).getBitmap());
+    holder.memeImageView.setImageBitmap(filteredMemes.get(position).getBitmap());
     //filteredMemes.get(position).getBitmap(holder);
             holder.memeTag.setText(filteredMemes.get(position).getTag());
 
