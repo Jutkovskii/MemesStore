@@ -128,7 +128,7 @@ public class FileClassifier {
     public static int classifyByTab(String memeName){
         switch (classfyByName(memeName)){
             case IMAGE: case GIF: return IMAGE_TAB;
-            case VIDEO:return VIDEO_TAB;
+            case VIDEO:case HTTPS:return VIDEO_TAB;
             default:return TEMP;
         }
     }

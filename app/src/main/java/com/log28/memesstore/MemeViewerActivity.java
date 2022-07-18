@@ -125,9 +125,9 @@ public class MemeViewerActivity extends AppCompatActivity {
     public static Fragment getFragment(String relativeFilepath, Uri memeUri){
 switch (FileClassifier.classfyByName(relativeFilepath)){
     case FileClassifier.IMAGE:return new ImageFragment(layoutIDs[0],relativeFilepath);
-    case FileClassifier.GIF:return new ImageFragment(layoutIDs[1],relativeFilepath);
-    case FileClassifier.HTTPS:return new ImageFragment(layoutIDs[2],relativeFilepath);
-    case FileClassifier.VIDEO:return new VideoLocalFragment(layoutIDs[3],memeUri);
+    case FileClassifier.GIF:return new GifFragment(layoutIDs[1],relativeFilepath);
+    case FileClassifier.HTTPS:return new VideoFragment(layoutIDs[2],relativeFilepath);
+    case FileClassifier.VIDEO:return new VideoLocalFragment(layoutIDs[3],relativeFilepath);
         }
         return null;
     }

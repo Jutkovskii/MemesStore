@@ -12,6 +12,10 @@ import android.os.Parcelable;
 
 import androidx.annotation.RequiresApi;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+
 public class MemeObject implements Parcelable{
 
     MemesListAdapter memesListAdapter;
@@ -46,6 +50,7 @@ this.memesListAdapter=memesListAdapter;
         memeRelativePath = in.readString();
         memeMimeType = in.readString();
         memeTag = in.readString();
+        if(FileClassifier.classfyByName(memeMimeType)!=FileClassifier.HTTPS)
         memeUri=Uri.parse(in.readString());
     }
 
@@ -81,7 +86,7 @@ this.memesListAdapter=memesListAdapter;
     public String getTag(){return memeTag;}
     public int getMemeTab(){return memeTab;}
     public String getMemeMimeType(){return memeMimeType;}
-public Uri getMemeUri(){return memeUri;}
+    public Uri getMemeUri(){return memeUri;}
 
     @Override
     public int describeContents() {
@@ -93,6 +98,7 @@ public Uri getMemeUri(){return memeUri;}
         dest.writeString(memeRelativePath);
         dest.writeString(memeMimeType);
         dest.writeString(memeTag);
+        if(memeUri!=null)
         dest.writeString(memeUri.toString());
     }
 
@@ -116,14 +122,16 @@ public Uri getMemeUri(){return memeUri;}
                         memeBitmap= MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(strings[0]);
                         break;
                     case FileClassifier.VIDEO:
-                    case FileClassifier.HTTPS:
+
                         MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
                         mediaMetadataRetriever.setDataSource(context, memeUri);
                         memeBitmap = mediaMetadataRetriever.getFrameAtTime(1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
                         mediaMetadataRetriever.release();
                         break;
+                    case FileClassifier.HTTPS:
 
-
+                        memeBitmap= MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(strings[0]);
+                        break;
                 }
             }catch (Exception e){
                 e.printStackTrace();

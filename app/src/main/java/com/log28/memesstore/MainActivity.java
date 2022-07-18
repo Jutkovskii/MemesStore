@@ -136,15 +136,19 @@ public class MainActivity extends AppCompatActivity {
         toolbar=findViewById(R.id.mainToolbar);
         setSupportActionBar(toolbar);
         checkPersistentUri();
+        Intent intent = getIntent();
+        if(intent!=null&&intent.getAction()=="android.intent.action.SEND")
+            getMemeFromIntent(intent);
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     protected void onStart() {
         super.onStart();
-        Intent intent = getIntent();
+       /* Intent intent = getIntent();
         if(intent!=null&&intent.getAction()=="android.intent.action.SEND")
-            getMemeFromIntent(intent);
+            getMemeFromIntent(intent);*/
 
     }
 
@@ -305,6 +309,7 @@ public class MainActivity extends AppCompatActivity {
             for (Uri uri : uriArrayList) {
                 newMeme= new MemeObject(getApplicationContext(),saveFromUri(uri));
             }
+            memeListFragments.get(tabNum).changeFragment();
         }
         //Если интент получен из другого приложения
         else {
@@ -320,7 +325,7 @@ public class MainActivity extends AppCompatActivity {
                         //фиксируем полученное имя
                         String filename = localFilename.substring(m.start());
                         //загружаем превью
-                        PreviewSaver previewSaver = new PreviewSaver(fileHelper2);
+                        PreviewSaver previewSaver = new PreviewSaver(fileHelper2, new MemeFileHelper(this,MainActivity.uriFolder));
                         previewSaver.execute(new String[]{filename});
                         insertToDB(filename);
                     }
@@ -339,9 +344,9 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
-        memeListFragments.get(tabNum).changeFragment();
-        return newMeme.getMemeTab();
-
+       // memeListFragments.get(tabNum).changeFragment();
+        //return newMeme.getMemeTab();
+return tabNum;
     }
 
     void getPreferences() {

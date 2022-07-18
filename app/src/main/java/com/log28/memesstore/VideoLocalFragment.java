@@ -20,10 +20,9 @@ public class VideoLocalFragment extends Fragment {
     String relativeFilepath;
     Context context;
     int layoutID;
-    Uri memeUri;
-    public VideoLocalFragment(int layoutID,Uri memeUri) {
+    public VideoLocalFragment(int layoutID,String relativeFilepath) {
         this.layoutID=layoutID;
-        this.memeUri=memeUri;
+        this.relativeFilepath=relativeFilepath;
     }
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -44,7 +43,7 @@ public class VideoLocalFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, null);// savedInstanceState);
         videoPlayer = view.findViewById(R.id.memeLocalVideoView);
-        videoPlayer.setVideoURI(memeUri);
+        videoPlayer.setVideoURI(new MemeFileHelper(context,MainActivity.uriFolder).getUriFromFile(relativeFilepath));
         videoPlayer.start();
     }
 
