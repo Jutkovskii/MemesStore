@@ -69,6 +69,25 @@ packageName=context.getPackageName();
         return outputStream;
     }
 
+    public OutputStream createCacheFile(String path){
+
+        OutputStream outputStream=null;
+        try{
+            DocumentFile cache = DocumentFile.fromFile(context.getCacheDir());
+            path=path.substring(path.lastIndexOf("/")+1);
+            DocumentFile file = cache.createFile("Application/x-sqlite3",path);
+            Uri fileUri = file.getUri();
+            ContentResolver contentResolver = context.getContentResolver();
+            outputStream = contentResolver.openOutputStream(fileUri);
+
+        }
+        catch (Exception e){
+            e.printStackTrace();
+
+        }
+        return outputStream;
+    }
+
     public boolean writeToFile(InputStream inputStream, OutputStream outputStream) {
         try{
             int n;
@@ -150,37 +169,42 @@ packageName=context.getPackageName();
         try {
             OutputStream outputStream = createFile(zipName);
             ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
-            for(String path:paths){
-                FileInputStream fileInputStream = new FileInputStream(path);
+            for (String path : paths) {
+                if (FileClassifier.classfyByName(path) != FileClassifier.HTTPS) {
+                    FileInputStream fileInputStream;
+                    if (FileClassifier.classfyByName(path) != FileClassifier.DB)
+                        fileInputStream = (FileInputStream) readFromFile(path);//new FileInputStream(path);
+                    else
+                        fileInputStream = new FileInputStream(path);
+                  /*  Pattern p = Pattern.compile(appFolder);
+                    Matcher m = p.matcher(path);
+                    if (m.find()) {
+                        path = path.substring(m.end());
+                    }*/
 
-                Pattern p = Pattern.compile(appFolder);
-                Matcher m = p.matcher(path);
-                if (m.find()) {
-                    path=path.substring(m.end()+1);
+                    Pattern  p = Pattern.compile("/data/data/" + packageName + "/databases/");
+                    Matcher m = p.matcher(path);
+                    if (m.find()) {
+                        path = path.substring(m.end());
+                    }
+
+                    ZipEntry entry1 = new ZipEntry(path);
+                    zipOutputStream.putNextEntry(entry1);
+                    // считываем содержимое файла в массив byte
+                    byte[] buffer = new byte[fileInputStream.available()];
+                    fileInputStream.read(buffer);
+                    // добавляем содержимое к архиву
+                    zipOutputStream.write(buffer);
+
+                    zipOutputStream.flush();
+                    // закрываем текущую запись для новой записи
+                    zipOutputStream.closeEntry();
                 }
-
-                p = Pattern.compile("/data/data/"+packageName+"/databases/");
-                m = p.matcher(path);
-                if (m.find()) {
-                    path=path.substring(m.end()+1);
-                }
-
-                ZipEntry entry1 = new ZipEntry(path);
-                zipOutputStream.putNextEntry(entry1);
-                // считываем содержимое файла в массив byte
-                byte[] buffer = new byte[fileInputStream.available()];
-                fileInputStream.read(buffer);
-                // добавляем содержимое к архиву
-                zipOutputStream.write(buffer);
-
-                zipOutputStream.flush();
-                // закрываем текущую запись для новой записи
-                zipOutputStream.closeEntry();
             }
-            zipOutputStream.finish();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                zipOutputStream.finish();
+            } catch(Exception e){
+                e.printStackTrace();
+            }
 
 
         return zipPath;
@@ -193,10 +217,16 @@ packageName=context.getPackageName();
             ZipEntry zEntry = null;
 
             while ((zEntry = zipStream.getNextEntry()) != null) {
-
+                FileOutputStream fout =null;
                     String name = zEntry.getName();
-                    paths.add(name);
-                    FileOutputStream fout = (FileOutputStream) createFile(name);
+                    if(FileClassifier.classfyByName(name)==FileClassifier.DB)
+                    {
+                        name=context.getCacheDir()+"/"+name;
+                        paths.add(name);
+                        fout=(FileOutputStream) createCacheFile(name);
+                    }
+                    else
+                    fout= (FileOutputStream) createFile(name);
 
                     BufferedOutputStream bufout = new BufferedOutputStream(fout);
                     byte[] buffer = new byte[1024];
