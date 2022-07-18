@@ -516,17 +516,18 @@ return tabNum;
                     String dbName=db;
 
                    SQLiteDatabase importedDB = SQLiteDatabase.openOrCreateDatabase(db, null);
-                    Cursor cursor1 = importedDB.query("memesTable", new String[]{"_id", "filepath", "filetag"}, null, null, null, null, null);
-                    Cursor cursor = importedDB.rawQuery("SELECT * FROM memesTable", null);
+                  Cursor cursor = importedDB.rawQuery("SELECT * FROM memesTable", null);
 
                     if (cursor.moveToFirst()) {
                         do {
                             String qwe= cursor.getString(1);
+                            if(!qwe.contains("/"))
+                                qwe=FileClassifier.getMimeFolder(qwe)+qwe;
                             if(dbName.contains(imagedb)){
-                                databases.get(0).insert(cursor.getString(1), cursor.getString(2));
+                                databases.get(0).insert(qwe, cursor.getString(2));
                            }
                             if(dbName.contains(videodb)){
-                                databases.get(1).insert(cursor.getString(1), cursor.getString(2));
+                                databases.get(1).insert(qwe, cursor.getString(2));
                             }
                         } while (cursor.moveToNext());
 

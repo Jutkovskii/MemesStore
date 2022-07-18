@@ -225,9 +225,11 @@ packageName=context.getPackageName();
                         paths.add(name);
                         fout=(FileOutputStream) createCacheFile(name);
                     }
-                    else
-                    fout= (FileOutputStream) createFile(name);
-
+                    else {
+                        if(!name.contains("/"))
+                            name=FileClassifier.getMimeFolder(name)+name;
+                        fout = (FileOutputStream) createFile(name);
+                    }
                     BufferedOutputStream bufout = new BufferedOutputStream(fout);
                     byte[] buffer = new byte[1024];
                     int read = 0;
