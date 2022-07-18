@@ -50,7 +50,7 @@ this.memesListAdapter=memesListAdapter;
         memeRelativePath = in.readString();
         memeMimeType = in.readString();
         memeTag = in.readString();
-        if(FileClassifier.classfyByName(memeMimeType)!=FileClassifier.HTTPS)
+        if(FileClassifier.classfyByName(memeRelativePath)!=FileClassifier.HTTPS)
         memeUri=Uri.parse(in.readString());
     }
 

@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.util.Log;
 import android.view.Display;
@@ -88,6 +89,8 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
                 .inflate(R.layout.meme_card_view, parent, false);
         ViewHolder vh = new ViewHolder(itemView);
        // vh.memesListAdapter=this;
+        vh.memeImageView.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.raw.logo));
+
         Log.d("OLOLOG","создание холдера " );
         return vh;
     }
@@ -109,7 +112,7 @@ try{
         else
             holder.deleteCheck.setChecked(false);
 
-    holder.memeImageView.setImageBitmap(filteredMemes.get(position).getBitmap());
+    //holder.memeImageView.setImageBitmap(filteredMemes.get(position).getBitmap());
     //filteredMemes.get(position).getBitmap(holder);
             holder.memeTag.setText(filteredMemes.get(position).getTag());
 

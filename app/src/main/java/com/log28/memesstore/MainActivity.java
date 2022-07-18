@@ -432,7 +432,7 @@ return tabNum;
 
             String filetag= data.getStringExtra(MemeViewerActivity.FILETAG_EXTRA);
             String filename = data.getStringExtra(MemeViewerActivity.FILENAME_EXTRA);
-            tabNum=FileClassifier.classifyByTab(data.getDataString());
+            tabNum=FileClassifier.classifyByTab(filename);
             databases.get(tabNum).update(filename,filetag);
             memesCategories.selectTab(memesCategories.getTabAt(tabNum));
             memeListFragments.get(tabNum).changeFragment();
