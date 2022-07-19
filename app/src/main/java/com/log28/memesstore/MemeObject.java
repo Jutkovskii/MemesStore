@@ -67,6 +67,7 @@ this.memesListAdapter=memesListAdapter;
     };
 
     void init(Context context, String relativeFilepath, String tag){
+        relativeFilepath=relativeFilepath.replaceAll("Previews/","");
         this.memeRelativePath =relativeFilepath;
         this.memeTag=tag;
         this.context=context;
@@ -130,7 +131,10 @@ this.memesListAdapter=memesListAdapter;
                         mediaMetadataRetriever.release();
                         break;
                     case FileClassifier.HTTPS:
-
+                        if(!MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).isExist("Previews/"+strings[0]+".jpg")){
+                            InputStream inputStream = (InputStream) new URL("https://img.youtube.com/vi/"+strings[0]+"/hqdefault.jpg").getContent();
+                            MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).writeToFile(inputStream, MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).createFile(FileClassifier.getMimeFolder(strings[0])+strings[0]+".jpg"));
+                        }
                         local= MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(strings[0]);
                         break;
                 }

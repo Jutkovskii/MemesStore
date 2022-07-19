@@ -28,6 +28,7 @@ return new MemeFileHelper(context,persistentUri);
     @RequiresApi(api = Build.VERSION_CODES.R)
     public Bitmap getPreview(String filePath){
         Bitmap preview=null;
+
        try{
            if(FileClassifier.classfyByName(filePath)==FileClassifier.HTTPS)
                filePath="Previews/"+filePath+".jpg";
@@ -55,4 +56,5 @@ return new MemeFileHelper(context,persistentUri);
         return options;
 
     }
+
 }
