@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if(intent!=null&&intent.getAction()!="android.intent.action.MAIN")
             getMemeFromIntent(intent);
-
+int y=0;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.R)
@@ -153,15 +153,6 @@ public class MainActivity extends AppCompatActivity {
         if(intent!=null&&intent.getAction()!="android.intent.action.MAIN")
             getMemeFromIntent(intent);
 
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.R)
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Intent intent = getIntent();
-        if(intent!=null&&intent.getAction()!="android.intent.action.MAIN")
-            getMemeFromIntent(intent);
     }
 
     @Override

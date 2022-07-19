@@ -3,10 +3,13 @@ package com.log28.memesstore;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
+import android.os.Environment;
 
+import androidx.core.content.FileProvider;
 import androidx.documentfile.provider.DocumentFile;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -46,17 +49,22 @@ packageName=context.getPackageName();
 
         OutputStream outputStream=null;
         try{
-            detectFolders(path);
-            if(folders!=null)
-            for(String folder:folders){
-                DocumentFile dir, check=root.findFile(folder);
-                if(check==null)
-                dir = root.createDirectory(folder);
-                else
-                dir=check;
-                root=dir;
+            DocumentFile file;
+            if(!isExist(path)) {
+                detectFolders(path);
+                if (folders != null)
+                    for (String folder : folders) {
+                        DocumentFile dir, check = root.findFile(folder);
+                        if (check == null)
+                            dir = root.createDirectory(folder);
+                        else
+                            dir = check;
+                        root = dir;
+                    }
+                file = root.createFile(FileClassifier.getMimeType(filename), filename);
             }
-            DocumentFile file = root.createFile(FileClassifier.getMimeType(filename),filename);
+            else
+                file= DocumentFile.fromFile(new File(getAbsolutePath(path)));
             Uri fileUri = file.getUri();
             ContentResolver contentResolver = context.getContentResolver();
             outputStream = contentResolver.openOutputStream(fileUri);
@@ -115,22 +123,24 @@ packageName=context.getPackageName();
     }
 
     public Uri getUriFromFile(String path){
-        Uri fileUri=null;
+
         try{
-            if(isExist(path))
-                fileUri= root.findFile(filename).getUri();
+            if(isExist(path)) {
+                 //DocumentFile.fromFile(new File(getAbsolutePath(path))).getUri();
+                return FileProvider.getUriForFile(context,context.getPackageName(),new File(getAbsolutePath(path)));
+            }
         }
         catch (Exception e){
             e.printStackTrace();
 
         }
-        return fileUri;
+        return null;
     }
 
     public boolean deleteFile(String path){
         try{
             if(isExist(path))
-            root.findFile(filename).delete();
+                DocumentFile.fromFile(new File(getAbsolutePath(path))).delete();
         }
         catch (Exception e){
             e.printStackTrace();
@@ -141,22 +151,8 @@ packageName=context.getPackageName();
 
     public boolean isExist(String path){
         try{
-            detectFolders(path);
-            for(String folder:folders){
-                DocumentFile dir, check=root.findFile(folder);
-                if(check==null)
-                    continue;
-                else
-                    dir=check;
-                root=dir;
-            }
-            DocumentFile file  = root.findFile(filename);
-            if(file!=null)
-                return true;
-            else
-                return false;
-
-        }
+           return DocumentFile.fromFile(new File(getAbsolutePath(path))).exists();
+          }
         catch (Exception e){
             e.printStackTrace();
             return false;
@@ -164,6 +160,9 @@ packageName=context.getPackageName();
 
     }
 
+    public String getAbsolutePath(String path){
+       return Environment.getExternalStorageDirectory()+"/"+appFolder+"/"+path;
+    }
     public String zipPack(String zipName,List<String> paths) {
         String zipPath=zipName;
         try {

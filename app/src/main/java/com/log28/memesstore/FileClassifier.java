@@ -12,8 +12,8 @@ public class FileClassifier {
     static String dbformats[]= new String[]{"db"};
 
     //MIME-типы файлов
-    public static final String MIME_IMAGE = "image/*";
-    public static final String MIME_VIDEO = "video/*";
+    public static final String MIME_IMAGE = "image/";
+    public static final String MIME_VIDEO = "video/";
     public static final String MIME_HTTPS = "text/*";
     public static final String MIME_GIF = "image/gif";
     public static final String MIME_ARCH = "application/zip";
@@ -46,7 +46,7 @@ public class FileClassifier {
         memeName=memeName.toLowerCase();
         for(String name: imageformats){
             if(memeName.contains(name))
-                return MIME_IMAGE;
+                return MIME_IMAGE+getFormat(memeName);
         }
         for(String name: gifformats){
             if(memeName.contains(name))
@@ -54,7 +54,8 @@ public class FileClassifier {
         }
         for(String name: videoformats){
             if(memeName.contains(name))
-                return MIME_VIDEO;
+                return MIME_VIDEO+getFormat(memeName);
+
         }
 
         for(String name: archformats){
@@ -131,5 +132,9 @@ public class FileClassifier {
             case VIDEO:case HTTPS:return VIDEO_TAB;
             default:return TEMP;
         }
+    }
+
+    public static String getFormat(String memeName){
+        return memeName.substring(memeName.lastIndexOf(".")+1);
     }
 }

@@ -13,12 +13,16 @@ import java.io.InputStream;
 
 public class MemeFileHelper extends FileHelper {
 
+    static MemeFileHelper memeFileHelper;
     public MemeFileHelper(Context context, Uri persistentUri) {
         super(context, persistentUri);
     }
 
     public static MemeFileHelper createFileHelper(Context context, Uri persistentUri){
-        return new MemeFileHelper(context,persistentUri);
+       /* if(memeFileHelper==null)
+            memeFileHelper=new MemeFileHelper(context,persistentUri);
+            return memeFileHelper;*/
+return new MemeFileHelper(context,persistentUri);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.R)

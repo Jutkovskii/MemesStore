@@ -73,7 +73,7 @@ this.memesListAdapter=memesListAdapter;
         memeTab=FileClassifier.classifyByTab(memeRelativePath );
         memeMimeType=FileClassifier.getMimeType(memeRelativePath );
         memeUri=MemeFileHelper.createFileHelper(context,MainActivity.uriFolder).getUriFromFile(memeRelativePath);
-
+        memeBitmap= BitmapFactory.decodeResource(context.getResources(), R.raw.logo);
         if(memesListAdapter!=null){
             BitmapLoader bitmapLoader=new BitmapLoader();
             bitmapLoader.execute(memeRelativePath);
@@ -109,34 +109,35 @@ this.memesListAdapter=memesListAdapter;
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            memeBitmap= BitmapFactory.decodeResource(context.getResources(), R.raw.logo);
+            //memeBitmap= BitmapFactory.decodeResource(context.getResources(), R.raw.logo);
         }
 
         @RequiresApi(api = Build.VERSION_CODES.R)
         @Override
         protected Bitmap doInBackground(String... strings) {
+            Bitmap local=null;
             try {
                 switch (FileClassifier.classfyByName(strings[0])) {
                     case FileClassifier.IMAGE:
                     case FileClassifier.GIF:
-                        memeBitmap= MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(strings[0]);
+                        local= MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(strings[0]);
                         break;
                     case FileClassifier.VIDEO:
 
                         MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
                         mediaMetadataRetriever.setDataSource(context, memeUri);
-                        memeBitmap = mediaMetadataRetriever.getFrameAtTime(1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+                        local = mediaMetadataRetriever.getFrameAtTime(1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
                         mediaMetadataRetriever.release();
                         break;
                     case FileClassifier.HTTPS:
 
-                        memeBitmap= MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(strings[0]);
+                        local= MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(strings[0]);
                         break;
                 }
             }catch (Exception e){
                 e.printStackTrace();
             }
-            return memeBitmap;
+            return local;
         }
 
         @Override

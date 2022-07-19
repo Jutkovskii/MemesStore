@@ -89,7 +89,7 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
                 .inflate(R.layout.meme_card_view, parent, false);
         ViewHolder vh = new ViewHolder(itemView);
        // vh.memesListAdapter=this;
-        vh.memeImageView.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.raw.logo));
+        //vh.memeImageView.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.raw.logo));
 
         Log.d("OLOLOG","создание холдера " );
         return vh;
