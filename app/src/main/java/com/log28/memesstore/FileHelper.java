@@ -77,6 +77,9 @@ packageName=context.getPackageName();
         return outputStream;
     }
 
+   /* public void openFileForWriteng(Uri){
+
+    }*/
     public OutputStream createCacheFile(String path){
 
         OutputStream outputStream=null;
@@ -163,10 +166,13 @@ packageName=context.getPackageName();
     public String getAbsolutePath(String path){
        return Environment.getExternalStorageDirectory()+"/"+appFolder+"/"+path;
     }
-    public String zipPack(String zipName,List<String> paths) {
-        String zipPath=zipName;
+    public String zipPack(Uri zipName,List<String> paths) {
+        String zipPath=zipName.getPath();
         try {
-            OutputStream outputStream = createFile(zipName);
+            //OutputStream outputStream = createFile(zipName);
+            ContentResolver contentResolver = context.getContentResolver();
+            OutputStream outputStream = contentResolver.openOutputStream(zipName);
+
             ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
             for (String path : paths) {
                 if (FileClassifier.classfyByName(path) != FileClassifier.HTTPS) {
@@ -226,7 +232,7 @@ packageName=context.getPackageName();
                     }
                     else {
                         if(!name.contains("/"))
-                            name=FileClassifier.getMimeFolder(name)+name;
+                            name=FileClassifier.getRelativePath(name);
                         fout = (FileOutputStream) createFile(name);
                     }
                     BufferedOutputStream bufout = new BufferedOutputStream(fout);

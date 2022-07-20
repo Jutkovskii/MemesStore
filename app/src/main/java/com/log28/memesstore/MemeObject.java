@@ -13,7 +13,6 @@ import android.os.Parcelable;
 import androidx.annotation.RequiresApi;
 
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URL;
 
 public class MemeObject implements Parcelable{
@@ -21,6 +20,7 @@ public class MemeObject implements Parcelable{
     MemesListAdapter memesListAdapter;
     Context context;
     private String memeRelativePath;
+    private String memeName;
     private  String memeMimeType;
     private String memeTag;
     private Bitmap memeBitmap;
@@ -67,7 +67,6 @@ this.memesListAdapter=memesListAdapter;
     };
 
     void init(Context context, String relativeFilepath, String tag){
-        relativeFilepath=relativeFilepath.replaceAll("Previews/","");
         this.memeRelativePath =relativeFilepath;
         this.memeTag=tag;
         this.context=context;
@@ -131,11 +130,11 @@ this.memesListAdapter=memesListAdapter;
                         mediaMetadataRetriever.release();
                         break;
                     case FileClassifier.HTTPS:
-                        if(!MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).isExist("Previews/"+strings[0]+".jpg")){
+                        if(!MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).isExist(FileClassifier.getRelativePath(strings[0]))){
                             InputStream inputStream = (InputStream) new URL("https://img.youtube.com/vi/"+strings[0]+"/hqdefault.jpg").getContent();
-                            MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).writeToFile(inputStream, MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).createFile(FileClassifier.getMimeFolder(strings[0])+strings[0]+".jpg"));
+                            MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).writeToFile(inputStream, MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).createFile(FileClassifier.getRelativePath(strings[0])));
                         }
-                        local= MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(strings[0]);
+                        local= MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(FileClassifier.getRelativePath(strings[0]));
                         break;
                 }
             }catch (Exception e){

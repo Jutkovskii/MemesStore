@@ -67,13 +67,13 @@ public class FileClassifier {
             return MIME_HTTPS;
         return MIME_DEFAULT;
     }
-    public static String getMimeFolder(String memeName){
+    public static String getRelativePath(String memeName){
         switch (classfyByName(memeName)){
-            case IMAGE: return imagesFolder;
-            case VIDEO: return videosFolder;
-            case GIF: return gifsFolder;
-            case HTTPS: return previewsFolder;
-            default:return tempFolder;
+            case IMAGE: return imagesFolder+memeName;
+            case VIDEO: return videosFolder+memeName;
+            case GIF: return gifsFolder+memeName;
+            case HTTPS: return previewsFolder+memeName+".jpg";
+            default:return tempFolder+memeName;
         }
     }
 

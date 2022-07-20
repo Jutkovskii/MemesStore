@@ -26,7 +26,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.OpenableColumns;
 import android.util.Log;
 import android.view.Menu;
@@ -37,7 +36,6 @@ import android.widget.Toast;
 
 import com.google.android.material.tabs.TabLayout;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -71,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<MemeListFragment> memeListFragments;
     //коды идентификации входящих Intent'ов
     private final int REQUEST_DB = 53;//импорт БД
+    private final int REQUEST_EXDB = 54;//экспорт БД
     private final int REQUEST_GALLERY = 84;//добавление из галереи
     private final int REQUEST_PERSISTENT = 145;//добавление из галереи
     //флаг режима мультивыбора для удалени
@@ -262,7 +261,7 @@ int y=0;
             }
             //сбор всех мемов в zip файл
             if (item.getTitle().toString().matches("Экспорт")) {
-                ArrayList<String> memepaths = new ArrayList<>();
+               /* ArrayList<String> memepaths = new ArrayList<>();
                 for (MemeDatabaseHelper thisdb : databases){
                     memepaths.add(thisdb.getDbPath());
                     Cursor localcursor = thisdb.getCursor();
@@ -276,9 +275,12 @@ int y=0;
 
 
                 }
-new MemeFileHelper(this,uriFolder).zipPack("qwe.zip",memepaths);
-
-
+            new MemeFileHelper(this,uriFolder).zipPack("qwe.zip",memepaths);
+*/
+                Intent chooseFile = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                chooseFile.setType("application/zip");
+                chooseFile = Intent.createChooser(chooseFile, "Choose a file");
+                startActivityForResult(chooseFile, REQUEST_EXDB);
             }
             //извлечение мемов из zip-файла
             if (item.getTitle().toString().matches("Импорт")) {
@@ -326,9 +328,6 @@ new MemeFileHelper(this,uriFolder).zipPack("qwe.zip",memepaths);
                     if (m.find()) {
                         //фиксируем полученное имя
                         String filename = localFilename.substring(m.start());
-                        //загружаем превью
-                        PreviewSaver previewSaver = new PreviewSaver( new MemeFileHelper(this,MainActivity.uriFolder));
-                        previewSaver.execute(new String[]{filename});
                         insertToDB(filename);
                     }
                     break;
@@ -442,7 +441,30 @@ return tabNum;
             if (resultCode == RESULT_OK) {
                 saveFromUri(data.getData());
             }
+        if (requestCode == REQUEST_EXDB)
+            if (resultCode == RESULT_OK)
+            {
+                Uri uri=data.getData();
+                List<String> uriSegments=uri.getPathSegments();
+                String filepath=uriSegments.get(1).split(":")[1];
+                ArrayList<String> memepaths = new ArrayList<>();
+                for (MemeDatabaseHelper thisdb : databases){
+                    memepaths.add(thisdb.getDbPath());
+                    Cursor localcursor = thisdb.getCursor();
+                    localcursor.moveToFirst();
+                    for (int i = 0; i < localcursor.getCount(); i++) {
+                        //memepaths.add(FileHelper2.getFullPath(localcursor.getString(1)));
+                        memepaths.add(localcursor.getString(1));
+                        localcursor.moveToNext();
 
+                    }
+
+
+                }
+                new MemeFileHelper(this,uriFolder).zipPack(uri/*+"qwe.zip"*/,memepaths);
+
+
+            }
         if (requestCode ==REQUEST_PERSISTENT
                 && resultCode == Activity.RESULT_OK) {
             if (data != null) {
@@ -480,7 +502,7 @@ return tabNum;
             //fileHelper2.createnew(inputStream,filename);
             //создание локального файла
             if (FileClassifier.classfyByName(filename) != FileClassifier.ARCH) {
-                String relativeFilepath =FileClassifier.getMimeFolder(filename)+filename;
+                String relativeFilepath =FileClassifier.getRelativePath(filename);
                 memeFileHelper.writeToFile(inputStream, memeFileHelper.createFile(relativeFilepath));
                 insertToDB(relativeFilepath);
             } else {
@@ -512,8 +534,8 @@ return tabNum;
                     if (cursor.moveToFirst()) {
                         do {
                             String qwe= cursor.getString(1);
-                            if(!qwe.contains("/"))
-                                qwe=FileClassifier.getMimeFolder(qwe)+qwe;
+                            if(qwe.contains("."))
+                                qwe=FileClassifier.getRelativePath(qwe);
                             if(dbName.contains(imagedb)){
                                 databases.get(0).insert(qwe, cursor.getString(2));
                            }

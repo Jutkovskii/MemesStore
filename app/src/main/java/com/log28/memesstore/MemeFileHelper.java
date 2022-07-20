@@ -30,8 +30,8 @@ return new MemeFileHelper(context,persistentUri);
         Bitmap preview=null;
 
        try{
-           if(FileClassifier.classfyByName(filePath)==FileClassifier.HTTPS)
-               filePath="Previews/"+filePath+".jpg";
+           /*if(FileClassifier.classfyByName(filePath)==FileClassifier.HTTPS)
+               filePath="Previews/"+filePath+".jpg";*/
            InputStream inputStream=context.getContentResolver().openInputStream(getUriFromFile(filePath));
            preview = BitmapFactory.decodeStream(inputStream,new Rect(),this.getOptions(filePath));
        }

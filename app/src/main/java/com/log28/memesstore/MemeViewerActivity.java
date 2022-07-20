@@ -37,6 +37,7 @@ public class MemeViewerActivity extends AppCompatActivity {
     String mimeType;
     Toolbar toolbar;
     Uri memeUri;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         savedInstanceState=null;
@@ -106,11 +107,16 @@ public class MemeViewerActivity extends AppCompatActivity {
     public void onSendMeme(View view){
         //создание интента отправки в дочерние активности на основании типа файла
         try {
-
+String extraMressage="";
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.setType(mimeType);
-            intent.putExtra(Intent.EXTRA_STREAM, memeUri);
-            intent.putExtra(Intent.EXTRA_TEXT, memeSign.getText());
+            if(memeUri==null) {
+
+                extraMressage="https://www.youtube.com/watch?v="+ filename +" ";
+            }
+            else
+                intent.putExtra(Intent.EXTRA_STREAM, memeUri);
+            intent.putExtra(Intent.EXTRA_TEXT, extraMressage+memeSign.getText());
             startActivity(intent);
         }
         catch (Exception e){
