@@ -88,8 +88,6 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
         View itemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.meme_card_view, parent, false);
         ViewHolder vh = new ViewHolder(itemView);
-       // vh.memesListAdapter=this;
-        //vh.memeImageView.setImageBitmap(BitmapFactory.decodeResource(context.getResources(), R.raw.logo));
 
         Log.d("OLOLOG","создание холдера " );
         return vh;
@@ -113,7 +111,6 @@ try{
             holder.deleteCheck.setChecked(false);
 
     holder.memeImageView.setImageBitmap(filteredMemes.get(position).getBitmap());
-    //filteredMemes.get(position).getBitmap(holder);
             holder.memeTag.setText(filteredMemes.get(position).getTag());
 
 
@@ -146,11 +143,7 @@ try{
                 }
                 else
                 {
-                   /* Intent intent = new Intent(context, MemeViewerActivity.class);
-                    intent.putExtra(MemeViewerActivity.FILENAME_EXTRA, filteredMemes.get(position).getMemeRelativePath());
-                    intent.putExtra(MemeViewerActivity.FILETAG_EXTRA, filteredMemes.get(position).getTag());
-                    ((Activity) context).startActivityForResult(intent, MemeViewerActivity.REQUEST_CODE);
-*/
+
                     Intent intent = new Intent(context, MemeViewerActivity.class);
                     intent.putExtra(MemeObject.memeObjectParcelTag, filteredMemes.get(position));
                     ((Activity) context).startActivityForResult(intent, MemeViewerActivity.REQUEST_CODE);
@@ -229,7 +222,6 @@ try{
             @Override
             protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
 
-                    //filteredGroups = (ArrayList<MemeGroup>) filterResults.values;
                 filteredMemes = (ArrayList<MemeObject>) filterResults.values;
                     notifyDataSetChanged();
 
@@ -242,7 +234,6 @@ try{
         public CardView memeCardView;
         public TextView memeTag;
         public CheckBox deleteCheck;
-        //MemesListAdapter memesListAdapter;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             memeCardView = itemView.findViewById(R.id.memeCardView);

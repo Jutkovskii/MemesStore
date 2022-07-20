@@ -453,7 +453,6 @@ return tabNum;
                     Cursor localcursor = thisdb.getCursor();
                     localcursor.moveToFirst();
                     for (int i = 0; i < localcursor.getCount(); i++) {
-                        //memepaths.add(FileHelper2.getFullPath(localcursor.getString(1)));
                         memepaths.add(localcursor.getString(1));
                         localcursor.moveToNext();
 

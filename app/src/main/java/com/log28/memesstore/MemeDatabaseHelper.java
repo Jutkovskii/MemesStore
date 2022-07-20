@@ -37,21 +37,18 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
 
         super(context, name, null, version);
         this.name = name;
-        Log.d("OLOLOG","БД конструктор "+ name  );
         getWritableDatabase();
     }
 
     @Override
     public SQLiteDatabase getWritableDatabase() {
         memesDatabase = super.getWritableDatabase();
-        Log.d("OLOLOG","БД для записи "+ name  );
         return memesDatabase;
     }
 
     @Override
     public SQLiteDatabase getReadableDatabase() {
         memesDatabase = super.getReadableDatabase();
-        Log.d("OLOLOG","БД для чтения "+ name  );
         return memesDatabase;
     }
 
@@ -59,7 +56,6 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         memesDatabase = sqLiteDatabase;
         memesDatabase.execSQL("CREATE TABLE " + tableName + " (_id INTEGER PRIMARY KEY AUTOINCREMENT, " + filepathColumnName + " TEXT, " + filetagColumnName + " TEXT );");
-        Log.d("OLOLOG","БД Создать "+ name  );
     }
 
     @Override
@@ -68,7 +64,6 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
     }
 
     public void insert(String filepath, String  filetag) {
-        Log.d("OLOLOG","БД Вставить"+ name  );
         checkDB();
         Cursor localCursor = memesDatabase.query(tableName, new String[]{filepathColumnName},  filepathColumnName+" =?",new String[]{filepath}, null, null, null);
         if (localCursor.getCount() == 0)
@@ -80,8 +75,6 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
         }
     }
     public void insert(String filepath) {
-        Log.d("OLOLOG","БД Вставить без тэга"+ name  );
-
         insert(filepath,"");
     }
 
@@ -90,8 +83,6 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
     }
 
     public void delete(String filepath) {
-        Log.d("OLOLOG","БД удалить "+ name  );
-
         try {checkDB();
             memesDatabase.delete(tableName, filepathColumnName + " = ?", new String[]{filepath});
         } catch (Exception e) {
@@ -101,7 +92,6 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
 
     public void update(String filename, String filetag){
         ContentValues contentValues = new ContentValues();
-        //contentValues.put(this.filepathColumnName,  filename);
         contentValues.put(this.filetagColumnName, filetag);
         memesDatabase.update(tableName,contentValues,filepathColumnName + " = ?",new String[]{filename});
     }
@@ -112,10 +102,10 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
     }
 
     void checkDB(){
-        if(memesDatabase==null){  Log.d("OLOLOG","БД нулл "+ name  );
-            getWritableDatabase();}
-        if(!memesDatabase.isOpen()){  Log.d("OLOLOG","БД была закрыта "+ name  );
-            getWritableDatabase();}
+        if(memesDatabase==null)
+            getWritableDatabase();
+        if(!memesDatabase.isOpen())
+            getWritableDatabase();
     }
 
     //////////////////////////////////////////////////
@@ -125,93 +115,6 @@ public class MemeDatabaseHelper extends SQLiteOpenHelper {
         String DatabaseName = this.name;
         String currentDBPath = "/data/data/com.log28.memesstore/databases/" + DatabaseName;
         return currentDBPath;
-    }
-    public void exportDB() {
-        String DatabaseName = this.name;
-        File sd = Environment.getExternalStorageDirectory();
-        File data = Environment.getDataDirectory();
-        FileChannel source = null;
-        FileChannel destination = null;
-        //String currentDBPath = "/data/"+ "com.log28.memesstore" +"/databases/"+DatabaseName ;
-        String currentDBPath = "/data/com.log28.memesstore/databases/" + DatabaseName;
-        String backupDBPath = "/Download/database.db";
-        File currentDB = new File(data, currentDBPath);
-        File[] asd = new File("/data/data/com.log28.memesstore/databases/").listFiles();
-        boolean s = currentDB.exists();
-        File backupDB = new File(sd, backupDBPath);
-        try {
-            backupDB.createNewFile();
-            source = new FileInputStream(currentDB).getChannel();
-            destination = new FileOutputStream(backupDB).getChannel();
-            destination.transferFrom(source, 0, source.size());
-            source.close();
-            destination.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        zip(new String[]{sd+backupDBPath}, sd + "/Download/database.meme");
-    }
-
-    public void zip(String[] files, String zipFile) {
-
-        int BUFFER = 1024 * 4;
-        String[] _files = files;
-        String _zipFile = zipFile;
-
-        try {
-            BufferedInputStream origin = null;
-            FileOutputStream dest = new FileOutputStream(_zipFile);
-
-            ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(dest));
-
-            byte data[] = new byte[BUFFER];
-
-            for (int i = 0; i < _files.length; i++) {
-                Log.d("add:", _files[i]);
-                Log.v("Compress", "Adding: " + _files[i]);
-                FileInputStream fi = new FileInputStream(_files[i]);
-                origin = new BufferedInputStream(fi, BUFFER);
-                ZipEntry entry = new ZipEntry(_files[i].substring(_files[i].lastIndexOf("/") + 1));
-                out.putNextEntry(entry);
-                int count;
-                while ((count = origin.read(data, 0, BUFFER)) != -1) {
-                    out.write(data, 0, count);
-                }
-                origin.close();
-            }
-
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void importDB()
-    {
-        File sd = Environment.getExternalStorageDirectory();
-        try {
-            ZipInputStream zin = new ZipInputStream(new FileInputStream(sd + "/Download/database.meme"));
-            ZipEntry entry;
-            String name;
-            long size;
-            while((entry=zin.getNextEntry())!=null){
-
-                name = entry.getName(); // получим название файла
-                size=entry.getSize();  // получим его размер в байтах
-                Log.d("OLOLOG","File name:"+name+" File size: "+size);
-
-                // распаковка
-                FileOutputStream fout = new FileOutputStream(sd + "/Download/" + name);
-                for (int c = zin.read(); c != -1; c = zin.read()) {
-                    fout.write(c);
-                }
-                fout.flush();
-                zin.closeEntry();
-                fout.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
 }

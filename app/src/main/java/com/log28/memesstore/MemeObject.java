@@ -20,7 +20,6 @@ public class MemeObject implements Parcelable{
     MemesListAdapter memesListAdapter;
     Context context;
     private String memeRelativePath;
-    private String memeName;
     private  String memeMimeType;
     private String memeTag;
     private Bitmap memeBitmap;
@@ -30,15 +29,8 @@ public static String memeObjectParcelTag="MemeObject";
 
 
 
-    MemeObject(MemesListAdapter memesListAdapter,String relativeFilepath) {
-
-        init(memesListAdapter.context,relativeFilepath,"");
-    }
     MemeObject(Context context,String relativeFilepath) {
         init(context,relativeFilepath,"");
-    }
-    MemeObject(Context context,String relativeFilepath,String tag) {
-        init(context,relativeFilepath,tag);
     }
     MemeObject(MemesListAdapter memesListAdapter,String relativeFilepath,String tag){
 this.memesListAdapter=memesListAdapter;
@@ -84,7 +76,6 @@ this.memesListAdapter=memesListAdapter;
         return this.memeRelativePath;
     }
     public String getTag(){return memeTag;}
-    public int getMemeTab(){return memeTab;}
     public String getMemeMimeType(){return memeMimeType;}
     public Uri getMemeUri(){return memeUri;}
 

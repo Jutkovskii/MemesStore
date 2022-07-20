@@ -19,9 +19,7 @@ public class MemeFileHelper extends FileHelper {
     }
 
     public static MemeFileHelper createFileHelper(Context context, Uri persistentUri){
-       /* if(memeFileHelper==null)
-            memeFileHelper=new MemeFileHelper(context,persistentUri);
-            return memeFileHelper;*/
+
 return new MemeFileHelper(context,persistentUri);
     }
 
@@ -30,8 +28,6 @@ return new MemeFileHelper(context,persistentUri);
         Bitmap preview=null;
 
        try{
-           /*if(FileClassifier.classfyByName(filePath)==FileClassifier.HTTPS)
-               filePath="Previews/"+filePath+".jpg";*/
            InputStream inputStream=context.getContentResolver().openInputStream(getUriFromFile(filePath));
            preview = BitmapFactory.decodeStream(inputStream,new Rect(),this.getOptions(filePath));
        }

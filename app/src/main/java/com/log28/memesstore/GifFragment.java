@@ -36,17 +36,7 @@ public class GifFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, null);
-       // InputStream stream = null;
-       InputStream stream =MemeFileHelper.createFileHelper(context,MainActivity.uriFolder).readFromFile(relativeFilepath);
-        /* try {
-
-            String path =relativeFilepath;
-            stream = new FileInputStream(path);
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
+         InputStream stream =MemeFileHelper.createFileHelper(context,MainActivity.uriFolder).readFromFile(relativeFilepath);
         GifView gifView = new GifView(context, stream);
         ConstraintLayout layout = view.findViewById(R.id.gifLayout);
         ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) layout.getLayoutParams();
