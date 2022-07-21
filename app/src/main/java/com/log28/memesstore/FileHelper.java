@@ -27,7 +27,7 @@ import java.util.zip.ZipOutputStream;
 public class FileHelper {
     Context context;
     Uri persistentUri;
-    String appFolder;
+    static String appFolder;
     String packageName;
     List<String> folders;
     String filename;
@@ -152,7 +152,7 @@ packageName=context.getPackageName();
         return true;
     }
 
-    public boolean isExist(String path){
+    public static boolean isExist(String path){
         try{
            return DocumentFile.fromFile(new File(getAbsolutePath(path))).exists();
           }
@@ -163,7 +163,26 @@ packageName=context.getPackageName();
 
     }
 
-    public String getAbsolutePath(String path){
+    public static boolean isEmpty(String path){
+        try{
+            if(DocumentFile.fromFile(new File(getAbsolutePath(path))).length()>0)
+            return false ;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return true;
+        }
+        return true;
+    }
+    public static String getPathFromUri(Uri uri){
+        String path;
+        List<String> uriSegments=uri.getPathSegments();
+        path=uriSegments.get(1).split(":")[1];
+        return path;
+    }
+
+
+    public static String getAbsolutePath(String path){
        return Environment.getExternalStorageDirectory()+"/"+appFolder+"/"+path;
     }
     public String zipPack(Uri zipName,List<String> paths) {
@@ -224,6 +243,7 @@ packageName=context.getPackageName();
             while ((zEntry = zipStream.getNextEntry()) != null) {
                 FileOutputStream fout =null;
                     String name = zEntry.getName();
+
                     if(FileClassifier.classfyByName(name)==FileClassifier.DB)
                     {
                         name=context.getCacheDir()+"/"+name;
@@ -235,10 +255,14 @@ packageName=context.getPackageName();
                             name=FileClassifier.getRelativePath(name);
                         fout = (FileOutputStream) createFile(name);
                     }
+                    if(isExist(name)&&!isEmpty(name))
+                        continue;
                     BufferedOutputStream bufout = new BufferedOutputStream(fout);
                     byte[] buffer = new byte[1024];
                     int read = 0;
                     while ((read = zipStream.read(buffer)) != -1) {
+                        if(bufout==null)
+                            read=0;
                         bufout.write(buffer, 0, read);
                     }
 

@@ -93,6 +93,17 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
 
         }
+        //объект с вкладками
+        memesCategories = findViewById(R.id.categoriesLayout);
+        toolbar=findViewById(R.id.mainToolbar);
+        setSupportActionBar(toolbar);
+
+
+        if(checkPersistentUri())
+        init();
+    }
+
+    public  void  init(){
         //создание и заполнение списка БД
         databases= new ArrayList<>();
         //проверка пользовательских БД (на будущее)
@@ -105,8 +116,7 @@ public class MainActivity extends AppCompatActivity {
         for(int i=0;i<databases.size();i++)
             memeListFragments.add(new MemeListFragment(databases.get(i)));
 
-        //объект с вкладками
-        memesCategories = findViewById(R.id.categoriesLayout);
+
 
         //обработчик выбора вкладок
         memesCategories.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -128,22 +138,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         //создание объекта для работы с файловой системой
-       // fileHelper2 = new FileHelper2(this);
+        // fileHelper2 = new FileHelper2(this);
 
         //создание слайдера
         pagerSlider = findViewById(R.id.pagerSlider);
         pagerAdapter = new ScreenSlidePagerAdapter(this, memeListFragments);
         pagerSlider.setAdapter(pagerAdapter);
         pagerSlider.setSaveEnabled(false);
-        toolbar=findViewById(R.id.mainToolbar);
-        setSupportActionBar(toolbar);
-        checkPersistentUri();
+
+
         Intent intent = getIntent();
         if(intent!=null&&intent.getAction()!="android.intent.action.MAIN")
             getMemeFromIntent(intent);
-int y=0;
     }
-
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     protected void onStart() {
@@ -157,6 +164,12 @@ int y=0;
     @Override
     protected void onStop() {
         super.onStop();
+       //
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
         setPreferences();
     }
 
@@ -474,7 +487,7 @@ return tabNum;
                 getContentResolver().takePersistableUriPermission(uriFolder, takeFlags);
                 grantUriPermission(this.getPackageName(),uriFolder,takeFlags);
                 memeFileHelper = MemeFileHelper.createFileHelper(this,uriFolder);
-
+                init();
 
             }
         }
@@ -533,7 +546,7 @@ return tabNum;
                     if (cursor.moveToFirst()) {
                         do {
                             String qwe= cursor.getString(1);
-                            if(qwe.contains("."))
+                            if(qwe.contains(".")&&!qwe.contains("/"))
                                 qwe=FileClassifier.getRelativePath(qwe);
                             if(dbName.contains(imagedb)){
                                 databases.get(0).insert(qwe, cursor.getString(2));
@@ -552,17 +565,19 @@ return tabNum;
         }
 
         catch (Exception e) {
+
             e.printStackTrace();
         }
         return filename;
     }
 
-    public void checkPersistentUri(){
+    public boolean checkPersistentUri(){
 
         ArrayList<UriPermission>qwe= (ArrayList<UriPermission>) this.getContentResolver().getPersistedUriPermissions();
         if(qwe.size()!=0){
             uriFolder=qwe.get(0).getUri();
             memeFileHelper = MemeFileHelper.createFileHelper(this,qwe.get(0).getUri());
+            return true;
         }
         else
         {
@@ -570,6 +585,7 @@ return tabNum;
             intent1.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             intent1.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
             startActivityForResult(intent1, REQUEST_PERSISTENT);
+            return false;
         }
 
 
