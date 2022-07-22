@@ -456,10 +456,12 @@ return tabNum;
             }
         if (requestCode == REQUEST_EXDB)
             if (resultCode == RESULT_OK)
-            {
+            { try {
+
+
                 Uri uri=data.getData();
-                List<String> uriSegments=uri.getPathSegments();
-                String filepath=uriSegments.get(1).split(":")[1];
+                //List<String> uriSegments=uri.getPathSegments();
+               // String filepath=uriSegments.get(1).split(":")[1];
                 ArrayList<String> memepaths = new ArrayList<>();
                 for (MemeDatabaseHelper thisdb : databases){
                     memepaths.add(thisdb.getDbPath());
@@ -474,7 +476,10 @@ return tabNum;
 
                 }
                 new MemeFileHelper(this,uriFolder).zipPack(uri/*+"qwe.zip"*/,memepaths);
-
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
 
             }
         if (requestCode ==REQUEST_PERSISTENT

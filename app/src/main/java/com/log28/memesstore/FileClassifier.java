@@ -7,7 +7,7 @@ public class FileClassifier {
 
     static String imageformats[]= new String[]{".jpg",".jpeg",".png", ".bmp", ".webp", ".tiff"};
     static String gifformats[]= new String[]{".gif"};
-    static String videoformats[]= new String[]{".mp4"};
+    static String videoformats[]= new String[]{".mp4", ".webm"};
     static String archformats[]= new String[]{".zip"};
     static String dbformats[]= new String[]{"db"};
 
