@@ -14,7 +14,7 @@
         android:ems="10"
         android:gravity="start|top"
         android:hint="Текст сообщения:"
-        android:inputType="textMultiLine|textCapWords"
+        android:inputType="textMultiLine|textCapSentences"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/sendButton"
         app:layout_constraintStart_toStartOf="parent" />
@@ -24,7 +24,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:inputType="textPersonName|textCapWords"
+        android:inputType="textPersonName|textCapSentences"
         android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
