@@ -25,6 +25,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class FileHelper {
+
     Context context;
     Uri persistentUri;
     static String appFolder;
@@ -37,6 +38,9 @@ public class FileHelper {
         this.context=context;
         this.persistentUri=persistentUri;
         List<String> uriSegments=persistentUri.getPathSegments();
+        if(uriSegments.get(1).endsWith(":"))
+            appFolder=uriSegments.get(1).replace(":","");
+        else
 appFolder=uriSegments.get(1).split(":")[1];
 packageName=context.getPackageName();
     }
