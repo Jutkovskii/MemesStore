@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
+import android.provider.DocumentsContract;
 
 import androidx.core.content.FileProvider;
 import androidx.documentfile.provider.DocumentFile;
@@ -18,6 +19,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -143,11 +145,35 @@ packageName=context.getPackageName();
         }
         return null;
     }
-
+    public static DocumentFile getDoucmentFile(Context context, String path) {
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        String path2 = path.replace("/storage/emulated/0/", "").replace("/", "%2F").replace("@","%40");
+        return DocumentFile.fromSingleUri(context, Uri.parse("content://com.android.externalstorage.documents/tree/primary%3A"+appFolder+"/document/primary%3A" +appFolder+"%2F"+ path2));
+    }
     public boolean deleteFile(String path){
         try{
-            if(isExist(path))
-                DocumentFile.fromFile(new File(getAbsolutePath(path))).delete();
+            //if(isExist(path))
+            DocumentFile file =    DocumentFile.fromFile(new File(getAbsolutePath(path)));
+            file.delete();
+            DocumentFile asd=DocumentFile.fromTreeUri(context,persistentUri);
+            Uri asduri=asd.getUri();
+
+            Uri testuri= DocumentsContract.buildTreeDocumentUri(asduri.getAuthority(), path);
+DocumentFile zxc=getDoucmentFile(context,path);
+
+           detectFolders(path);
+            if (folders != null)
+                for (String folder : folders) {
+                    root = root.findFile(folder);
+                }
+            file = root.findFile(filename);
+
+            Uri trueuri=file.getUri();
+                testuri=zxc.getUri();
+            zxc.delete();
+            //file.delete();
         }
         catch (Exception e){
             e.printStackTrace();
