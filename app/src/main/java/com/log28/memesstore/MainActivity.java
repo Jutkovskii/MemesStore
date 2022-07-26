@@ -344,6 +344,18 @@ public class MainActivity extends AppCompatActivity {
                         insertToDB(filename);
                     }
                     break;
+                case FileClassifier.DISCORD:
+                    String filename= intent.getClipData().getItemAt(0).getText().toString();
+                    filename=MemeFileHelper.createFileHelper(this, MainActivity.uriFolder).createFileFromURL(filename);
+                    String relativeFilepath =filename;
+                    insertToDB(relativeFilepath);
+                    break;
+                case FileClassifier.VK:
+                    String vkfilename= intent.getClipData().getItemAt(0).getText().toString();
+                    vkfilename=MemeFileHelper.createFileHelper(this, MainActivity.uriFolder).createFileFromURL(vkfilename);
+                    String vkrelativeFilepath =vkfilename;
+                    insertToDB(vkrelativeFilepath);
+                    break;
                 //мем - картинка, gif или видео
                 case FileClassifier.IMAGE: case FileClassifier.GIF :case FileClassifier.VIDEO:
                     // извлекаем uri одним из методов

@@ -5,11 +5,18 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import org.jsoup.Jsoup;
+
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MemeFileHelper extends FileHelper {
 
@@ -53,4 +60,65 @@ return new MemeFileHelper(context,persistentUri);
 
     }
 
+    public String createFileFromURL(String url){
+        URLSaver urlSaver=new URLSaver(url);
+        String filename=urlSaver.getTargetFilename();
+        urlSaver.execute();
+        return filename;
+    }
+
+    public class URLSaver extends AsyncTask<Void,Void,Void>{
+        String targetFilename;
+        String url;
+        OutputStream outputStream;
+        public URLSaver(String url){
+        this.url =url;
+        String[] parts=url.split("/");
+        this.targetFilename=parts[parts.length-1];
+        this.targetFilename=FileClassifier.getRelativePath(getTargetFilename());
+        outputStream=createFile(this.targetFilename);
+        }
+        public String getTargetFilename(){
+            if(!targetFilename.contains(".")) targetFilename=targetFilename+".jpg";
+            return targetFilename;
+        }
+        public String parseURL(String url){
+            String imageUrl="";
+            try {
+
+                String webPage=Jsoup.connect(url).get().text("https").toString();
+                Pattern pattern = Pattern.compile("<meta name=\"og:image\" value=\".+?>");
+                Matcher matcher = pattern.matcher(webPage);
+                if (matcher.find()) {
+                    //фиксируем полученное имя
+                    imageUrl = webPage.substring(matcher.start())
+                            .replace("<meta name=\"og:image\" value=\"", "")
+                            .replace("amp;", "")
+                            .replace("http", "https")
+                            .split("\">")[0];
+
+                }
+            }
+            catch (Exception e){
+                e.printStackTrace();
+
+            }
+            return imageUrl;
+        }
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                if(FileClassifier.classifyByUrl(url)==FileClassifier.VK)
+                url =parseURL(url);
+                InputStream inputStream = (InputStream) new URL(url).getContent();
+                MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).writeToFile(inputStream,outputStream);
+        }
+            catch (Exception e){
+            e.printStackTrace();
+
+        }
+            return null;
+        }
+
+    }
 }

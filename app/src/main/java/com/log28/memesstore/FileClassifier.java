@@ -114,7 +114,7 @@ public class FileClassifier {
     public static int classifyByType(Intent incomingIntent){
         String receivedType = incomingIntent.getType();
         if(receivedType.startsWith("text")){
-            return YOUTUBE;
+            return classifyByUrl(incomingIntent.getClipData().getItemAt(0).getText().toString());
         }
         if(receivedType.startsWith("image")){
             return IMAGE;
@@ -137,4 +137,15 @@ public class FileClassifier {
     public static String getFormat(String memeName){
         return memeName.substring(memeName.lastIndexOf(".")+1);
     }
+
+    public static int classifyByUrl(String memeURL){
+        if(memeURL.contains("youtube")||memeURL.contains("youtu.be")||!memeURL.contains("."))
+            return YOUTUBE;
+        if(memeURL.contains("vk.com"))
+            return VK;
+        if(memeURL.contains("discord"))
+            return DISCORD;
+        return TEMP;
+    }
+
 }
