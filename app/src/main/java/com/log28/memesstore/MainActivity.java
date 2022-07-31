@@ -146,19 +146,15 @@ public class MainActivity extends AppCompatActivity {
         pagerSlider.setAdapter(pagerAdapter);
         pagerSlider.setSaveEnabled(false);
 
-
         Intent intent = getIntent();
         if(intent!=null&&intent.getAction()!="android.intent.action.MAIN")
             getMemeFromIntent(intent);
     }
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
-    protected void onStart() {
-        super.onStart();
-        Intent intent = getIntent();
-        if(intent!=null&&intent.getAction()!="android.intent.action.MAIN")
-            getMemeFromIntent(intent);
-
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        getMemeFromIntent(intent);
     }
 
     @Override

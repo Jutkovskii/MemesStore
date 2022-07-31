@@ -145,36 +145,23 @@ packageName=context.getPackageName();
         }
         return null;
     }
-    public static DocumentFile getDoucmentFile(Context context, String path) {
+
+    public Uri getSingleUri(String path){
+        String uripath=DocumentFile.fromTreeUri(context,persistentUri).getUri().toString();
+        if(!path.startsWith("/"))
+        path="/"+path;
         if (path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
-        String path2 = path.replace("/storage/emulated/0/", "").replace("/", "%2F").replace("@","%40");
-        return DocumentFile.fromSingleUri(context, Uri.parse("content://com.android.externalstorage.documents/tree/primary%3A"+appFolder+"/document/primary%3A" +appFolder+"%2F"+ path2));
+        uripath= uripath+path.replace("/","%2F").replace("@","%40");
+        return Uri.parse(uripath);
     }
+
     public boolean deleteFile(String path){
         try{
-            //if(isExist(path))
-            DocumentFile file =    DocumentFile.fromFile(new File(getAbsolutePath(path)));
-            file.delete();
-            DocumentFile asd=DocumentFile.fromTreeUri(context,persistentUri);
-            Uri asduri=asd.getUri();
-
-            Uri testuri= DocumentsContract.buildTreeDocumentUri(asduri.getAuthority(), path);
-DocumentFile zxc=getDoucmentFile(context,path);
-
-           detectFolders(path);
-            if (folders != null)
-                for (String folder : folders) {
-                    root = root.findFile(folder);
-                }
-            file = root.findFile(filename);
-
-            Uri trueuri=file.getUri();
-                testuri=zxc.getUri();
-            zxc.delete();
-            //file.delete();
-        }
+            if(isExist(path))
+                DocumentFile.fromSingleUri(context,getSingleUri(path)).delete();
+             }
         catch (Exception e){
             e.printStackTrace();
             return false;
@@ -210,7 +197,6 @@ DocumentFile zxc=getDoucmentFile(context,path);
         path=uriSegments.get(1).split(":")[1];
         return path;
     }
-
 
     public static String getAbsolutePath(String path){
        return Environment.getExternalStorageDirectory()+"/"+appFolder+"/"+path;
