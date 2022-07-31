@@ -108,6 +108,7 @@ public class MemeViewerActivity extends AppCompatActivity {
         //создание интента отправки в дочерние активности на основании типа файла
         try {
 String extraMressage="";
+
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.setType(mimeType);
             if(memeUri==null) {
@@ -116,7 +117,10 @@ String extraMressage="";
             }
             else
                 intent.putExtra(Intent.EXTRA_STREAM, memeUri);
-            intent.putExtra(Intent.EXTRA_TEXT, extraMressage+memeSign.getText());
+            String finalMessage=extraMressage+memeSign.getText();
+            if(MainActivity.isDefaultSingEnabled)
+                finalMessage=finalMessage+"\n\n"+MainActivity.defaultSign;
+            intent.putExtra(Intent.EXTRA_TEXT, finalMessage);
             startActivity(intent);
         }
         catch (Exception e){
