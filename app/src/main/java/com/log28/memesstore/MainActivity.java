@@ -262,8 +262,8 @@ public class MainActivity extends AppCompatActivity {
                 }
                 currentFragment.memesListAdapter.selected.clear();
                 currentFragment.memesListAdapter.deletingMode = false;
-                mainMenu.getItem(3).setVisible(false);
-                mainMenu.getItem(2).setVisible(true);
+                //mainMenu.getItem(3).setVisible(false);
+                mainMenu.getItem(2).setVisible(false);
                 mainMenu.getItem(1).setVisible(true);
                 currentFragment.memesListAdapter.notifyDataSetChanged();
 
