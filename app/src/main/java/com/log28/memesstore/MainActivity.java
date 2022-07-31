@@ -47,11 +47,15 @@ import java.util.regex.Pattern;
 public class MainActivity extends AppCompatActivity {
 
     public  static  Uri uriFolder;
+    public static String defaultSign;
     String searchMemeTag="";
     //Список с базами данных с мемами
     ArrayList<MemeDatabaseHelper> databases;
     SharedPreferences userData;
     final String dbKey="dbKey";
+    final String SIGN="SIGN";
+    final String SWITCH="SWITCH";
+    public static boolean isDefaultSingEnabled;
     ArrayList<String> dbNames=new ArrayList<>();
     final String imagedb="imagedb";
     final String videodb="videodb";
@@ -68,10 +72,10 @@ public class MainActivity extends AppCompatActivity {
     //фрагменты с отображением списков мемов
     ArrayList<MemeListFragment> memeListFragments;
     //коды идентификации входящих Intent'ов
-    private final int REQUEST_DB = 53;//импорт БД
-    private final int REQUEST_EXDB = 54;//экспорт БД
-    private final int REQUEST_GALLERY = 84;//добавление из галереи
-    private final int REQUEST_PERSISTENT = 145;//добавление из галереи
+    public static final int REQUEST_DB = 53;//импорт БД
+    public static final int REQUEST_EXDB = 54;//экспорт БД
+    public static final int REQUEST_GALLERY = 84;//добавление из галереи
+    public static final int REQUEST_PERSISTENT = 145;//добавление из галереи
     //флаг режима мультивыбора для удалени
     public static boolean deletingMode=false;
     //меню в ActionBar
@@ -157,11 +161,7 @@ public class MainActivity extends AppCompatActivity {
         getMemeFromIntent(intent);
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-       //
-    }
+
 
     @Override
     protected void onDestroy() {
@@ -269,7 +269,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
             //сбор всех мемов в zip файл
-            if (item.getTitle().toString().matches("Экспорт")) {
+           /* if (item.getTitle().toString().matches("Экспорт")) {
                /* ArrayList<String> memepaths = new ArrayList<>();
                 for (MemeDatabaseHelper thisdb : databases){
                     memepaths.add(thisdb.getDbPath());
@@ -286,14 +286,19 @@ public class MainActivity extends AppCompatActivity {
                 }
             new MemeFileHelper(this,uriFolder).zipPack("qwe.zip",memepaths);
 */
-                Intent chooseFile = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+               /* Intent chooseFile = new Intent(Intent.ACTION_CREATE_DOCUMENT);
                 chooseFile.setType("application/zip");
                 chooseFile = Intent.createChooser(chooseFile, "Choose a file");
-                startActivityForResult(chooseFile, REQUEST_EXDB);
+                startActivityForResult(chooseFile, REQUEST_EXDB);*/
+            /*    startActivityForResult(new Intent(this,SettingsActivity.class),REQUEST_EXDB);
             }
             //извлечение мемов из zip-файла
             if (item.getTitle().toString().matches("Импорт")) {
-                selectDBforImport();
+                //selectDBforImport();
+                startActivityForResult(new Intent(this,SettingsActivity.class),REQUEST_DB);
+            }*/
+            if (item.getTitle().toString().matches("Настройки")){
+                startActivityForResult(new Intent(this,SettingsActivity.class),0);
             }
         }
         catch (Exception e)
@@ -376,10 +381,13 @@ return tabNum;
         dbNames.add(videodb);
         userData=getPreferences(MODE_PRIVATE);
         Set<String>usersbd= userData.getStringSet(dbKey,null);
-        if(usersbd!=null)
-            for (String userbd: usersbd)
-                if(!dbNames.contains(userbd))
+        if(usersbd!=null) {
+            for (String userbd : usersbd)
+                if (!dbNames.contains(userbd))
                     dbNames.add(userbd);
+                isDefaultSingEnabled=userData.getBoolean(SWITCH,false);
+                defaultSign=userData.getString(SIGN,"");
+        }
         userData.edit().clear().commit();
 
 
@@ -388,6 +396,8 @@ return tabNum;
     void setPreferences() {
         SharedPreferences.Editor editor = userData.edit();
         editor.putStringSet(dbKey,new HashSet<String>(dbNames));
+        editor.putString(SIGN,defaultSign);
+        editor.putBoolean(SWITCH,isDefaultSingEnabled);
         editor.apply();
     }
     //добавление файла в базу данных
@@ -458,12 +468,12 @@ return tabNum;
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
                 memeListFragments.get(tabNum).memesListAdapter.notifyDataSetChanged();
             }
-        if (requestCode == REQUEST_DB)
-            if (resultCode == RESULT_OK) {
+      //  if (requestCode == REQUEST_DB)
+            if (resultCode == REQUEST_DB) {
                 saveFromUri(data.getData());
             }
-        if (requestCode == REQUEST_EXDB)
-            if (resultCode == RESULT_OK)
+       // if (requestCode == REQUEST_EXDB)
+            if (resultCode == REQUEST_EXDB)
             { try {
 
 
@@ -490,6 +500,7 @@ return tabNum;
             }
 
             }
+
         if (requestCode ==REQUEST_PERSISTENT
                 && resultCode == Activity.RESULT_OK) {
             if (data != null) {

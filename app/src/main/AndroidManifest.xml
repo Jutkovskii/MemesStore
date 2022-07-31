@@ -29,6 +29,8 @@
         </provider>
 
         <activity android:name=".MemeViewerActivity" />
+        <activity android:name=".SettingsActivity"
+            tools:ignore="MissingClass" /> >
         <activity android:name=".MainActivity"
             android:launchMode="singleTask" >
             <intent-filter>

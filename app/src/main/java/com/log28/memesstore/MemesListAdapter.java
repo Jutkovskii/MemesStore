@@ -135,8 +135,8 @@ try{
                         deletingMode = false;
                         MainActivity.deletingMode=false;
 
-                        mainMenu.getItem(3).setVisible(false);
-                        mainMenu.getItem(2).setVisible(true);
+                       // mainMenu.getItem(3).setVisible(false);
+                        mainMenu.getItem(2).setVisible(false);
                         mainMenu.getItem(1).setVisible(true);
                         redrawList();
                     }
@@ -166,10 +166,10 @@ try{
                     redrawList();
                     MainActivity.deletingMode=true;
                     try {
-                        MenuItem qwe = mainMenu.getItem(3);
+                        MenuItem qwe = mainMenu.getItem(2);
                         qwe.setVisible(true);
-                        mainMenu.getItem(2).setVisible(false);
                         mainMenu.getItem(1).setVisible(false);
+                        //mainMenu.getItem(1).setVisible(false);
                     }
                     catch (Exception e){
                         e.printStackTrace();
