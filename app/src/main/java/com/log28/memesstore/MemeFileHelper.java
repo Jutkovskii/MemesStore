@@ -98,6 +98,20 @@ return new MemeFileHelper(context,persistentUri);
                             .split("\">")[0];
 
                 }
+                else {
+                    pattern = Pattern.compile("<meta property=\"og:image\" content=\".+?>");
+                    matcher = pattern.matcher(webPage);
+                    if (matcher.find()) {
+                        //фиксируем полученное имя
+                        imageUrl = webPage.substring(matcher.start())
+                                .replace("<meta property=\"og:image\" content=\"", "")
+                                .replace("amp;", "")
+                                .replace("http", "https")
+                                .split("\">")[0];
+
+                    }
+                }
+
             }
             catch (Exception e){
                 e.printStackTrace();
