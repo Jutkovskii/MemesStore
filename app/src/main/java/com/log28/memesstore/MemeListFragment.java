@@ -58,6 +58,10 @@ String filterText="";
         memesListAdapter.notifyDataSetChanged();
     }
 
+    public void add()
+    {
+        memesListAdapter.add();
+    }
     public void setFilter(String newText){
         filterText=newText;
     }

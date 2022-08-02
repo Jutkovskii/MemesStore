@@ -269,35 +269,6 @@ public class MainActivity extends AppCompatActivity {
                 currentFragment.memesListAdapter.notifyDataSetChanged();
 
             }
-            //сбор всех мемов в zip файл
-           /* if (item.getTitle().toString().matches("Экспорт")) {
-               /* ArrayList<String> memepaths = new ArrayList<>();
-                for (MemeDatabaseHelper thisdb : databases){
-                    memepaths.add(thisdb.getDbPath());
-                    Cursor localcursor = thisdb.getCursor();
-                    localcursor.moveToFirst();
-                    for (int i = 0; i < localcursor.getCount(); i++) {
-                        //memepaths.add(FileHelper2.getFullPath(localcursor.getString(1)));
-                        memepaths.add(localcursor.getString(1));
-                        localcursor.moveToNext();
-
-                    }
-
-
-                }
-            new MemeFileHelper(this,uriFolder).zipPack("qwe.zip",memepaths);
-*/
-               /* Intent chooseFile = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-                chooseFile.setType("application/zip");
-                chooseFile = Intent.createChooser(chooseFile, "Choose a file");
-                startActivityForResult(chooseFile, REQUEST_EXDB);*/
-            /*    startActivityForResult(new Intent(this,SettingsActivity.class),REQUEST_EXDB);
-            }
-            //извлечение мемов из zip-файла
-            if (item.getTitle().toString().matches("Импорт")) {
-                //selectDBforImport();
-                startActivityForResult(new Intent(this,SettingsActivity.class),REQUEST_DB);
-            }*/
             if (item.getTitle().toString().matches("Настройки")){
                 startActivityForResult(new Intent(this,SettingsActivity.class),0);
             }
@@ -327,8 +298,9 @@ public class MainActivity extends AppCompatActivity {
 
             for (Uri uri : uriArrayList) {
                 saveFromUri(uri);
+
             }
-            memeListFragments.get(tabNum).changeFragment();
+            //memeListFragments.get(tabNum).changeFragment();
         }
         //Если интент получен из другого приложения
         else {
@@ -365,6 +337,7 @@ public class MainActivity extends AppCompatActivity {
                     if (uri == null)
                         uri = intent.getData();
                     saveFromUri(uri);
+
                     break;
 
 
@@ -405,12 +378,20 @@ return tabNum;
     boolean insertToDB(String relativeFilepath) {
         try {
             databases.get(FileClassifier.classifyByTab(relativeFilepath)).insert(relativeFilepath);
+            updateMemesList(tabNum);
         } catch (Exception e) {
             return false;
         }
         return true;
     }
 
+    void updateMemesList(int tab) {
+        memesCategories.selectTab(memesCategories.getTabAt(tab));
+        if(memeListFragments.get(tab).memesListAdapter==null)
+        memeListFragments.get(tab).changeFragment();
+        else
+            memeListFragments.get(tab).memesListAdapter.add();
+    }
     //вызов галерени для добавления мема
     public void addMeme(View v) {
 
@@ -420,14 +401,6 @@ return tabNum;
         photoPickerIntent.setType(FileClassifier.getMemeMimeType(tabNum));
         //Запускаем переход с ожиданием обратного результата в виде информации об изображении:
         startActivityForResult(photoPickerIntent, REQUEST_GALLERY);//посмотреть, как нынче надо
-    }
-
-    //НА БУДУЩЕЕ вызов импорта базы данных
-    public void selectDBforImport() {
-        Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
-        chooseFile.setType("*/*");
-        chooseFile = Intent.createChooser(chooseFile, "Choose a file");
-        startActivityForResult(chooseFile, REQUEST_DB);
     }
 
     //получение результата от дочерней активности
@@ -440,13 +413,14 @@ return tabNum;
         //результат: файл нужно удалить
         if (requestCode == MemeViewerActivity.REQUEST_CODE)
             if (resultCode == MemeViewerActivity.DELETED_MEME_CODE) {
-                Log.d("OLOLOG","Активность удалить мем " );
+                String filename = data.getDataString();
+                tabNum=FileClassifier.classifyByTab(filename);
                 //удаление файла
-                MemeFileHelper.createFileHelper(this, MainActivity.uriFolder).deleteFile(data.getDataString());
-                tabNum=FileClassifier.classifyByTab(data.getDataString());
-                databases.get(tabNum).delete(data.getDataString());
-                memesCategories.selectTab(memesCategories.getTabAt(tabNum));
-                memeListFragments.get(tabNum).changeFragment();
+                MemeFileHelper.createFileHelper(this, MainActivity.uriFolder).deleteFile(filename);
+                //удаление из БД
+                databases.get(tabNum).delete(filename);
+                //обновить список
+                updateMemesList(tabNum);
             }
         //результат: подпись нужно изменить
         if (resultCode == MemeViewerActivity.CHANGE_CODE)
@@ -456,8 +430,7 @@ return tabNum;
             String filename = data.getStringExtra(MemeViewerActivity.FILENAME_EXTRA);
             tabNum=FileClassifier.classifyByTab(filename);
             databases.get(tabNum).update(filename,filetag);
-            memesCategories.selectTab(memesCategories.getTabAt(tabNum));
-            memeListFragments.get(tabNum).changeFragment();
+            updateMemesList(tabNum);
         }
 
         //результат: файл нужно добавить
@@ -466,8 +439,7 @@ return tabNum;
                 //получаем и сохраняем мем из uri
                 //выбор вкладки согласно типу файла
                 tabNum =getMemeFromIntent(data) ;
-                memesCategories.selectTab(memesCategories.getTabAt(tabNum));
-                memeListFragments.get(tabNum).memesListAdapter.notifyDataSetChanged();
+
             }
       //  if (requestCode == REQUEST_DB)
             if (resultCode == REQUEST_DB) {
@@ -520,6 +492,7 @@ return tabNum;
     }
     String saveFromUri(Uri uri) {
 new BackgroundLoader(tabNum).execute(uri);
+        updateMemesList(tabNum);
 return "";
     }
 
@@ -615,7 +588,8 @@ int tab;
 
         @Override
         protected void onProgressUpdate(Integer... values) {
-            memeListFragments.get(tabNum).changeFragment();
+            updateMemesList(tabNum);
+
             //super.onProgressUpdate(values);
         }
     }

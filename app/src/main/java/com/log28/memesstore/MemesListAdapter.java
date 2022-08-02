@@ -93,7 +93,9 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
         return vh;
     }
 
-
+public void add(){
+        notifyItemInserted(memeObjects.size());
+}
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     public void onBindViewHolder(@NonNull MemesListAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
