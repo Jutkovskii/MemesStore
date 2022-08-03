@@ -7,9 +7,11 @@ import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import java.io.InputStream;
@@ -19,16 +21,18 @@ public class MemeObject implements Parcelable{
 
     MemesListAdapter memesListAdapter;
     Context context;
-    private String memeRelativePath;
+     String memeRelativePath;
     private  String memeMimeType;
-    private String memeTag;
+     String memeTag;
     private Bitmap memeBitmap;
     private int memeTab;
     private Uri memeUri;
 public static String memeObjectParcelTag="MemeObject";
 
 
-
+    MemeObject(Context context,String relativeFilepath,String tag) {
+        init(context,relativeFilepath,tag);
+    }
     MemeObject(Context context,String relativeFilepath) {
         init(context,relativeFilepath,"");
     }
@@ -57,7 +61,7 @@ this.memesListAdapter=memesListAdapter;
             return new MemeObject[size];
         }
     };
-
+    Handler mHandler = new Handler();
     void init(Context context, String relativeFilepath, String tag){
         this.memeRelativePath =relativeFilepath;
         this.memeTag=tag;
@@ -66,11 +70,19 @@ this.memesListAdapter=memesListAdapter;
         memeMimeType=FileClassifier.getMimeType(memeRelativePath );
         memeUri=MemeFileHelper.createFileHelper(context,MainActivity.uriFolder).getUriFromFile(memeRelativePath);
         memeBitmap= BitmapFactory.decodeResource(context.getResources(), R.raw.logo);
+
         if(memesListAdapter!=null){
-            BitmapLoader bitmapLoader=new BitmapLoader();
-            bitmapLoader.execute(memeRelativePath);
+            /*BitmapLoader bitmapLoader=new BitmapLoader();
+            bitmapLoader.execute(memeRelativePath);*/
+            imageDownloadThread(memeRelativePath);
         }
 
+    }
+
+    public void generateBitmap(MemesListAdapter memesListAdapter){
+        this.memesListAdapter=memesListAdapter;
+        context=memesListAdapter.context;
+        imageDownloadThread(memeRelativePath);
     }
     public String getMemeRelativePath(){
         return this.memeRelativePath;
@@ -93,6 +105,52 @@ this.memesListAdapter=memesListAdapter;
         dest.writeString(memeUri.toString());
     }
 
+    private void imageDownloadThread(String string) {
+        Thread thread = new Thread(new Runnable() {
+            @RequiresApi(api = Build.VERSION_CODES.R)
+            @Override public void run() {
+                try {
+                    Bitmap local=null;
+                    try {
+                        switch (FileClassifier.classfyByName(string)) {
+                            case FileClassifier.IMAGE:
+                            case FileClassifier.GIF:
+                                local= MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(string);
+                                break;
+                            case FileClassifier.VIDEO:
+
+                                MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
+                                mediaMetadataRetriever.setDataSource(context, memeUri);
+                                local = mediaMetadataRetriever.getFrameAtTime(1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+                                mediaMetadataRetriever.release();
+                                break;
+                            case FileClassifier.HTTPS:
+                                if(!MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).isExist(FileClassifier.getRelativePath(string))){
+                                    InputStream inputStream = (InputStream) new URL("https://img.youtube.com/vi/"+string+"/hqdefault.jpg").getContent();
+                                    MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).writeToFile(inputStream, MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).createFile(FileClassifier.getRelativePath(string)));
+                                }
+                                local= MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(FileClassifier.getRelativePath(string));
+                                break;
+                        }
+                        memeBitmap=local;
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                   // return local;
+                    if(memeBitmap!=null)
+                        mHandler.post(new Runnable() {
+                            @Override public void run() {
+                             memesListAdapter.notifyDataSetChanged();
+                            }
+                        });
+                    }
+                 catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+    }
 
     class BitmapLoader extends AsyncTask<String,Void, Bitmap> {
 
@@ -147,7 +205,23 @@ this.memesListAdapter=memesListAdapter;
         return memeBitmap;
     }
 
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        MemeObject memeObject=(MemeObject) obj;
+        String thispath=this.getMemeRelativePath();
+        String nethisget=memeObject.getMemeRelativePath();
+        if(thispath.equals(nethisget))
+            return true;
+        return false;
+        //return super.equals(obj);
+    }
 
-
-
+    @Override
+    public int hashCode() {
+        return 0;
+    }
+    @Override
+    public String toString() {
+        return "MyObject{id='" + 0 + "', name='"  + "'}";
+    }
 }

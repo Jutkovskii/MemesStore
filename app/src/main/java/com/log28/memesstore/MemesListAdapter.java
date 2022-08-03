@@ -37,12 +37,25 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
     Context context;
     MemeDatabaseHelper db;
     public boolean deletingMode=false;
-
+    ArrayList<MemeObject> currentMemesList=new ArrayList<>();
 
     //static MemesListAdapter memesListAdapter;
     public List<MemeObject> memeObjects,filteredMemes;
     public List<Integer> selected;
 
+    public MemesListAdapter(Context context,   ArrayList<MemeObject> currentMemesList){
+
+        this.context = context;
+        this.currentMemesList = currentMemesList;
+        memeObjects=this.currentMemesList;
+        selected=new ArrayList<>();
+        filteredMemes=new ArrayList<>();
+        filteredMemes=memeObjects;
+        for(MemeObject thisMeme:filteredMemes){
+            thisMeme.generateBitmap(this);
+        }
+
+    }
     public MemesListAdapter(Context context,  MemeDatabaseHelper db){
 
         this.db=db;

@@ -14,6 +14,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.ArrayList;
+
 public class MemeListFragment extends Fragment {
     //объект списка
     RecyclerView memesList;
@@ -22,9 +24,11 @@ public class MemeListFragment extends Fragment {
     //адаптер для заполнения списка
    public MemesListAdapter memesListAdapter;
     //объект для работы с памятью
-
+    ArrayList<MemeObject> currentMemesList=new ArrayList<>();
     View view;
-
+    public MemeListFragment(ArrayList<MemeObject> currentMemesList) {
+        this.currentMemesList = currentMemesList;
+    }
     public MemeListFragment(MemeDatabaseHelper testdb) {
         this.testdb = testdb;
    }
@@ -41,7 +45,7 @@ public class MemeListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         this.view = view;
-        if (testdb != null) {
+        if (testdb != null||currentMemesList!=null) {
             memesList = view.findViewById(R.id.memesList);
             memesList.setLayoutManager(new GridLayoutManager(view.getContext(), 2));
         }
@@ -52,7 +56,8 @@ String filterText="";
 
 
     public void changeFragment(){
-        memesListAdapter = new MemesListAdapter(view.getContext(), testdb);
+       // memesListAdapter = new MemesListAdapter(view.getContext(), testdb);
+        memesListAdapter = new MemesListAdapter(view.getContext(), currentMemesList);
         memesListAdapter.setFilter(filterText);
         memesList.setAdapter(memesListAdapter);
         memesListAdapter.notifyDataSetChanged();
