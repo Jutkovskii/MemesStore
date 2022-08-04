@@ -486,7 +486,7 @@ return tabNum;
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
+        try {
         //проверка кода запроса и кода результата
         //результат: файл нужно удалить
         if (requestCode == MemeViewerActivity.REQUEST_CODE)
@@ -518,7 +518,7 @@ return tabNum;
             }
        // if (requestCode == REQUEST_EXDB)
             if (resultCode == REQUEST_EXDB)
-            { try {
+            {
                 //список путей к экспортируемым файлам
                 ArrayList<String> memepaths = new ArrayList<>();
                 for (MemeDatabaseHelper thisdb : databases){
@@ -534,10 +534,7 @@ return tabNum;
                 }
                 //сохранение архива
                 new MemeFileHelper(this,uriFolder).zipPack(data.getData(),memepaths);
-            }
-            catch (Exception e){
-                e.printStackTrace();
-            }
+
 
             }
 
@@ -555,7 +552,10 @@ return tabNum;
 
             }
         }
-
+    }
+            catch (Exception e){
+        e.printStackTrace();
+    }
     }
     String saveFromUri(Uri uri) {
 new BackgroundLoader().execute(uri);

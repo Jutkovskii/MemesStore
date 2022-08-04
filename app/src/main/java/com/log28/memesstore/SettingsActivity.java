@@ -4,13 +4,12 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Switch;
+import android.widget.TextView;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -48,6 +47,8 @@ public class SettingsActivity extends AppCompatActivity {
         devDialog = new Dialog(SettingsActivity.this);
         devDialog.setTitle("О программе");
         devDialog.setContentView(R.layout.dev_dialog);
+        TextView textView =devDialog.findViewById(R.id.appName);
+        textView.setText("МЕМОХРАНИЛИЩЕ v."+BuildConfig.VERSION_NAME);
         devDialog.show();
     }
     public void onUseDefaultSign(View v){
