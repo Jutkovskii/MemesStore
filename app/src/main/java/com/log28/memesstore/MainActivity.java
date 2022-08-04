@@ -33,6 +33,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.Toast;
 
@@ -82,7 +83,7 @@ ArrayList<ArrayList<MemeObject>> allMemesList;
     public static boolean deletingMode=false;
     //меню в ActionBar
     public static Menu mainMenu;
-
+ProgressBar loadingProgress;
     ViewPager2 pagerSlider;
     private FragmentStateAdapter pagerAdapter;
     //создание тулбара для главного окна
@@ -103,8 +104,8 @@ ArrayList<ArrayList<MemeObject>> allMemesList;
         memesCategories = findViewById(R.id.categoriesLayout);
         toolbar=findViewById(R.id.mainToolbar);
         setSupportActionBar(toolbar);
-
-
+loadingProgress=findViewById(R.id.loadingProcess);
+loadingProgress.setVisibility(ProgressBar.INVISIBLE);
         if(checkPersistentUri())
         init();
     }
@@ -540,15 +541,19 @@ return tabNum;
 
     }
     String saveFromUri(Uri uri) {
-
-
 new BackgroundLoader().execute(uri);
         // imageDownloadThread(uri);
         //updateMemesList(tabNum);
+
 return "";
     }
 
-    public class BackgroundLoader extends AsyncTask<Uri,Void,ArrayList<String>> {
+    public class BackgroundLoader extends AsyncTask<Uri,Integer,ArrayList<String>> {
+        @Override
+        protected void onPreExecute() {
+            loadingProgress.setVisibility(ProgressBar.VISIBLE);
+
+        }
 
         @Override
         protected ArrayList<String> doInBackground(Uri... uris) {
@@ -575,6 +580,7 @@ return "";
                     //создание локального файла
                     if (FileClassifier.classfyByName(filename) != FileClassifier.ARCH) {
                         String relativeFilepath =FileClassifier.getRelativePath(filename);
+                        publishProgress(50);
                         memeFileHelper.writeToFile(inputStream, memeFileHelper.createFile(relativeFilepath));
                         filepath.add(relativeFilepath);
                         //insertToDB(relativeFilepath);
@@ -621,11 +627,17 @@ return "";
         }
 
         @Override
+        protected void onProgressUpdate(Integer... values) {
+       loadingProgress.setProgress(values[0]);
+        }
+
+        @Override
         protected void onPostExecute(ArrayList<String> aVoid) {
             for(String memepath:aVoid) {
                 insertToDB(memepath);
                 memeListFragments.get(tabNum).changeFragment();
             }
+            loadingProgress.setVisibility(ProgressBar.INVISIBLE);
         }
     }
     String relativeFilepath;

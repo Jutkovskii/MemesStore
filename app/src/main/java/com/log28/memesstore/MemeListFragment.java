@@ -57,6 +57,7 @@ String filterText="";
 
     public void changeFragment(){
        // memesListAdapter = new MemesListAdapter(view.getContext(), testdb);
+        //if(memesListAdapter==null)
         memesListAdapter = new MemesListAdapter(view.getContext(), currentMemesList);
         memesListAdapter.setFilter(filterText);
         memesList.setAdapter(memesListAdapter);

@@ -107,6 +107,7 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
     }
 
 public void add(){
+
         notifyItemInserted(memeObjects.size());
 }
     @RequiresApi(api = Build.VERSION_CODES.R)
