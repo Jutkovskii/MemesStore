@@ -10,6 +10,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.MenuItemCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -40,6 +42,7 @@ import android.widget.Toast;
 import com.google.android.material.tabs.TabLayout;
 
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -167,7 +170,21 @@ loadingProgress.setVisibility(ProgressBar.INVISIBLE);
         pagerAdapter = new ScreenSlidePagerAdapter(this, memeListFragments);
         pagerSlider.setAdapter(pagerAdapter);
         pagerSlider.setSaveEnabled(false);
+        /////////////////////////////////////////////////////
 
+try {
+        Field ff = ViewPager2.class.getDeclaredField("mRecyclerView") ;
+        ff.setAccessible(true);
+        RecyclerView recyclerView =  (RecyclerView) ff.get(pagerSlider);
+        Field touchSlopField = RecyclerView.class.getDeclaredField("mTouchSlop") ;
+        touchSlopField.setAccessible(true);
+        int touchSlop = (int) touchSlopField.get(recyclerView);
+        touchSlopField.set(recyclerView,touchSlop*4);
+    }
+        catch (Exception e){
+    e.printStackTrace();
+        }
+        /////////////////////////////////////////////////////
         Intent intent = getIntent();
         if(intent!=null&&intent.getAction()!="android.intent.action.MAIN")
             getMemeFromIntent(intent);
@@ -758,4 +775,7 @@ return "";
 
 
     }
+
+
+
 }
