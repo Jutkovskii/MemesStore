@@ -404,38 +404,45 @@ return tabNum;
     }
 
     public void addToMemesList(String relativeFilepath){
-
-        MemeObject qwe1=new MemeObject(this,relativeFilepath);
-        int current=allMemesList.get(tabNum).indexOf(qwe1);
+        try {
+        MemeObject qwe = new MemeObject(getApplicationContext(),relativeFilepath);
+        } catch (Exception e) {
+        e.printStackTrace();
+        }
+        //проверка наличия мема в списке
+        int current=allMemesList.get(tabNum)
+                .indexOf(new MemeObject(this,relativeFilepath));
        if(current>=0) return;
-
+        //добавление мема в БД
         databases.get(FileClassifier.classifyByTab(relativeFilepath)).insert(relativeFilepath);
-MemeObject qwe=new MemeObject(this,relativeFilepath);
-        allMemesList.get(tabNum).add(qwe);
-        //обновить список
+        //добавление мема в список
+        allMemesList.get(tabNum).add(new MemeObject(this,relativeFilepath));
+        //обновить фрагмент со списком
         memeListFragments.get(tabNum).changeFragment();
     }
 
     public void deleteFromMemesList(String relativeFilepath){
-        tabNum=FileClassifier.classifyByTab(relativeFilepath);
-        //удаление файла
-        MemeFileHelper.createFileHelper(this, MainActivity.uriFolder).deleteFile(relativeFilepath);
+
         //удаление из БД
         databases.get(tabNum).delete(relativeFilepath);
-
-        ArrayList<MemeObject> qwe=allMemesList.get(tabNum);
-       qwe.remove(new MemeObject(this,relativeFilepath));
-        memeListFragments.get(tabNum).memesListAdapter.memeObjects.remove(new MemeObject(this,relativeFilepath));
-        //обновить список
+        //удаление файла
+        MemeFileHelper.createFileHelper(this, MainActivity.uriFolder).deleteFile(relativeFilepath);
+        //удаление из списка
+        allMemesList.get(tabNum).remove(new MemeObject(this,relativeFilepath));
+        //обновить фрагмент со списком
         memeListFragments.get(tabNum).changeFragment();
     }
 
     public void updateMeme(String relativeFilepath, String tag){
+        //обновление в БД
         databases.get(tabNum).update(relativeFilepath,tag);
-        MemeObject qwe=new MemeObject(this,relativeFilepath);
-        int current=allMemesList.get(tabNum).indexOf(qwe);
+        //получение номера текущего мема в списке
+        MemeObject currentMemeObject=new MemeObject(this,relativeFilepath);
+        int current=allMemesList.get(tabNum).indexOf(currentMemeObject);
+        //обновление данных в списке
         allMemesList.get(tabNum).get(current).memeRelativePath=relativeFilepath;
         allMemesList.get(tabNum).get(current).memeTag=tag;
+        //обновить фрагмент со списком
         memeListFragments.get(tabNum).changeFragment();
     }
     void updateMemesList(int tab) {
@@ -445,7 +452,7 @@ MemeObject qwe=new MemeObject(this,relativeFilepath);
         else
             memeListFragments.get(tab).memesListAdapter.add();
     }
-    //вызов галерени для добавления мема
+    //вызов галереи для добавления мема
     public void addMeme(View v) {
 
         Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -468,13 +475,6 @@ MemeObject qwe=new MemeObject(this,relativeFilepath);
             if (resultCode == MemeViewerActivity.DELETED_MEME_CODE) {
                 String filename = data.getDataString();
                 deleteFromMemesList(filename);
-               /* tabNum=FileClassifier.classifyByTab(filename);
-                //удаление файла
-                MemeFileHelper.createFileHelper(this, MainActivity.uriFolder).deleteFile(filename);
-                //удаление из БД
-                databases.get(tabNum).delete(filename);
-                //обновить список
-                updateMemesList(tabNum);*/
             }
         //результат: подпись нужно изменить
         if (resultCode == MemeViewerActivity.CHANGE_CODE)
@@ -483,9 +483,6 @@ MemeObject qwe=new MemeObject(this,relativeFilepath);
             String filetag= data.getStringExtra(MemeViewerActivity.FILETAG_EXTRA);
             String filename = data.getStringExtra(MemeViewerActivity.FILENAME_EXTRA);
             tabNum=FileClassifier.classifyByTab(filename);
-            /*
-            databases.get(tabNum).update(filename,filetag);
-            updateMemesList(tabNum);*/
             updateMeme(filename,filetag);
         }
 
@@ -504,25 +501,21 @@ MemeObject qwe=new MemeObject(this,relativeFilepath);
        // if (requestCode == REQUEST_EXDB)
             if (resultCode == REQUEST_EXDB)
             { try {
-
-
-                Uri uri=data.getData();
-                //List<String> uriSegments=uri.getPathSegments();
-               // String filepath=uriSegments.get(1).split(":")[1];
+                //список путей к экспортируемым файлам
                 ArrayList<String> memepaths = new ArrayList<>();
                 for (MemeDatabaseHelper thisdb : databases){
+                   //добавление самой БД в список
                     memepaths.add(thisdb.getDbPath());
+                    //добавление путей из БД в список
                     Cursor localcursor = thisdb.getCursor();
                     localcursor.moveToFirst();
                     for (int i = 0; i < localcursor.getCount(); i++) {
                         memepaths.add(localcursor.getString(1));
                         localcursor.moveToNext();
-
                     }
-
-
                 }
-                new MemeFileHelper(this,uriFolder).zipPack(uri/*+"qwe.zip"*/,memepaths);
+                //сохранение архива
+                new MemeFileHelper(this,uriFolder).zipPack(data.getData(),memepaths);
             }
             catch (Exception e){
                 e.printStackTrace();
@@ -547,17 +540,100 @@ MemeObject qwe=new MemeObject(this,relativeFilepath);
 
     }
     String saveFromUri(Uri uri) {
-//new BackgroundLoader(tabNum).execute(uri);
-        imageDownloadThread(uri);
-        updateMemesList(tabNum);
+
+
+new BackgroundLoader().execute(uri);
+        // imageDownloadThread(uri);
+        //updateMemesList(tabNum);
 return "";
     }
 
+    public class BackgroundLoader extends AsyncTask<Uri,Void,ArrayList<String>> {
+
+        @Override
+        protected ArrayList<String> doInBackground(Uri... uris) {
+            ArrayList<String> filepath = new ArrayList<>();
+            try {
+                Uri uri=uris[0];
+                String filename = "";
+                InputStream inputStream;
+
+                    Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
+                    if (returnCursor != null) {
+                        //Определение столбца, содержащего имя файла
+                        int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                        returnCursor.moveToFirst();
+                        //определение имени файла
+                        filename = returnCursor.getString(nameIndex);
+                    } else
+                        filename = uri.getPath().substring(uri.getPath().lastIndexOf("/") + 1);
+
+                    //получение потока входных данных
+                    inputStream = getContentResolver().openInputStream(uri);
+
+                    //fileHelper2.createnew(inputStream,filename);
+                    //создание локального файла
+                    if (FileClassifier.classfyByName(filename) != FileClassifier.ARCH) {
+                        String relativeFilepath =FileClassifier.getRelativePath(filename);
+                        memeFileHelper.writeToFile(inputStream, memeFileHelper.createFile(relativeFilepath));
+                        filepath.add(relativeFilepath);
+                        //insertToDB(relativeFilepath);
+
+                    } else {
+
+                        ArrayList<String> imported = (ArrayList<String>) new MemeFileHelper(getApplicationContext(),uriFolder).unzipPack(inputStream);
+                        int y=imported.size();
+                        for(String db:imported){
+                            String dbName=db;
+
+                            SQLiteDatabase importedDB = SQLiteDatabase.openOrCreateDatabase(db, null);
+                            Cursor cursor = importedDB.rawQuery("SELECT * FROM memesTable", null);
+
+                            if (cursor.moveToFirst()) {
+                                do {
+                                    String qwe= cursor.getString(1);
+                                    if(qwe.contains(".")&&!qwe.contains("/"))
+                                        qwe=FileClassifier.getRelativePath(qwe);
+                                    if(dbName.contains(imagedb)){
+                                        //addToMemesList(qwe);
+                                        //insertToDB(qwe);
+                                    filepath.add(qwe);
+                                    }
+                                    if(dbName.contains(videodb)){
+                                        //addToMemesList(qwe);
+                                        databases.get(1).insert(qwe, cursor.getString(2));
+                                             }
+                                } while (cursor.moveToNext());
+
+                            }
+                        }
+
+                    }
+
+                }
+
+                catch (Exception e) {
+
+                    e.printStackTrace();
+                }
+
+            return filepath;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<String> aVoid) {
+            for(String memepath:aVoid) {
+                insertToDB(memepath);
+                memeListFragments.get(tabNum).changeFragment();
+            }
+        }
+    }
+    String relativeFilepath;
     Handler mHandler = new Handler();
     private void imageDownloadThread(Uri uri) {
-       // Thread thread = new Thread(new Runnable()
+        Thread thread = new Thread(new Runnable()
         {
-        //    @Override public void run()
+            @Override public void run()
             {
                 try {
                     String filename = "";
@@ -580,14 +656,15 @@ return "";
                         //fileHelper2.createnew(inputStream,filename);
                         //создание локального файла
                         if (FileClassifier.classfyByName(filename) != FileClassifier.ARCH) {
-                            String relativeFilepath =FileClassifier.getRelativePath(filename);
+                            relativeFilepath =FileClassifier.getRelativePath(filename);
                             memeFileHelper.writeToFile(inputStream, memeFileHelper.createFile(relativeFilepath));
-                            insertToDB(relativeFilepath);
-                           /* mHandler.post(new Runnable() {
+
+                            mHandler.post(new Runnable() {
                                 @Override public void run() {
+                                    insertToDB(relativeFilepath);
                                     memeListFragments.get(tabNum).changeFragment();
                                 }
-                            });*/
+                            });
                         } else {
 
                             ArrayList<String> imported = (ArrayList<String>) new MemeFileHelper(getApplicationContext(),uriFolder).unzipPack(inputStream);
@@ -600,27 +677,29 @@ return "";
 
                                 if (cursor.moveToFirst()) {
                                     do {
-                                        String qwe= cursor.getString(1);
-                                        if(qwe.contains(".")&&!qwe.contains("/"))
-                                            qwe=FileClassifier.getRelativePath(qwe);
+                                        relativeFilepath= cursor.getString(1);
+                                        if(relativeFilepath.contains(".")&&!relativeFilepath.contains("/"))
+                                            relativeFilepath=FileClassifier.getRelativePath(relativeFilepath);
                                         if(dbName.contains(imagedb)){
                                             //addToMemesList(qwe);
-                                            insertToDB(qwe);
+
                                             //databases.get(0).insert(qwe, cursor.getString(2));
-                                          /*  mHandler.post(new Runnable() {
+                                            mHandler.post(new Runnable() {
                                                 @Override public void run() {
+
+                                                    insertToDB(relativeFilepath);
                                                     memeListFragments.get(tabNum).changeFragment();
                                                 }
-                                            });*/
+                                            });
                                         }
                                         if(dbName.contains(videodb)){
                                             //addToMemesList(qwe);
-                                            databases.get(1).insert(qwe, cursor.getString(2));
-                                           /* mHandler.post(new Runnable() {
+                                            databases.get(1).insert(relativeFilepath, cursor.getString(2));
+                                            mHandler.post(new Runnable() {
                                                 @Override public void run() {
                                                     memeListFragments.get(tabNum).changeFragment();
                                                 }
-                                            });*/
+                                            });
                                         }
                                     } while (cursor.moveToNext());
 
@@ -644,16 +723,16 @@ return "";
                     e.printStackTrace();
                 }
             }
-        }//);
-      //  thread.start();
+        });
+        thread.start();
     }
 
    public boolean checkPersistentUri(){
 
-        ArrayList<UriPermission>qwe= (ArrayList<UriPermission>) this.getContentResolver().getPersistedUriPermissions();
-        if(qwe.size()!=0){
-            uriFolder=qwe.get(0).getUri();
-            memeFileHelper = MemeFileHelper.createFileHelper(this,qwe.get(0).getUri());
+        ArrayList<UriPermission>persistedUriPermissions= (ArrayList<UriPermission>) this.getContentResolver().getPersistedUriPermissions();
+        if(persistedUriPermissions.size()!=0){
+            uriFolder=persistedUriPermissions.get(0).getUri();
+            memeFileHelper = MemeFileHelper.createFileHelper(this,persistedUriPermissions.get(0).getUri());
             return true;
         }
         else
