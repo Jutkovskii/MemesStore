@@ -726,6 +726,7 @@ Context context;
     @Override
     protected void onPreExecute() {
         loadingProgress.setVisibility(ProgressBar.VISIBLE);
+
     }
 
     @Override
@@ -737,7 +738,7 @@ try {
         String toDelete = currentFragment.memesListAdapter.memeObjects.get(pos).getMemeRelativePath();
         MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).deleteFile(toDelete);
         currentDatabase.delete(toDelete);
-        currentFragment.memesListAdapter.getDB();
+
        // currentFragment.memesListAdapter.notifyItemRemoved(pos);
 
     }
@@ -752,6 +753,7 @@ catch (Exception e){
 
     @Override
     protected void onPostExecute(Void aVoid) {
+        currentFragment.memesListAdapter.getDB();
         currentFragment.memesListAdapter.selected.clear();
         currentFragment.memesListAdapter.deletingMode = false;
         mainMenu.getItem(2).setVisible(false);
