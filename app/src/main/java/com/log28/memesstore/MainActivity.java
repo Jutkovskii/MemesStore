@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.MenuItemCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -24,6 +25,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
@@ -31,12 +33,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.google.android.material.tabs.TabLayout;
 
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -80,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
     public static boolean deletingMode=false;
     //меню в ActionBar
     public static Menu mainMenu;
-
+    public static ProgressBar loadingProgress;
     ViewPager2 pagerSlider;
     private FragmentStateAdapter pagerAdapter;
     //создание тулбара для главного окна
@@ -101,7 +105,8 @@ public class MainActivity extends AppCompatActivity {
         memesCategories = findViewById(R.id.categoriesLayout);
         toolbar=findViewById(R.id.mainToolbar);
         setSupportActionBar(toolbar);
-
+        loadingProgress=findViewById(R.id.loadingProcess);
+        loadingProgress.setVisibility(ProgressBar.INVISIBLE);
 
         if(checkPersistentUri())
         init();
@@ -149,7 +154,18 @@ public class MainActivity extends AppCompatActivity {
         pagerAdapter = new ScreenSlidePagerAdapter(this, memeListFragments);
         pagerSlider.setAdapter(pagerAdapter);
         pagerSlider.setSaveEnabled(false);
-
+        try {
+            Field ff = ViewPager2.class.getDeclaredField("mRecyclerView") ;
+            ff.setAccessible(true);
+            RecyclerView recyclerView =  (RecyclerView) ff.get(pagerSlider);
+            Field touchSlopField = RecyclerView.class.getDeclaredField("mTouchSlop") ;
+            touchSlopField.setAccessible(true);
+            int touchSlop = (int) touchSlopField.get(recyclerView);
+            touchSlopField.set(recyclerView,touchSlop*4);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         Intent intent = getIntent();
         if(intent!=null&&intent.getAction()!="android.intent.action.MAIN")
             getMemeFromIntent(intent);
@@ -160,8 +176,6 @@ public class MainActivity extends AppCompatActivity {
         super.onNewIntent(intent);
         getMemeFromIntent(intent);
     }
-
-
 
     @Override
     protected void onDestroy() {
@@ -243,60 +257,10 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, item.getTitle(), Toast.LENGTH_SHORT).show();
             String qwe=item.getTitle().toString();
             if (qwe.matches("Удалить")) {
-                MemeListFragment currentFragment;
-                MemeDatabaseHelper currentDatabase;
 
-                currentFragment=memeListFragments.get(tabNum);
-                currentDatabase=databases.get(tabNum);
-                //Collections.reverse(currentFragment.memesListAdapter.selected);
-                currentFragment.memesListAdapter.selected.sort((a, b) -> b.compareTo(a));
-                for (Integer pos :
-                        currentFragment.memesListAdapter.selected) {
-                    String toDelete = currentFragment.memesListAdapter.memeObjects.get(pos).getMemeRelativePath();
-                    MemeFileHelper.createFileHelper(this, MainActivity.uriFolder).deleteFile(toDelete);
-                    currentDatabase.delete(toDelete);
-                    currentFragment.memesListAdapter.getDB();
-                    currentFragment.memesListAdapter.notifyItemRemoved(pos);
-
-
-                }
-                currentFragment.memesListAdapter.selected.clear();
-                currentFragment.memesListAdapter.deletingMode = false;
-                //mainMenu.getItem(3).setVisible(false);
-                mainMenu.getItem(2).setVisible(false);
-                mainMenu.getItem(1).setVisible(true);
-                currentFragment.memesListAdapter.notifyDataSetChanged();
-
+                new BackgroundDeleter(this,tabNum).execute();
             }
-            //сбор всех мемов в zip файл
-           /* if (item.getTitle().toString().matches("Экспорт")) {
-               /* ArrayList<String> memepaths = new ArrayList<>();
-                for (MemeDatabaseHelper thisdb : databases){
-                    memepaths.add(thisdb.getDbPath());
-                    Cursor localcursor = thisdb.getCursor();
-                    localcursor.moveToFirst();
-                    for (int i = 0; i < localcursor.getCount(); i++) {
-                        //memepaths.add(FileHelper2.getFullPath(localcursor.getString(1)));
-                        memepaths.add(localcursor.getString(1));
-                        localcursor.moveToNext();
 
-                    }
-
-
-                }
-            new MemeFileHelper(this,uriFolder).zipPack("qwe.zip",memepaths);
-*/
-               /* Intent chooseFile = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-                chooseFile.setType("application/zip");
-                chooseFile = Intent.createChooser(chooseFile, "Choose a file");
-                startActivityForResult(chooseFile, REQUEST_EXDB);*/
-            /*    startActivityForResult(new Intent(this,SettingsActivity.class),REQUEST_EXDB);
-            }
-            //извлечение мемов из zip-файла
-            if (item.getTitle().toString().matches("Импорт")) {
-                //selectDBforImport();
-                startActivityForResult(new Intent(this,SettingsActivity.class),REQUEST_DB);
-            }*/
             if (item.getTitle().toString().matches("Настройки")){
                 startActivityForResult(new Intent(this,SettingsActivity.class),0);
             }
@@ -421,13 +385,7 @@ return tabNum;
         startActivityForResult(photoPickerIntent, REQUEST_GALLERY);//посмотреть, как нынче надо
     }
 
-    //НА БУДУЩЕЕ вызов импорта базы данных
-    public void selectDBforImport() {
-        Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
-        chooseFile.setType("*/*");
-        chooseFile = Intent.createChooser(chooseFile, "Choose a file");
-        startActivityForResult(chooseFile, REQUEST_DB);
-    }
+
 
     //получение результата от дочерней активности
     @RequiresApi(api = Build.VERSION_CODES.R)
@@ -464,13 +422,15 @@ return tabNum;
             if (resultCode == RESULT_OK) {
                 //получаем и сохраняем мем из uri
                 //выбор вкладки согласно типу файла
-                tabNum =getMemeFromIntent(data) ;
+                //tabNum =getMemeFromIntent(data) ;
+                new BackgroundLoader(this).execute(data);
                 memesCategories.selectTab(memesCategories.getTabAt(tabNum));
                 memeListFragments.get(tabNum).memesListAdapter.notifyDataSetChanged();
             }
       //  if (requestCode == REQUEST_DB)
             if (resultCode == REQUEST_DB) {
-                saveFromUri(data.getData());
+                //saveFromUri(data.getData());
+                new BackgroundLoader(this).execute(data);
             }
        // if (requestCode == REQUEST_EXDB)
             if (resultCode == REQUEST_EXDB)
@@ -594,6 +554,214 @@ return tabNum;
         }
         return filename;
     }
+
+    public class BackgroundLoader extends AsyncTask<Intent,Integer,ArrayList<String>>{
+        Context context;
+        BackgroundLoader(Context context){this.context=context;}
+        @Override
+        protected void onPreExecute() {
+            loadingProgress.setVisibility(ProgressBar.VISIBLE);
+        }
+        @Override
+        protected ArrayList<String> doInBackground(Intent... inents) {
+            try {
+                getMemeFromIntent(inents[0]);
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+            return null;
+        }
+        String saveFromUri(Uri uri) {
+
+            String filename = "";
+            InputStream inputStream;
+            try {
+                Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
+                if (returnCursor != null) {
+                    //Определение столбца, содержащего имя файла
+                    int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    returnCursor.moveToFirst();
+                    //определение имени файла
+                    filename = returnCursor.getString(nameIndex);
+                } else
+                    filename = uri.getPath().substring(uri.getPath().lastIndexOf("/") + 1);
+
+                //получение потока входных данных
+                inputStream = getContentResolver().openInputStream(uri);
+
+                //fileHelper2.createnew(inputStream,filename);
+                //создание локального файла
+                if (FileClassifier.classfyByName(filename) != FileClassifier.ARCH) {
+                    String relativeFilepath =FileClassifier.getRelativePath(filename);
+                    memeFileHelper.writeToFile(inputStream, memeFileHelper.createFile(relativeFilepath));
+                    insertToDB(relativeFilepath);
+                } else {
+
+                    ArrayList<String> imported = (ArrayList<String>) new MemeFileHelper(context,uriFolder).unzipPack(inputStream);
+                    int y=imported.size();
+                    for(String db:imported){
+                        String dbName=db;
+
+                        SQLiteDatabase importedDB = SQLiteDatabase.openOrCreateDatabase(db, null);
+                        Cursor cursor = importedDB.rawQuery("SELECT * FROM memesTable", null);
+
+                        if (cursor.moveToFirst()) {
+                            do {
+                                String qwe= cursor.getString(1);
+                                if(qwe.contains(".")&&!qwe.contains("/"))
+                                    qwe=FileClassifier.getRelativePath(qwe);
+                                if(dbName.contains(imagedb)){
+                                    databases.get(0).insert(qwe, cursor.getString(2));
+                                }
+                                if(dbName.contains(videodb)){
+                                    databases.get(1).insert(qwe, cursor.getString(2));
+                                }
+                            } while (cursor.moveToNext());
+
+                        }
+                    }
+
+                }
+               /* memeListFragments.get(0).changeFragment();
+                memeListFragments.get(1).changeFragment();*/
+            }
+
+            catch (Exception e) {
+
+                e.printStackTrace();
+            }
+            return filename;
+        }
+        int getMemeFromIntent(Intent intent) {
+            //объект мема
+            MemeObject newMeme=null;
+            //Если интент получен из вызванной галереи, тип null
+            if (intent.getType() == null) {
+                //запрос курсора из БД контента всея ОС
+                ArrayList<Uri> uriArrayList = new ArrayList<>();
+                //если выбран одиночный объект
+                if (intent.getClipData() == null)
+                    uriArrayList.add(intent.getData());
+                else
+                    for (int i = 0; i < intent.getClipData().getItemCount(); i++)
+                        uriArrayList.add(intent.getClipData().getItemAt(i).getUri());
+
+                for (Uri uri : uriArrayList) {
+                   saveFromUri(uri);
+                }
+               // memeListFragments.get(tabNum).changeFragment();
+            }
+            //Если интент получен из другого приложения
+            else {
+                switch (FileClassifier.classifyByType(intent)){
+                    //мем - видео с ютуба
+                    case FileClassifier.YOUTUBE:
+                        //Получение ссылки из интента
+                        String localFilename = intent.getClipData().getItemAt(0).getText().toString();
+                        //определение имени видеофайла по анализу ключевых символов в ссылке
+                        Pattern p = Pattern.compile("([\\w_-]{11})");
+                        Matcher m = p.matcher(localFilename);
+                        if (m.find()) {
+                            //фиксируем полученное имя
+                            String filename = localFilename.substring(m.start());
+                            insertToDB(filename);
+                        }
+                        break;
+                    case FileClassifier.DISCORD:
+                        String filename= intent.getClipData().getItemAt(0).getText().toString();
+                        filename=MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).createFileFromURL(filename);
+                        String relativeFilepath =filename;
+                        insertToDB(relativeFilepath);
+                        break;
+                    case FileClassifier.VK:
+                        String vkfilename= intent.getClipData().getItemAt(0).getText().toString();
+                        vkfilename=MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).createFileFromURL(vkfilename);
+                        String vkrelativeFilepath =vkfilename;
+                        insertToDB(vkrelativeFilepath);
+                        break;
+                    //мем - картинка, gif или видео
+                    case FileClassifier.IMAGE: case FileClassifier.GIF :case FileClassifier.VIDEO:
+                        // извлекаем uri одним из методов
+                        Uri uri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                        if (uri == null)
+                            uri = intent.getData();
+                        saveFromUri(uri);
+                        break;
+
+
+                    default:break;
+                }
+
+            }
+            // memeListFragments.get(tabNum).changeFragment();
+            //return newMeme.getMemeTab();
+            return tabNum;
+        }
+        boolean insertToDB(String relativeFilepath) {
+            try {
+                databases.get(FileClassifier.classifyByTab(relativeFilepath)).insert(relativeFilepath);
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<String> strings) {
+            loadingProgress.setVisibility(ProgressBar.INVISIBLE);
+            memeListFragments.get(tabNum).changeFragment();
+        }
+    }
+    public class BackgroundDeleter extends AsyncTask<Void,Void,Void>{
+    MemeListFragment currentFragment;
+    MemeDatabaseHelper currentDatabase;
+Context context;
+   public BackgroundDeleter (Context context,int tabNum){
+       this.context=context;
+       currentFragment=memeListFragments.get(tabNum);
+       currentDatabase=databases.get(tabNum);
+        }
+
+    @Override
+    protected void onPreExecute() {
+        loadingProgress.setVisibility(ProgressBar.VISIBLE);
+
+    }
+
+    @Override
+    protected Void doInBackground(Void... integers) {
+try {
+    currentFragment.memesListAdapter.selected.sort((a, b) -> b.compareTo(a));
+    for (Integer pos :
+            currentFragment.memesListAdapter.selected) {
+        String toDelete = currentFragment.memesListAdapter.memeObjects.get(pos).getMemeRelativePath();
+        MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).deleteFile(toDelete);
+        currentDatabase.delete(toDelete);
+
+       // currentFragment.memesListAdapter.notifyItemRemoved(pos);
+
+    }
+}
+catch (Exception e){
+    e.printStackTrace();
+}
+        //mainMenu.getItem(3).setVisible(false);
+
+        return null;
+    }
+
+    @Override
+    protected void onPostExecute(Void aVoid) {
+        currentFragment.memesListAdapter.getDB();
+        currentFragment.memesListAdapter.selected.clear();
+        currentFragment.memesListAdapter.deletingMode = false;
+        mainMenu.getItem(2).setVisible(false);
+        mainMenu.getItem(1).setVisible(true);
+        currentFragment.memesListAdapter.notifyDataSetChanged();
+        loadingProgress.setVisibility(ProgressBar.INVISIBLE);
+    }
+}
 
     public boolean checkPersistentUri(){
 

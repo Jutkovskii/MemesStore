@@ -7,6 +7,18 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <ProgressBar
+        android:id="@+id/loadingProcess"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:elevation="2dp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@+id/pagerSlider"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/pagerSlider"
+        app:layout_constraintTop_toBottomOf="@+id/categoriesLayout" />
+
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/categoriesLayout"
         android:layout_width="match_parent"
@@ -49,7 +61,9 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/categoriesLayout" />
+        app:layout_constraintTop_toBottomOf="@+id/categoriesLayout" >
+
+    </androidx.viewpager2.widget.ViewPager2>
 
     <FrameLayout
         android:id="@+id/memeFramelayout"
