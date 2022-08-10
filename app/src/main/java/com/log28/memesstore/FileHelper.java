@@ -52,7 +52,7 @@ packageName=context.getPackageName();
     }
 
     public OutputStream createFile(String path){
-
+if(isExist(path)) return null;
         OutputStream outputStream=null;
         try{
             DocumentFile file;

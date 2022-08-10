@@ -713,7 +713,7 @@ return tabNum;
             memeListFragments.get(tabNum).changeFragment();
         }
     }
-public class BackgroundDeleter extends AsyncTask<Void,Void,Void>{
+    public class BackgroundDeleter extends AsyncTask<Void,Void,Void>{
     MemeListFragment currentFragment;
     MemeDatabaseHelper currentDatabase;
 Context context;
