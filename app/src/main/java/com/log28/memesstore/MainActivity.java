@@ -257,30 +257,8 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, item.getTitle(), Toast.LENGTH_SHORT).show();
             String qwe=item.getTitle().toString();
             if (qwe.matches("Удалить")) {
-                MemeListFragment currentFragment;
-                MemeDatabaseHelper currentDatabase;
 
-                currentFragment=memeListFragments.get(tabNum);
-                currentDatabase=databases.get(tabNum);
-                //Collections.reverse(currentFragment.memesListAdapter.selected);
-                currentFragment.memesListAdapter.selected.sort((a, b) -> b.compareTo(a));
-                for (Integer pos :
-                        currentFragment.memesListAdapter.selected) {
-                    String toDelete = currentFragment.memesListAdapter.memeObjects.get(pos).getMemeRelativePath();
-                    MemeFileHelper.createFileHelper(this, MainActivity.uriFolder).deleteFile(toDelete);
-                    currentDatabase.delete(toDelete);
-                    currentFragment.memesListAdapter.getDB();
-                    currentFragment.memesListAdapter.notifyItemRemoved(pos);
-
-
-                }
-                currentFragment.memesListAdapter.selected.clear();
-                currentFragment.memesListAdapter.deletingMode = false;
-                //mainMenu.getItem(3).setVisible(false);
-                mainMenu.getItem(2).setVisible(false);
-                mainMenu.getItem(1).setVisible(true);
-                currentFragment.memesListAdapter.notifyDataSetChanged();
-
+                new BackgroundDeleter(this,tabNum).execute();
             }
 
             if (item.getTitle().toString().matches("Настройки")){
@@ -735,7 +713,53 @@ return tabNum;
             memeListFragments.get(tabNum).changeFragment();
         }
     }
+public class BackgroundDeleter extends AsyncTask<Void,Void,Void>{
+    MemeListFragment currentFragment;
+    MemeDatabaseHelper currentDatabase;
+Context context;
+   public BackgroundDeleter (Context context,int tabNum){
+       this.context=context;
+       currentFragment=memeListFragments.get(tabNum);
+       currentDatabase=databases.get(tabNum);
+        }
 
+    @Override
+    protected void onPreExecute() {
+        loadingProgress.setVisibility(ProgressBar.VISIBLE);
+    }
+
+    @Override
+    protected Void doInBackground(Void... integers) {
+try {
+    currentFragment.memesListAdapter.selected.sort((a, b) -> b.compareTo(a));
+    for (Integer pos :
+            currentFragment.memesListAdapter.selected) {
+        String toDelete = currentFragment.memesListAdapter.memeObjects.get(pos).getMemeRelativePath();
+        MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).deleteFile(toDelete);
+        currentDatabase.delete(toDelete);
+        currentFragment.memesListAdapter.getDB();
+       // currentFragment.memesListAdapter.notifyItemRemoved(pos);
+
+    }
+}
+catch (Exception e){
+    e.printStackTrace();
+}
+        //mainMenu.getItem(3).setVisible(false);
+
+        return null;
+    }
+
+    @Override
+    protected void onPostExecute(Void aVoid) {
+        currentFragment.memesListAdapter.selected.clear();
+        currentFragment.memesListAdapter.deletingMode = false;
+        mainMenu.getItem(2).setVisible(false);
+        mainMenu.getItem(1).setVisible(true);
+        currentFragment.memesListAdapter.notifyDataSetChanged();
+        loadingProgress.setVisibility(ProgressBar.INVISIBLE);
+    }
+}
 
     public boolean checkPersistentUri(){
 
