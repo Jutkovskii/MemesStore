@@ -131,6 +131,8 @@ this.memesListAdapter=memesListAdapter;
             }catch (Exception e){
                 e.printStackTrace();
             }
+            if(local==null)
+            memeBitmap=local;
             return local;
         }
 

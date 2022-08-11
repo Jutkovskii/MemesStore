@@ -3,8 +3,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:background="@drawable/border"
+    android:backgroundTint="@color/white"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    >
 
     <ImageView
         android:id="@+id/imageView"
@@ -17,7 +20,7 @@
         app:srcCompat="@mipmap/ic_launcher_legacy" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/appName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -32,8 +35,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="Для связи"
-        app:layout_constraintEnd_toEndOf="@+id/textView"
-        app:layout_constraintStart_toStartOf="@+id/textView"
+        app:layout_constraintEnd_toEndOf="@+id/appName"
+        app:layout_constraintStart_toStartOf="@+id/appName"
         app:layout_constraintTop_toBottomOf="@+id/textView13" />
 
     <TextView
@@ -51,7 +54,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:autoLink="web"
-        android:text="https://qiwi.com/n/cissi251"
+        android:text="https://qiwi.com/n/LOG28PDA"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/textView7"
         app:layout_constraintTop_toTopOf="@+id/textView11" />
@@ -70,8 +73,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:autoLink="phone"
-        android:text="+79637286485"
+        android:autoLink="web"
+        android:text="https://t.me/Log28"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/textView6"
         app:layout_constraintTop_toTopOf="@+id/textView6" />
@@ -90,7 +93,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:autoLink="email"
-        android:text="jut-ddt@mail.ru"
+        android:text="log28pda@gmail.com"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/textView7"
         app:layout_constraintTop_toTopOf="@+id/textView3" />
@@ -112,6 +115,6 @@
         android:text="На случай важных переговоров"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView" />
+        app:layout_constraintTop_toBottomOf="@+id/appName" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

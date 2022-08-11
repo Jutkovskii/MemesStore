@@ -20,14 +20,14 @@ public class MemeListFragment extends Fragment {
     //объект БД
     MemeDatabaseHelper testdb = null;
     //адаптер для заполнения списка
-   public MemesListAdapter memesListAdapter;
+    public MemesListAdapter memesListAdapter;
     //объект для работы с памятью
 
     View view;
 
     public MemeListFragment(MemeDatabaseHelper testdb) {
         this.testdb = testdb;
-   }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -48,18 +48,20 @@ public class MemeListFragment extends Fragment {
         changeFragment();
 
     }
-String filterText="";
+
+    String filterText = "";
 
 
-    public void changeFragment(){
+    public void changeFragment() {
+
         memesListAdapter = new MemesListAdapter(view.getContext(), testdb);
         memesListAdapter.setFilter(filterText);
         memesList.setAdapter(memesListAdapter);
         memesListAdapter.notifyDataSetChanged();
     }
 
-    public void setFilter(String newText){
-        filterText=newText;
+    public void setFilter(String newText) {
+        filterText = newText;
     }
 
 }

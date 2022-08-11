@@ -36,49 +36,48 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
 
     Context context;
     MemeDatabaseHelper db;
-    public boolean deletingMode=false;
+    public boolean deletingMode = false;
 
 
-    //static MemesListAdapter memesListAdapter;
-    public List<MemeObject> memeObjects,filteredMemes;
+    public List<MemeObject> memeObjects, filteredMemes;
     public List<Integer> selected;
 
-    public MemesListAdapter(Context context,  MemeDatabaseHelper db){
+    public MemesListAdapter(Context context, MemeDatabaseHelper db) {
 
-        this.db=db;
+        this.db = db;
         this.context = context;
         getDB();
 
     }
-    public void getDB(){
+
+    public void getDB() {
         Cursor cursor = db.getCursor();
         cursor.moveToFirst();
         //получаем из курсора список имён файлов
-        selected=new ArrayList<>();
-        memeObjects=new ArrayList<>();
-        filteredMemes=new ArrayList<>();
-        int listSize=cursor.getCount();
-        for(int i=0;i<listSize;i++){
+        selected = new ArrayList<>();
+        memeObjects = new ArrayList<>();
+        filteredMemes = new ArrayList<>();
+        int listSize = cursor.getCount();
+        for (int i = 0; i < listSize; i++) {
 
 
-            String currentFile=cursor.getString(1);
-            String currentTag=cursor.getString(2);
+            String currentFile = cursor.getString(1);
+            String currentTag = cursor.getString(2);
 
 
             //еcли  имя файла не имеет расширения (ссылка на веб-ресурс)
             //или сам файл существует на диске, то добавляется в список
-            if(!currentFile.contains(".")||MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).isExist(currentFile))
-            {
+            if (!currentFile.contains(".") || MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).isExist(currentFile)) {
 
                 //создание списка мемов
-                memeObjects.add(new MemeObject(this,currentFile,currentTag));
+                memeObjects.add(new MemeObject(this, currentFile, currentTag));
                 cursor.moveToNext();
             }
             //если файла нет, то он удаляется из БД
             else
                 this.db.delete(currentFile);
         }
-        filteredMemes=memeObjects;
+        filteredMemes = memeObjects;
     }
 
 
@@ -89,7 +88,7 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
                 .inflate(R.layout.meme_card_view, parent, false);
         ViewHolder vh = new ViewHolder(itemView);
 
-        Log.d("OLOLOG","создание холдера " );
+        Log.d("OLOLOG", "создание холдера ");
         return vh;
     }
 
@@ -98,51 +97,48 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
     @Override
     public void onBindViewHolder(@NonNull MemesListAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
 
-try{
-    Log.d("OLOLOG","биндинг холдера " );
-        //устанавливаем битмап согласно имени файла
-        if(deletingMode)
-            holder.deleteCheck.setVisibility(CheckBox.VISIBLE);
-        else
-            holder.deleteCheck.setVisibility(CheckBox.INVISIBLE);
-        if (selected.contains(position))
-            holder.deleteCheck.setChecked(true);
-        else
-            holder.deleteCheck.setChecked(false);
+        try {
+            Log.d("OLOLOG", "биндинг холдера ");
+            //устанавливаем битмап согласно имени файла
+            if (deletingMode)
+                holder.deleteCheck.setVisibility(CheckBox.VISIBLE);
+            else
+                holder.deleteCheck.setVisibility(CheckBox.INVISIBLE);
+            if (selected.contains(position))
+                holder.deleteCheck.setChecked(true);
+            else
+                holder.deleteCheck.setChecked(false);
 
-    holder.memeImageView.setImageBitmap(filteredMemes.get(position).getBitmap());
+            holder.memeImageView.setImageBitmap(filteredMemes.get(position).getBitmap());
             holder.memeTag.setText(filteredMemes.get(position).getTag());
 
 
 //защита от слишком быстрого ввода
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         //установка обработчика кликов для вызова активности просмотра
         holder.memeCardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(deletingMode)
-                {
+                if (deletingMode) {
                     holder.deleteCheck.setChecked(!holder.deleteCheck.isChecked());
-                    if(selected.contains(position))
+                    if (selected.contains(position))
                         selected.remove(selected.indexOf(position));
                     else
                         selected.add(position);
 
-                    if(selected.isEmpty()) {
+                    if (selected.isEmpty()) {
                         deletingMode = false;
-                        MainActivity.deletingMode=false;
+                        MainActivity.deletingMode = false;
 
-                       // mainMenu.getItem(3).setVisible(false);
+                        // mainMenu.getItem(3).setVisible(false);
                         mainMenu.getItem(2).setVisible(false);
                         mainMenu.getItem(1).setVisible(true);
                         redrawList();
                     }
-                }
-                else
-                {
+                } else {
 
                     Intent intent = new Intent(context, MemeViewerActivity.class);
                     intent.putExtra(MemeObject.memeObjectParcelTag, filteredMemes.get(position));
@@ -156,22 +152,21 @@ try{
         holder.memeCardView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                if(!deletingMode)
-                {holder.deleteCheck.setChecked(!holder.deleteCheck.isChecked());
-                    if(selected.contains(position))
+                if (!deletingMode) {
+                    holder.deleteCheck.setChecked(!holder.deleteCheck.isChecked());
+                    if (selected.contains(position))
                         selected.remove(position);
                     else
                         selected.add(position);
-                    deletingMode=true;
+                    deletingMode = true;
                     redrawList();
-                    MainActivity.deletingMode=true;
+                    MainActivity.deletingMode = true;
                     try {
                         MenuItem qwe = mainMenu.getItem(2);
                         qwe.setVisible(true);
                         mainMenu.getItem(1).setVisible(false);
                         //mainMenu.getItem(1).setVisible(false);
-                    }
-                    catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -182,16 +177,16 @@ try{
 
     }
 
-    public void redrawList()
-    {
+    public void redrawList() {
         this.notifyDataSetChanged();
     }
+
     @Override
     public int getItemCount() {
         return filteredMemes.size();
     }
 
-    public void setFilter(String newText){
+    public void setFilter(String newText) {
         getFilter().filter(newText);
     }
 
@@ -202,19 +197,18 @@ try{
             @Override
             protected FilterResults performFiltering(CharSequence charSequence) {
 
-                    String charString = charSequence.toString();
-                    if (charString.isEmpty())
-                         filteredMemes = memeObjects;
-                     else {
-                        filteredMemes = new ArrayList<>();
-                            for (MemeObject currentMeme : memeObjects)
-                            if (currentMeme.getTag().toLowerCase().contains(charString.toLowerCase()))
-                                filteredMemes.add(currentMeme);
-                    }
-                    FilterResults filterResults = new FilterResults();
+                String charString = charSequence.toString();
+                if (charString.isEmpty())
+                    filteredMemes = memeObjects;
+                else {
+                    filteredMemes = new ArrayList<>();
+                    for (MemeObject currentMeme : memeObjects)
+                        if (currentMeme.getTag().toLowerCase().contains(charString.toLowerCase()))
+                            filteredMemes.add(currentMeme);
+                }
+                FilterResults filterResults = new FilterResults();
                 filterResults.values = filteredMemes;
-                    return filterResults;
-
+                return filterResults;
 
 
             }
@@ -223,7 +217,7 @@ try{
             protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
 
                 filteredMemes = (ArrayList<MemeObject>) filterResults.values;
-                    notifyDataSetChanged();
+                notifyDataSetChanged();
 
             }
         };
@@ -234,12 +228,13 @@ try{
         public CardView memeCardView;
         public TextView memeTag;
         public CheckBox deleteCheck;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             memeCardView = itemView.findViewById(R.id.memeCardView);
             memeImageView = itemView.findViewById(R.id.memeImageView);
-            memeTag=itemView.findViewById(R.id.memeTag);
-            deleteCheck=itemView.findViewById(R.id.deleteCheck);
+            memeTag = itemView.findViewById(R.id.memeTag);
+            deleteCheck = itemView.findViewById(R.id.deleteCheck);
             deleteCheck.setVisibility(CheckBox.INVISIBLE);
             deleteCheck.setClickable(false);
 
@@ -255,9 +250,7 @@ try{
         }
 
 
-
     }
-
 
 
 }
