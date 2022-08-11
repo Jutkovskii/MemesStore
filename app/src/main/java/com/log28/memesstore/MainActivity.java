@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences userData;
     final String dbKey = "dbKey";
     final String SWITCH = "SWITCH";
-    public static boolean isDefaultSingEnabled;
+    public static boolean isDefaultSingEnabled=true;
     ArrayList<String> dbNames = new ArrayList<>();
     final String imagedb = "imagedb";
     final String videodb = "videodb";
