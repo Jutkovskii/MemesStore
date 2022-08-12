@@ -43,7 +43,7 @@ public class VideoLocalFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, null);// savedInstanceState);
         videoPlayer = view.findViewById(R.id.memeLocalVideoView);
-        videoPlayer.setVideoURI(new MemeFileHelper(context,MainActivity.uriFolder).getUriFromFile(relativeFilepath));
+        videoPlayer.setVideoURI(new MemeFileHelper(context,MemeUtils.uriFolder).getUriFromFile(relativeFilepath));
         videoPlayer.start();
     }
 

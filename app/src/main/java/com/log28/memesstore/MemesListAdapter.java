@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.content.Context.WINDOW_SERVICE;
-import static com.log28.memesstore.MainActivity.mainMenu;
+
 
 public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.ViewHolder> implements Filterable /* implements View.OnClickListener*/ {
 
@@ -67,7 +67,7 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
 
             //еcли  имя файла не имеет расширения (ссылка на веб-ресурс)
             //или сам файл существует на диске, то добавляется в список
-            if (!currentFile.contains(".") || MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).isExist(currentFile)) {
+            if (!currentFile.contains(".") || MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).isExist(currentFile)) {
 
                 //создание списка мемов
                 memeObjects.add(new MemeObject(this, currentFile, currentTag));
@@ -131,18 +131,18 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
 
                     if (selected.isEmpty()) {
                         deletingMode = false;
-                        MainActivity.deletingMode = false;
+                        MemeUtils.deletingMode = false;
 
                         // mainMenu.getItem(3).setVisible(false);
-                        mainMenu.getItem(2).setVisible(false);
-                        mainMenu.getItem(1).setVisible(true);
+                        MemeUtils.mainMenu.getItem(2).setVisible(false);
+                        MemeUtils.mainMenu.getItem(1).setVisible(true);
                         redrawList();
                     }
                 } else {
 
                     Intent intent = new Intent(context, MemeViewerActivity.class);
                     intent.putExtra(MemeObject.memeObjectParcelTag, filteredMemes.get(position));
-                    ((Activity) context).startActivityForResult(intent, MemeViewerActivity.REQUEST_CODE);
+                    ((Activity) context).startActivityForResult(intent, MemeUtils.REQUEST_CODE);
 
                 }
 
@@ -160,12 +160,10 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
                         selected.add(position);
                     deletingMode = true;
                     redrawList();
-                    MainActivity.deletingMode = true;
+                    MemeUtils.deletingMode = true;
                     try {
-                        MenuItem qwe = mainMenu.getItem(2);
-                        qwe.setVisible(true);
-                        mainMenu.getItem(1).setVisible(false);
-                        //mainMenu.getItem(1).setVisible(false);
+                        MemeUtils.mainMenu.getItem(2).setVisible(true);
+                        MemeUtils. mainMenu.getItem(1).setVisible(false);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

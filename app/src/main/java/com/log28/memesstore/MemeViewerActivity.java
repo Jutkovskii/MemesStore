@@ -15,16 +15,7 @@ import android.view.View;
 import android.widget.EditText;
 
 public class MemeViewerActivity extends AppCompatActivity {
-    //параметр для извлечения данны хиз интента
-    public static String FILENAME_EXTRA = "memeFilename";
-    //код удаления
-    public static int DELETED_MEME_CODE = 55;
-    //параметр для извлечения тегов
-    public static String FILETAG_EXTRA = "memeFiletag";
-    //код запроса данный активности
-    public static int REQUEST_CODE = 104;
 
-    public static int CHANGE_CODE = 38;
     //имя файла из БД
     String filename;
     //сообщение, добавляемое при отправке
@@ -77,7 +68,7 @@ public class MemeViewerActivity extends AppCompatActivity {
         if (item.getItemId() == R.id.deleteMem) {
             Intent intent = new Intent(this, MainActivity.class);
             intent.setData(Uri.parse(filename));
-            setResult(DELETED_MEME_CODE, intent);
+            setResult(MemeUtils.DELETED_MEME_CODE, intent);
             finish();
         }
         if (item.getItemId() == R.id.editMem) {
@@ -91,13 +82,13 @@ public class MemeViewerActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra(FILENAME_EXTRA, filename);
+        intent.putExtra(MemeUtils.FILENAME_EXTRA, filename);
 
         String tag = currentMemeTag.getText().toString();
 
-        intent.putExtra(FILETAG_EXTRA, tag);
+        intent.putExtra(MemeUtils.FILETAG_EXTRA, tag);
         if (currentMemeTag.isEnabled())
-            setResult(CHANGE_CODE, intent);
+            setResult(MemeUtils.CHANGE_CODE, intent);
         finish();
         super.onBackPressed();
     }
@@ -115,8 +106,8 @@ public class MemeViewerActivity extends AppCompatActivity {
             } else
                 intent.putExtra(Intent.EXTRA_STREAM, memeUri);
             String finalMessage = extraMressage + memeSign.getText();
-            if (MainActivity.isDefaultSingEnabled)
-                finalMessage = finalMessage + "\n\n" + MainActivity.defaultSign;
+            if (MemeUtils.isDefaultSingEnabled)
+                finalMessage = finalMessage + "\n\n" + MemeUtils.defaultSign;
             intent.putExtra(Intent.EXTRA_TEXT, finalMessage);
             startActivity(intent);
         } catch (Exception e) {

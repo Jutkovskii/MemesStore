@@ -3,6 +3,7 @@ package com.log28.memesstore;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -12,6 +13,8 @@ import androidx.annotation.RequiresApi;
 
 import org.jsoup.Jsoup;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
@@ -30,6 +33,7 @@ public class MemeFileHelper extends FileHelper {
 return new MemeFileHelper(context,persistentUri);
     }
 
+
     @RequiresApi(api = Build.VERSION_CODES.R)
     public Bitmap getPreview(String filePath){
         Bitmap preview=null;
@@ -37,6 +41,8 @@ return new MemeFileHelper(context,persistentUri);
        try{
            InputStream inputStream=context.getContentResolver().openInputStream(getUriFromFile(filePath));
            preview = BitmapFactory.decodeStream(inputStream,new Rect(),this.getOptions(filePath));
+           //preview=resize(preview);
+
        }
        catch (Exception e){
            e.printStackTrace();
@@ -44,6 +50,28 @@ return new MemeFileHelper(context,persistentUri);
        return preview;
     }
 
+    public Bitmap resize(Bitmap source){
+        try {
+            BitmapFactory.Options o = new BitmapFactory.Options();
+            o.inJustDecodeBounds = true;
+   float width = source.getWidth();
+            float height = source.getHeight();
+            final float WIDTH = 1200;
+            final float HEIGHT = 1200;
+            float scaleParameter = Math.max(WIDTH / width, HEIGHT / height);
+            float criteria = 2;
+            if (scaleParameter < criteria) {
+
+                Bitmap scaledBitmap = Bitmap.createScaledBitmap(source, Math.round(source.getWidth() / scaleParameter), Math.round(source.getHeight() / scaleParameter), false);
+                o.inJustDecodeBounds = false;
+                return scaledBitmap;
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        return source;
+    }
     @RequiresApi(api = Build.VERSION_CODES.R)
     public BitmapFactory.Options getOptions(String filename) {
         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -59,6 +87,7 @@ return new MemeFileHelper(context,persistentUri);
         return options;
 
     }
+
 
     public String createFileFromURL(String url){
         URLSaver urlSaver=new URLSaver(url);
@@ -125,7 +154,7 @@ return new MemeFileHelper(context,persistentUri);
                 if(FileClassifier.classifyByUrl(url)==FileClassifier.VK)
                 url =parseURL(url);
                 InputStream inputStream = (InputStream) new URL(url).getContent();
-                MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).writeToFile(inputStream,outputStream);
+                MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).writeToFile(inputStream,outputStream);
         }
             catch (Exception e){
             e.printStackTrace();

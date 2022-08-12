@@ -50,7 +50,7 @@ String relativeFilepath;
         super.onViewCreated(view,null);// savedInstanceState);
         memeImageView = view.findViewById(R.id.memeImageView);
         try {
-            memeImageView.setImageBitmap( MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(relativeFilepath));
+            memeImageView.setImageBitmap( MemeFileHelper.createFileHelper(context,MemeUtils.uriFolder).getPreview(relativeFilepath));
       } catch (Exception e) {
             e.printStackTrace();
         }

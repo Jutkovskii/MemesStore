@@ -64,7 +64,7 @@ this.memesListAdapter=memesListAdapter;
         this.context=context;
         memeTab=FileClassifier.classifyByTab(memeRelativePath );
         memeMimeType=FileClassifier.getMimeType(memeRelativePath );
-        memeUri=MemeFileHelper.createFileHelper(context,MainActivity.uriFolder).getUriFromFile(memeRelativePath);
+        memeUri=MemeFileHelper.createFileHelper(context,MemeUtils.uriFolder).getUriFromFile(memeRelativePath);
         memeBitmap= BitmapFactory.decodeResource(context.getResources(), R.raw.logo);
         if(memesListAdapter!=null){
             BitmapLoader bitmapLoader=new BitmapLoader();
@@ -111,7 +111,7 @@ this.memesListAdapter=memesListAdapter;
                 switch (FileClassifier.classfyByName(strings[0])) {
                     case FileClassifier.IMAGE:
                     case FileClassifier.GIF:
-                        local= MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(strings[0]);
+                        local= MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).getPreview(strings[0]);
                         break;
                     case FileClassifier.VIDEO:
 
@@ -121,11 +121,11 @@ this.memesListAdapter=memesListAdapter;
                         mediaMetadataRetriever.release();
                         break;
                     case FileClassifier.HTTPS:
-                        if(!MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).isExist(FileClassifier.getRelativePath(strings[0]))){
+                        if(!MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).isExist(FileClassifier.getRelativePath(strings[0]))){
                             InputStream inputStream = (InputStream) new URL("https://img.youtube.com/vi/"+strings[0]+"/hqdefault.jpg").getContent();
-                            MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).writeToFile(inputStream, MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).createFile(FileClassifier.getRelativePath(strings[0])));
+                            MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).writeToFile(inputStream, MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).createFile(FileClassifier.getRelativePath(strings[0])));
                         }
-                        local= MemeFileHelper.createFileHelper(context, MainActivity.uriFolder).getPreview(FileClassifier.getRelativePath(strings[0]));
+                        local= MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).getPreview(FileClassifier.getRelativePath(strings[0]));
                         break;
                 }
             }catch (Exception e){

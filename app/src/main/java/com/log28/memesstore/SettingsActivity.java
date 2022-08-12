@@ -32,13 +32,13 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        switchSign.setChecked(MainActivity.isDefaultSingEnabled);
+        switchSign.setChecked(MemeUtils.isDefaultSingEnabled);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        MainActivity.isDefaultSingEnabled = switchSign.isChecked();
+        MemeUtils.isDefaultSingEnabled = switchSign.isChecked();
     }
 
     public void onGetAppInfo(View v) {
@@ -59,14 +59,14 @@ public class SettingsActivity extends AppCompatActivity {
         Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
         chooseFile.setType("*/*");
         chooseFile = Intent.createChooser(chooseFile, "Choose a file");
-        startActivityForResult(chooseFile, MainActivity.REQUEST_DB);
+        startActivityForResult(chooseFile, MemeUtils.REQUEST_DB);
     }
 
     public void onClickExport(View v) {
         Intent chooseFile = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         chooseFile.setType("application/zip");
         chooseFile = Intent.createChooser(chooseFile, "Choose a file");
-        startActivityForResult(chooseFile, MainActivity.REQUEST_EXDB);
+        startActivityForResult(chooseFile, MemeUtils.REQUEST_EXDB);
     }
 
     @Override
