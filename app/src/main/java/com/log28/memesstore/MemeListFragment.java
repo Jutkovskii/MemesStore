@@ -53,11 +53,12 @@ public class MemeListFragment extends Fragment {
 
 
     public void changeFragment() {
-
-        memesListAdapter = new MemesListAdapter(view.getContext(), testdb);
-        memesListAdapter.setFilter(filterText);
-        memesList.setAdapter(memesListAdapter);
-        memesListAdapter.notifyDataSetChanged();
+if(view!=null) {
+    memesListAdapter = new MemesListAdapter(view.getContext(), testdb);
+    memesListAdapter.setFilter(filterText);
+    memesList.setAdapter(memesListAdapter);
+    memesListAdapter.notifyDataSetChanged();
+}
     }
 
     public void setFilter(String newText) {

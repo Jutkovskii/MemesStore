@@ -15,6 +15,7 @@ import org.jsoup.Jsoup;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
@@ -41,7 +42,7 @@ return new MemeFileHelper(context,persistentUri);
        try{
            InputStream inputStream=context.getContentResolver().openInputStream(getUriFromFile(filePath));
            preview = BitmapFactory.decodeStream(inputStream,new Rect(),this.getOptions(filePath));
-           //preview=resize(preview);
+
 
        }
        catch (Exception e){
@@ -50,35 +51,17 @@ return new MemeFileHelper(context,persistentUri);
        return preview;
     }
 
-    public Bitmap resize(Bitmap source){
-        try {
-            BitmapFactory.Options o = new BitmapFactory.Options();
-            o.inJustDecodeBounds = true;
-   float width = source.getWidth();
-            float height = source.getHeight();
-            final float WIDTH = 1200;
-            final float HEIGHT = 1200;
-            float scaleParameter = Math.max(WIDTH / width, HEIGHT / height);
-            float criteria = 2;
-            if (scaleParameter < criteria) {
-
-                Bitmap scaledBitmap = Bitmap.createScaledBitmap(source, Math.round(source.getWidth() / scaleParameter), Math.round(source.getHeight() / scaleParameter), false);
-                o.inJustDecodeBounds = false;
-                return scaledBitmap;
-            }
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-        return source;
-    }
     @RequiresApi(api = Build.VERSION_CODES.R)
-    public BitmapFactory.Options getOptions(String filename) {
+    public BitmapFactory.Options getOptions(String filename) throws FileNotFoundException {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         if (FileClassifier.classfyByName(filename) != FileClassifier.VIDEO) {
-            BitmapFactory.decodeFile(filename, options);
-            int koef = (int) ((float) (options.outWidth) / (float) (context.getDisplay().getWidth()) * 2);
+            InputStream inputStream=context.getContentResolver().openInputStream(getUriFromFile(filename));
+            Bitmap tmp=BitmapFactory.decodeStream(inputStream, new Rect(), options);
+           /* int koef = (int) ((float) (options.outWidth) / (float) (context.getDisplay().getWidth()) * 2);*/
+            final float WIDTH = 1200;
+            final float HEIGHT = 1200;
+            int koef = (int)  Math.max(options.outWidth/WIDTH, options.outHeight/HEIGHT);
             if (koef % 2 != 0) koef++;
             options.inSampleSize = koef;
         }

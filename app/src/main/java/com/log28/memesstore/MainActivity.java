@@ -98,17 +98,23 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         loadingProgress = findViewById(R.id.loadingProcess);
         loadingProgress.setVisibility(ProgressBar.INVISIBLE);
+        //создание и заполнение списка БД
+        databases = new ArrayList<>();
+        getPreferences();
+        for (String s : dbNames)
+            databases.add(new MemeDatabaseHelper(this, s, 1));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         //проверка наличия папки для хранения мемов
         if (checkPersistentUri())
             init();
     }
 
     public void init() {
-        //создание и заполнение списка БД
-        databases = new ArrayList<>();
-        getPreferences();
-        for (String s : dbNames)
-            databases.add(new MemeDatabaseHelper(this, s, 1));
+
         //создание фрагментов с мемами
         memeListFragments = new ArrayList<>();
         for (int i = 0; i < databases.size(); i++)
@@ -159,6 +165,7 @@ Intent intent=getIntent();
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        if (intent.getAction()!=Intent.ACTION_MAIN)
   new BackgroundLoader(this).execute(intent);
 
     }
@@ -168,6 +175,7 @@ Intent intent=getIntent();
         super.onDestroy();
         setPreferences();
     }
+
 
     private class ScreenSlidePagerAdapter extends FragmentStateAdapter {
 
@@ -385,12 +393,14 @@ Intent intent=getIntent();
 
         @Override
         protected ArrayList<String> doInBackground(Intent... inents) {
+            ArrayList<String> res=null;
             try {
-                getMemeFromIntent(inents[0]);
+                res=new ArrayList<>();
+                res.add(getMemeFromIntent(inents[0]));
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return null;
+            return res;
         }
 
         String saveFromUri(Uri uri) {
@@ -448,8 +458,8 @@ Intent intent=getIntent();
             }
             return filename;
         }
-        int getMemeFromIntent(Intent intent) {
-
+        String getMemeFromIntent(Intent intent) {
+String resname=null;
             //Если интент получен из вызванной галереи, тип null
             if (intent.getType() == null) {
                 //запрос курсора из БД контента всея ОС
@@ -462,7 +472,7 @@ Intent intent=getIntent();
                         uriArrayList.add(intent.getClipData().getItemAt(i).getUri());
 
                 for (Uri uri : uriArrayList) {
-                    saveFromUri(uri);
+                    resname=saveFromUri(uri);
                 }
 
             }
@@ -480,6 +490,7 @@ Intent intent=getIntent();
                             //фиксируем полученное имя
                             String filename = localFilename.substring(m.start());
                             databases.get(FileClassifier.classifyByTab(filename)).insert(filename);
+                            resname=filename;
                         }
                         break;
                         //мем - прямая ссылка на файл или ссылка из дискорда
@@ -487,12 +498,14 @@ Intent intent=getIntent();
                         String filename = intent.getClipData().getItemAt(0).getText().toString();
                         filename = MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).createFileFromURL(filename);
                         databases.get(FileClassifier.classifyByTab(filename)).insert(filename);
+                        resname=filename;
                         break;
                         //мем - ссылка на альбом ВК
                     case FileClassifier.VK:
                         String vkfilename = intent.getClipData().getItemAt(0).getText().toString();
                         vkfilename = MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).createFileFromURL(vkfilename);
                         databases.get(FileClassifier.classifyByTab(vkfilename)).insert(vkfilename);
+                        resname=vkfilename;
                         break;
                     //мем - картинка, gif или видео
                     case FileClassifier.IMAGE:
@@ -502,7 +515,7 @@ Intent intent=getIntent();
                         Uri uri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
                         if (uri == null)
                             uri = intent.getData();
-                        saveFromUri(uri);
+                        resname= saveFromUri(uri);
                         break;
 
 
@@ -512,13 +525,19 @@ Intent intent=getIntent();
 
             }
 
-            return tabNum;
+            return resname;
         }
 
         @Override
         protected void onPostExecute(ArrayList<String> strings) {
             loadingProgress.setVisibility(ProgressBar.INVISIBLE);
+            if(FileClassifier.classfyByName(strings.get(0))==FileClassifier.ARCH)
+                for(int i=0;i<memeListFragments.size();i++)
+
+                    memeListFragments.get(i).changeFragment();
+                else
             memeListFragments.get(tabNum).changeFragment();
+
         }
     }
 
