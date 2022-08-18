@@ -16,12 +16,16 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-
+    packagingOptions {
+        exclude 'META-INF/androidx.legacy_legacy-support-core-utils.version'
+        //or exclude 'META-INF/*'
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+
         applicationVariants.all{
                 // this method is use to rename your all apk weather
                 // it may be signed or unsigned(debug apk)
