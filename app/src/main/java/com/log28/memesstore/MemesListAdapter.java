@@ -67,7 +67,8 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
 
             //еcли  имя файла не имеет расширения (ссылка на веб-ресурс)
             //или сам файл существует на диске, то добавляется в список
-            if (!currentFile.contains(".") || MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).isExist(currentFile)) {
+            //if (!currentFile.contains(".") || MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).isExist(currentFile)) {
+                if (!currentFile.contains(".") || MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).exists(currentFile)) {
 
                 //создание списка мемов
                 memeObjects.add(new MemeObject(this, currentFile, currentTag));

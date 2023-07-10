@@ -121,7 +121,8 @@ this.memesListAdapter=memesListAdapter;
                         mediaMetadataRetriever.release();
                         break;
                     case FileClassifier.HTTPS:
-                        if(!MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).isExist(FileClassifier.getRelativePath(strings[0]))){
+                        //if(!MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).isExist(FileClassifier.getRelativePath(strings[0]))){
+                        if(!MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).exists(FileClassifier.getRelativePath(strings[0]))){
                             InputStream inputStream = (InputStream) new URL("https://img.youtube.com/vi/"+strings[0]+"/hqdefault.jpg").getContent();
                             MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).writeToFile(inputStream, MemeFileHelper.createFileHelper(context, MemeUtils.uriFolder).createFile(FileClassifier.getRelativePath(strings[0])));
                         }

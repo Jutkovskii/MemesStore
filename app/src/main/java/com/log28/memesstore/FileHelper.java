@@ -52,11 +52,14 @@ public class FileHelper {
     }
 
     public OutputStream createFile(String path) {
-        if (isExist(path)) return null;
+        //if (isExist(path)) return null;
+        if (exists(path)) return null;
         OutputStream outputStream = null;
         try {
             DocumentFile file;
-            if (!isExist(path)) {
+            //if (!isExist(path)) {
+            if (! exists(path)) {
+
                 detectFolders(path);
                 if (folders != null)
                     for (String folder : folders) {
@@ -130,10 +133,11 @@ public class FileHelper {
     public Uri getUriFromFile(String path) {
 
         try {
-            if (isExist(path)) {
+          //  if (isExist(path)) {
                 //DocumentFile.fromFile(new File(getAbsolutePath(path))).getUri();
-                return FileProvider.getUriForFile(context, context.getPackageName(), new File(getAbsolutePath(path)));
-            }
+           return  getSingleUri(path);
+             //  return FileProvider.getUriForFile(context, context.getPackageName(), new File(getAbsolutePath(path)));
+         //   }
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -154,7 +158,8 @@ public class FileHelper {
 
     public boolean deleteFile(String path) {
         try {
-            if (isExist(path))
+            //if (isExist(path))
+                if (   exists(path))
                 DocumentFile.fromSingleUri(context, getSingleUri(path)).delete();
         } catch (Exception e) {
             e.printStackTrace();
@@ -163,8 +168,19 @@ public class FileHelper {
         return true;
     }
 
+    public boolean exists(String path){
+        try {
+            return DocumentFile.fromSingleUri(context,getSingleUri(path)).exists();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public static boolean isExist(String path) {
         try {
+
             return DocumentFile.fromFile(new File(getAbsolutePath(path))).exists();
         } catch (Exception e) {
             e.printStackTrace();
@@ -192,6 +208,7 @@ public class FileHelper {
     }
 
     public static String getAbsolutePath(String path) {
+        String qwe =/*Environment.getExternalStorageDirectory() +*/ "///_SDCARD/" + appFolder + "/" + path;
         return Environment.getExternalStorageDirectory() + "/" + appFolder + "/" + path;
     }
 
@@ -263,7 +280,8 @@ public class FileHelper {
                         name = FileClassifier.getRelativePath(name);
                     fout = (FileOutputStream) createFile(name);
                 }
-                if (isExist(name) && !isEmpty(name))
+               // if (isExist(name) && !isEmpty(name))
+                if (exists(name) && !isEmpty(name))
                     continue;
                 BufferedOutputStream bufout = new BufferedOutputStream(fout);
                 byte[] buffer = new byte[1024];
