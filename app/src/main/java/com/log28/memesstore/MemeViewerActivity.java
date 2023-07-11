@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
@@ -29,6 +30,11 @@ public class MemeViewerActivity extends AppCompatActivity {
     Toolbar toolbar;
     Uri memeUri;
 
+    boolean isImage=false;
+    boolean isEdited=false;
+    FragmentTransaction fragmentTransaction;
+
+    ImageEditorFragment imageEditorFragment;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         savedInstanceState = null;
@@ -45,14 +51,15 @@ public class MemeViewerActivity extends AppCompatActivity {
         mimeType = memeObject.getMemeMimeType();
         memeUri = memeObject.getMemeUri();
         //выбор фрагмента в зависимости от типа
-        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.add(R.id.memeViewLayout, getFragment(filename, memeUri));
+        fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.add(R.id.memeViewLayout,getFragment(filename, memeUri));
         fragmentTransaction.commit();
+
         memeSign = findViewById(R.id.memeSign);
         currentMemeTag = findViewById(R.id.currentMemeTag);
         currentMemeTag.setText(memeTag);
         currentMemeTag.setEnabled(false);
-
+        currentMemeTag.setBackgroundColor(Color.argb(200,128,128,128));
     }
 
     @Override
@@ -73,6 +80,15 @@ public class MemeViewerActivity extends AppCompatActivity {
         }
         if (item.getItemId() == R.id.editMem) {
             currentMemeTag.setEnabled(true);
+            currentMemeTag.setBackgroundColor(Color.argb(255,255,255,255));
+            if(isImage){
+                fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                imageEditorFragment = new ImageEditorFragment(layoutIDs[4], filename);
+                fragmentTransaction.replace(R.id.memeViewLayout,imageEditorFragment);
+                fragmentTransaction.commit();
+                isEdited=true;
+            }
+
         }
 
         return false;//super.onOptionsItemSelected(item);
@@ -104,6 +120,10 @@ public class MemeViewerActivity extends AppCompatActivity {
 
                 extraMressage = "https://www.youtube.com/watch?v=" + filename + " ";
             } else
+                if(isEdited) {
+                    intent.putExtra(Intent.EXTRA_STREAM,  imageEditorFragment.save());
+                }
+                    else
                 intent.putExtra(Intent.EXTRA_STREAM, memeUri);
             String finalMessage = extraMressage + memeSign.getText();
             if (MemeUtils.isDefaultSingEnabled)
@@ -117,12 +137,15 @@ public class MemeViewerActivity extends AppCompatActivity {
 
     }
 
-    static int layoutIDs[] = {R.layout.fragment_image, R.layout.fragment_gif, R.layout.fragment_video, R.layout.fragment_video_local};
+    static int layoutIDs[] = {R.layout.fragment_image, R.layout.fragment_gif, R.layout.fragment_video, R.layout.fragment_video_local,R.layout.fragment_image_editor};
 
-    public static Fragment getFragment(String relativeFilepath, Uri memeUri) {
+    public Fragment getFragment(String relativeFilepath, Uri memeUri) {
         switch (FileClassifier.classfyByName(relativeFilepath)) {
             case FileClassifier.IMAGE:
-                return new ImageFragment(layoutIDs[0], relativeFilepath);
+                isImage=true;
+                 return new ImageFragment(layoutIDs[0], relativeFilepath);
+
+                //return new ImageEditorFragment(layoutIDs[0], relativeFilepath);
             case FileClassifier.GIF:
                 return new GifFragment(layoutIDs[1], relativeFilepath);
             case FileClassifier.HTTPS:

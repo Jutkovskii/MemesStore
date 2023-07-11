@@ -142,6 +142,8 @@ public class MemesListAdapter extends RecyclerView.Adapter<MemesListAdapter.View
                 } else {
 
                     Intent intent = new Intent(context, MemeViewerActivity.class);
+                    //Intent intent = new Intent(context, TestActivity.class);
+
                     intent.putExtra(MemeObject.memeObjectParcelTag, filteredMemes.get(position));
                     ((Activity) context).startActivityForResult(intent, MemeUtils.REQUEST_CODE);
 

@@ -9,11 +9,11 @@
 
     <application
         android:allowBackup="true"
+        android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher_legacy"
         android:label="@string/app_name"
-        android:supportsRtl="true"
         android:largeHeap="true"
-        android:hardwareAccelerated="true"
+        android:supportsRtl="true"
         android:theme="@style/Theme.MemesStore">
 
         <provider
@@ -29,10 +29,12 @@
         </provider>
 
         <activity android:name=".MemeViewerActivity" />
-        <activity android:name=".SettingsActivity"
-            tools:ignore="MissingClass" /> >
-        <activity android:name=".MainActivity"
-            android:launchMode="singleTask" >
+        <activity
+            android:name=".SettingsActivity"
+            tools:ignore="MissingClass" />
+        <activity
+            android:name=".MainActivity"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

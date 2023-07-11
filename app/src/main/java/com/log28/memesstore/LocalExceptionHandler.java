@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,6 +26,7 @@ if(exceptionGot) {
     intent.setType("plain/text");
     intent.putExtra(Intent.EXTRA_TEXT, e.getMessage());
     intent = Intent.createChooser(intent, "Отправить сообщение об ошибке");
+    Log.d("GSOM",e.toString());
     context.startActivity(intent);
     exceptionGot=false;
 }
